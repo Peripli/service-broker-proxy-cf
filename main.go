@@ -1,12 +1,13 @@
 package main
 
 import (
-"github.com/Peripli/service-broker-proxy/pkg/cf"
-"github.com/Peripli/service-broker-proxy/pkg/config"
-"github.com/Peripli/service-broker-proxy/pkg/osb"
-"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
-"github.com/Peripli/service-broker-proxy/pkg/sm"
-"github.com/sirupsen/logrus"
+	"github.com/Peripli/service-broker-proxy-cf/platform"
+	"github.com/Peripli/service-broker-proxy/pkg/config"
+	"github.com/Peripli/service-broker-proxy/pkg/osb"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
+	"github.com/Peripli/service-broker-proxy/pkg/sm"
+	"github.com/sirupsen/logrus"
+	"github.com/Peripli/service-broker-proxy-cf/middleware"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 		logrus.Fatal("Error loading configuration: ", err)
 	}
 
-	cfConfig, err := cf.DefaultConfig()
+	cfConfig, err := platform.DefaultConfig()
 	if err != nil {
 		logrus.Fatal("Error loading configuration: ", err)
 	}
@@ -40,7 +41,7 @@ func main() {
 		logrus.Fatal("Error creating SBProxy: ", err)
 	}
 
-	sbProxy.Use(cf.BasicAuth(cfConfig.Reg.User, cfConfig.Reg.Password))
+	sbProxy.Use(middleware.BasicAuth(cfConfig.Reg.User, cfConfig.Reg.Password))
 
 	sbProxy.Run()
 }

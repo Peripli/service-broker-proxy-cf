@@ -1,4 +1,4 @@
-package cf
+package middleware
 
 import (
 	"net/http"

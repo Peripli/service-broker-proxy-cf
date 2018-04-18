@@ -19,8 +19,8 @@ sm:
   timeoutSeconds: 10
 cf:
   api: "http://localhost:8080"
-  username: DL_595406317BCF840FD00005E8@global.sap.corp
-  password: Test1234
+  username: admin
+  password: admin
 #  clientID: sm-client
 #  clientSecret: sm-secret
   skipSSLVerify: true

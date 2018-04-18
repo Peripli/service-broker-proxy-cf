@@ -87,7 +87,7 @@ func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*p
 }
 
 func (b PlatformClient) DeleteBroker(r *platform.DeleteServiceBrokerRequest) error {
-	logrus.Debugf("Deleting broker with GUID [%s]...", r.Guid)
+	logrus.Debugf("Deleting broker with guid  = [%s]...", r.Guid)
 	logrus.Debug("Obtaining CF API access token...")
 	_, err := b.cfClient.GetToken()
 	if err != nil {

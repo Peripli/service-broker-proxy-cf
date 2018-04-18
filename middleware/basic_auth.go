@@ -3,20 +3,23 @@ package middleware
 import (
 	"net/http"
 
-	"fmt"
-
 	"github.com/Peripli/service-broker-proxy/pkg/httputils"
+	"github.com/sirupsen/logrus"
 )
 
-const notAuthorized = "Not Authorized"
+const (
+	notAuthorized = "Not Authorized"
+	errorMessage  = "Unauthorized resource access"
+)
 
 func BasicAuth(username, password string) func(handler http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !authorized(r, username, password) {
+				logrus.WithField("username", username).Debug(errorMessage)
 				httputils.WriteResponse(w, http.StatusUnauthorized, httputils.HTTPErrorResponse{
 					ErrorKey:     notAuthorized,
-					ErrorMessage: fmt.Sprintf("User %s is not not authorized to access this resource", username),
+					ErrorMessage: errorMessage,
 				},
 				)
 				return
@@ -27,6 +30,6 @@ func BasicAuth(username, password string) func(handler http.Handler) http.Handle
 }
 
 func authorized(r *http.Request, username, password string) bool {
-	u, p, isOk := r.BasicAuth()
-	return isOk && username == u && password == p
+	requestUsername, requestPassword, isOk := r.BasicAuth()
+	return isOk && username == requestUsername && password == requestPassword
 }

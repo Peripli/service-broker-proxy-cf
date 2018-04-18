@@ -89,10 +89,10 @@ func DefaultConfig() (*PlatformClientConfiguration, error) {
 		clientConfig.ClientSecret = platformSettings.Cf.ClientSecret
 	}
 	if len(platformSettings.Cf.Username) != 0 {
-		clientConfig.ClientID = platformSettings.Cf.ClientID
+		clientConfig.Username = platformSettings.Cf.Username
 	}
 	if len(platformSettings.Cf.Password) != 0 {
-		clientConfig.ClientSecret = platformSettings.Cf.ClientSecret
+		clientConfig.Password = platformSettings.Cf.Password
 	}
 	if platformSettings.Cf.SkipSSLVerify {
 		clientConfig.SkipSslValidation = platformSettings.Cf.SkipSSLVerify

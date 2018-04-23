@@ -6,6 +6,8 @@ import (
 
 	"time"
 
+	"errors"
+
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/spf13/viper"
@@ -22,9 +24,9 @@ func (rd RegistrationDetails) String() string {
 
 type PlatformClientConfiguration struct {
 	*cfclient.Config
+	cfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
 
-	Reg        *RegistrationDetails
-	createFunc func(*cfclient.Config) (*cfclient.Client, error)
+	Reg *RegistrationDetails
 }
 
 var _ platform.ClientConfiguration = &PlatformClientConfiguration{}
@@ -34,23 +36,23 @@ func (c *PlatformClientConfiguration) CreateFunc() (platform.Client, error) {
 }
 
 func (c *PlatformClientConfiguration) Validate() error {
-	if c.createFunc == nil {
-		return fmt.Errorf("platform config error: createFunc missing")
+	if c.cfClientCreateFunc == nil {
+		return errors.New("CF ClientCreateFunc missing")
 	}
 	if c.Config == nil {
-		return fmt.Errorf("platform config error: CF config missing")
+		return errors.New("CF client configuration missing")
 	}
 	if len(c.Config.ApiAddress) == 0 {
-		return fmt.Errorf("platform config error: CF ApiAddress missing")
+		return errors.New("CF client configuration ApiAddress missing")
 	}
 	if c.Reg == nil {
-		return fmt.Errorf("platform config error: Registration credentials missing")
+		return errors.New("CF client configuration Registration credentials missing")
 	}
 	if len(c.Reg.User) == 0 {
-		return fmt.Errorf("platform config error: Registration details user missing")
+		return errors.New("CF client configuration Registration details user missing")
 	}
 	if len(c.Reg.Password) == 0 {
-		return fmt.Errorf("platform config error: Registration details password missing")
+		return errors.New("CF client configuration Registration details password missing")
 	}
 	return nil
 }
@@ -103,8 +105,8 @@ func DefaultConfig() (*PlatformClientConfiguration, error) {
 		}
 	}
 	return &PlatformClientConfiguration{
-		Config:     clientConfig,
-		Reg:        platformSettings.Cf.Reg,
-		createFunc: cfclient.NewClient,
+		Config:             clientConfig,
+		Reg:                platformSettings.Cf.Reg,
+		cfClientCreateFunc: cfclient.NewClient,
 	}, nil
 }

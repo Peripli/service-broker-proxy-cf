@@ -1,0 +1,8 @@
+---
+applications:
+  - name: sm-proxy
+    env:
+      GOVERSION: go1.10
+      GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf
+    services:
+      - postgres

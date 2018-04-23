@@ -30,10 +30,6 @@
   unused-packages = true
 
 [[constraint]]
-  name = "github.com/spf13/viper"
-  version = "1.0.2"
-
-[[constraint]]
   name = "github.com/cloudfoundry-community/go-cfclient"
   branch = "master"
 
@@ -41,6 +37,6 @@
  name = "github.com/sirupsen/logrus"
  version = "1.0.5"
 
-#[[constraint]]
-# name = "github.com/Peripli/service-broker-proxy"
-# branch = "initial"
+[[constraint]]
+ name = "github.com/Peripli/service-broker-proxy"
+ branch = "initial"

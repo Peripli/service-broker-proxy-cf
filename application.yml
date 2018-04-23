@@ -18,14 +18,11 @@ sm:
   osbApi: /v1/osb
   timeoutSeconds: 10
 cf:
-  api:
+  api: https://api.local.pcfdev.io
   username: admin
   password: admin
-#  clientID: sm-client
-#  clientSecret: sm-secret
   skipSSLVerify: true
   timeoutSeconds: 10
-  # Reg contains info about the credentials that will be used when proxy registers itself as a broker
   reg:
     user: admin
     password: admin

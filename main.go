@@ -13,6 +13,9 @@ const env_prefix = "PROXY"
 func main() {
 
 	env := env.Default(env_prefix)
+	if err := env.Load(); err != nil {
+		logrus.WithError(err).Fatal("Error loading environment")
+	}
 
 	proxyConfig, err := sbproxy.NewConfigFromEnv(env)
 	if err != nil {

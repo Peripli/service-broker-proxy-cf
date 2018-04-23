@@ -10,7 +10,7 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/spf13/viper"
+	"github.com/Peripli/service-broker-proxy/pkg/env"
 )
 
 type RegistrationDetails struct {
@@ -68,14 +68,14 @@ type settings struct {
 	Reg            *RegistrationDetails
 }
 
-func DefaultConfig() (*PlatformClientConfiguration, error) {
+func NewConfig(env env.Environment) (*PlatformClientConfiguration, error) {
+
 	platformSettings := &struct {
 		Cf *settings
 	}{
 		Cf: &settings{},
 	}
-	//TODO BindEnv
-	if err := viper.Unmarshal(platformSettings); err != nil {
+	if err := env.Unmarshal(platformSettings); err != nil {
 		return nil, err
 	}
 

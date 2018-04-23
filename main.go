@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/Peripli/service-broker-proxy-cf/middleware"
-	"github.com/Peripli/service-broker-proxy/pkg/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/osb"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/server"
 	"github.com/Peripli/service-broker-proxy/pkg/sm"
 	"github.com/sirupsen/logrus"
+	"github.com/Peripli/service-broker-proxy-cf/platform"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 		logrus.WithError(err).Fatal("Error loading configuration")
 	}
 
-	cfConfig, err := cf.DefaultConfig()
+	cfConfig, err := platform.DefaultConfig()
 	if err != nil {
 		logrus.WithError(err).Fatal("Error loading configuration")
 	}

@@ -5,7 +5,7 @@
 # If any of the provided env variables are supposed to be "Unmarshaled" via viper, they need to have default values
 # specified here so that viper may know for these env vars' existence and use them during unmarshaling
 
-server:
+app:
   port: 8081
   logLevel: debug
   logFormat: text

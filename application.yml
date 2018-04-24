@@ -6,21 +6,21 @@
 # specified here so that viper may know for these env vars' existence and use them during unmarshaling
 
 app:
-  port: 8081
+  port: 8080
   logLevel: debug
   logFormat: text
   timeoutSeconds: 5
-  host: http://localhost:8081
+  host: https://sbproxy.com
 sm:
   user: admin
   password: admin
-  host: http://localhost:8080
+  host: https://service-manager.com
   osbApi: /v1/osb
   timeoutSeconds: 10
 cf:
-  api: https://api.local.pcfdev.io
-  username: admin
-  password: admin
+  api: http://api.bosh-lite.com
+  username: cfuser
+  password: cfpassword
   skipSSLVerify: true
   timeoutSeconds: 10
   reg:

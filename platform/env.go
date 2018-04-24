@@ -21,7 +21,7 @@ func (e *platformEnv) Load() (err error) {
 	if e.cfEnv, err = cfenv.Current(); err != nil {
 		return
 	}
-	e.Environment.Set("app.host", "https://" + e.cfEnv.ApplicationURIs[0] + "/v1/osb")
+	e.Environment.Set("app.host", "https://" + e.cfEnv.ApplicationURIs[0])
 	e.Environment.Set("cf.api", e.cfEnv.CFAPI)
 	return
 }

@@ -1,8 +1,11 @@
 ---
 applications:
   - name: sm-proxy
+    memory: 256M
     env:
       GOVERSION: go1.10
       GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf
-    services:
-      - postgres
+      SM_HOST: https://service-manager.com
+      CF_USERNAME: cfuser
+      CF_PASSWORD: cfpassword
+#      SPACE_GUID: 917453fa-5c2c-414c-a0e9-904829e5de24

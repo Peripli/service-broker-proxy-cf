@@ -31,6 +31,11 @@
   revision = "cfc053bbd9609d0bf45e7009b283672caa757899"
 
 [[projects]]
+  name = "github.com/cloudfoundry-community/go-cfenv"
+  packages = ["."]
+  revision = "e84b5c116637ef174eb8c7d68a28bc7269b3b9cb"
+
+[[projects]]
   branch = "master"
   name = "github.com/cloudfoundry/gofileutils"
   packages = ["fileutils"]
@@ -349,6 +354,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a6f35a2ac1be1064bf2a84e6d9562636f254f81f4606c91752bd597d88d0df45"
+  inputs-digest = "aff653c149d4753d41a5ae2cdf7c79facdbc4ee2b7a5b90d42db18504e96c6ca"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -6,13 +6,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/Peripli/service-broker-proxy-cf/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/env"
+	"os"
 )
 
-const env_prefix = "PROXY"
-
 func main() {
-
-	env := env.Default(env_prefix)
+	logrus.SetOutput(os.Stdout)
+	//env := env.Default("")
+	env := platform.NewEnv(env.Default(""))
 	if err := env.Load(); err != nil {
 		logrus.WithError(err).Fatal("Error loading environment")
 	}

@@ -58,6 +58,7 @@ func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*p
 		Password:  b.reg.Password,
 		Name:      r.Name,
 		BrokerURL: r.BrokerURL,
+		//SpaceGUID: os.Getenv("SPACE_GUID"),
 	}
 
 	broker, err := b.cfClient.CreateServiceBroker(request)

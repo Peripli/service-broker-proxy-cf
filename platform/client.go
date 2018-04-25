@@ -51,7 +51,7 @@ func (b PlatformClient) GetBrokers() ([]platform.ServiceBroker, error) {
 }
 
 func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
-	logrus.Debugf("Creating broker via CF Client with name [%s]...", r.Name)
+	logrus.Debugf("Creating broker via CF Client with name [%s] and [%]...", r.Name)
 
 	request := cfclient.CreateServiceBrokerRequest{
 		Username:  b.reg.User,
@@ -110,11 +110,14 @@ func (b PlatformClient) UpdateBroker(r *platform.UpdateServiceBrokerRequest) (*p
 	return response, nil
 }
 
-func (b PlatformClient) Fetch(serviceBroker *platform.ServiceBroker) error {
+func (b PlatformClient) Fetch(broker *platform.ServiceBroker) error {
+	logrus.Debugf("Refetching catalog for broker with name [%s] and guid [%s]", broker.Name, broker.Guid)
 	_, err := b.UpdateBroker(&platform.UpdateServiceBrokerRequest{
-		Guid:      serviceBroker.Guid,
-		Name:      serviceBroker.Name,
-		BrokerURL: serviceBroker.BrokerURL,
+		Guid:      broker.Guid,
+		Name:      broker.Name,
+		BrokerURL: broker.BrokerURL,
 	})
+	logrus.Debugf("Successfully refetched catalog for broker with name [%s] and guid [%s]", broker.Name, broker.Guid)
+
 	return err
 }

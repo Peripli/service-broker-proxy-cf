@@ -5,16 +5,16 @@ import (
 	"github.com/cloudfoundry-community/go-cfenv"
 )
 
-func NewEnv(delegate sb.Environment) sb.Environment{
-	return &platformEnv{Environment: delegate}
+func NewCFEnv(delegate sb.Environment) sb.Environment{
+	return &cfEnv{Environment: delegate}
 }
 
-type platformEnv struct{
+type cfEnv struct{
 	cfEnv *cfenv.App
 	sb.Environment
 }
 
-func (e *platformEnv) Load() (err error) {
+func (e *cfEnv) Load() (err error) {
 	if err = e.Environment.Load(); err != nil {
 		return
 	}
@@ -23,5 +23,4 @@ func (e *platformEnv) Load() (err error) {
 	}
 	e.Environment.Set("app.host", "https://" + e.cfEnv.ApplicationURIs[0])
 	e.Environment.Set("cf.api", e.cfEnv.CFAPI)
-	return
 }

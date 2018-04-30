@@ -1,16 +1,15 @@
 package platform
 
 import (
-	"fmt"
 	"net/http"
 
 	"time"
 
 	"errors"
 
-	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/Peripli/service-broker-proxy/pkg/env"
+	"fmt"
 )
 
 type RegistrationDetails struct {
@@ -18,25 +17,15 @@ type RegistrationDetails struct {
 	Password string
 }
 
-func (rd RegistrationDetails) String() string {
-	return fmt.Sprintf("User: %s Host: %s", rd.User)
-}
-
 type PlatformClientConfiguration struct {
 	*cfclient.Config
-	cfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
+	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
 
 	Reg *RegistrationDetails
 }
 
-var _ platform.ClientConfiguration = &PlatformClientConfiguration{}
-
-func (c *PlatformClientConfiguration) CreateFunc() (platform.Client, error) {
-	return NewClient(c)
-}
-
 func (c *PlatformClientConfiguration) Validate() error {
-	if c.cfClientCreateFunc == nil {
+	if c.CfClientCreateFunc == nil {
 		return errors.New("CF ClientCreateFunc missing")
 	}
 	if c.Config == nil {
@@ -57,6 +46,7 @@ func (c *PlatformClientConfiguration) Validate() error {
 	return nil
 }
 
+//TODO introduce flags and bindenv in init?
 type settings struct {
 	Api            string
 	ClientID       string
@@ -68,11 +58,13 @@ type settings struct {
 	Reg            *RegistrationDetails
 }
 
+type cfSettings struct {
+	Cf *settings
+}
+
 func NewConfig(env env.Environment) (*PlatformClientConfiguration, error) {
 
-	platformSettings := &struct {
-		Cf *settings
-	}{
+	platformSettings := &cfSettings{
 		Cf: &settings{},
 	}
 	if err := env.Unmarshal(platformSettings); err != nil {
@@ -107,6 +99,11 @@ func NewConfig(env env.Environment) (*PlatformClientConfiguration, error) {
 	return &PlatformClientConfiguration{
 		Config:             clientConfig,
 		Reg:                platformSettings.Cf.Reg,
-		cfClientCreateFunc: cfclient.NewClient,
+		CfClientCreateFunc: cfclient.NewClient,
 	}, nil
 }
+
+func (rd RegistrationDetails) String() string {
+	return fmt.Sprintf("User: %s Host: %s", rd.User)
+}
+

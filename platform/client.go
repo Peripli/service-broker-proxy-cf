@@ -15,13 +15,13 @@ type PlatformClient struct {
 }
 
 var _ platform.Client = &PlatformClient{}
-var _ platform.Fetcher = &PlatformClient{}
+var _ platform.CatalogFetcher = &PlatformClient{}
 
 func NewClient(config *PlatformClientConfiguration) (platform.Client, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	cfClient, err := config.cfClientCreateFunc(config.Config)
+	cfClient, err := config.CfClientCreateFunc(config.Config)
 	if err != nil {
 		return nil, err
 	}

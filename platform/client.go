@@ -17,7 +17,7 @@ type PlatformClient struct {
 var _ platform.Client = &PlatformClient{}
 var _ platform.CatalogFetcher = &PlatformClient{}
 
-func NewClient(config *PlatformClientConfiguration) (platform.Client, error) {
+func NewClient(config *PlatformClientConfiguration) (*PlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
@@ -120,9 +120,9 @@ func (e cfError) Error() string {
 }
 
 func wrapCFError(err error) error {
-	error, ok := errors.Cause(err).(cfclient.CloudFoundryError)
+	cause, ok := errors.Cause(err).(cfclient.CloudFoundryError)
 	if ok {
-		return errors.WithStack(cfError(error))
+		return errors.WithStack(cfError(cause))
 	}
 	return err
 }

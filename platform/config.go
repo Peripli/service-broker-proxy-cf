@@ -46,7 +46,6 @@ func (c *PlatformClientConfiguration) Validate() error {
 	return nil
 }
 
-//TODO introduce flags and bindenv in init?
 type settings struct {
 	Api            string
 	ClientID       string
@@ -104,6 +103,6 @@ func NewConfig(env env.Environment) (*PlatformClientConfiguration, error) {
 }
 
 func (rd RegistrationDetails) String() string {
-	return fmt.Sprintf("User: %s Host: %s", rd.User)
+	return fmt.Sprintf("Reg details: User: %s", rd.User)
 }
 

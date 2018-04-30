@@ -5,7 +5,7 @@ app:
   logLevel: debug
   logFormat: text
   timeoutSeconds: 500
-  host: http://host.pcfdev.io:8080
+  host: http://10.0.2.2:8080
 sm:
   user: admin
   password: admin
@@ -17,7 +17,7 @@ cf:
   username: admin
   password: admin
   skipSSLVerify: true
-  timeoutSeconds: 5
+  timeoutSeconds: 500
   reg:
     user: admin
     password: admin

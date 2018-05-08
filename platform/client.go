@@ -40,7 +40,7 @@ func (b PlatformClient) GetBrokers() ([]platform.ServiceBroker, error) {
 	var clientBrokers []platform.ServiceBroker
 	for _, broker := range brokers {
 		serviceBroker := platform.ServiceBroker{
-			Guid:      broker.Guid,
+			GUID:      broker.Guid,
 			Name:      broker.Name,
 			BrokerURL: broker.BrokerURL,
 		}
@@ -66,7 +66,7 @@ func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*p
 	}
 
 	response := &platform.ServiceBroker{
-		Guid:      broker.Guid,
+		GUID:      broker.Guid,
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	}
@@ -76,7 +76,7 @@ func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*p
 
 func (b PlatformClient) DeleteBroker(r *platform.DeleteServiceBrokerRequest) error {
 
-	if err := b.cfClient.DeleteServiceBroker(r.Guid); err != nil {
+	if err := b.cfClient.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
 	}
 
@@ -92,12 +92,12 @@ func (b PlatformClient) UpdateBroker(r *platform.UpdateServiceBrokerRequest) (*p
 		BrokerURL: r.BrokerURL,
 	}
 
-	broker, err := b.cfClient.UpdateServiceBroker(r.Guid, request)
+	broker, err := b.cfClient.UpdateServiceBroker(r.GUID, request)
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
 	response := &platform.ServiceBroker{
-		Guid:      broker.Guid,
+		GUID:      broker.Guid,
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	}
@@ -107,7 +107,7 @@ func (b PlatformClient) UpdateBroker(r *platform.UpdateServiceBrokerRequest) (*p
 
 func (b PlatformClient) Fetch(broker *platform.ServiceBroker) error {
 	_, err := b.UpdateBroker(&platform.UpdateServiceBrokerRequest{
-		Guid:      broker.Guid,
+		GUID:      broker.GUID,
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	})

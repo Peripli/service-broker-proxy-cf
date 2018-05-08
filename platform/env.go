@@ -10,8 +10,9 @@ func NewCFEnv(delegate sb.Environment) sb.Environment {
 }
 
 type cfEnv struct {
-	cfEnv *cfenv.App
 	sb.Environment
+
+	cfEnv *cfenv.App
 }
 
 func (e *cfEnv) Load() (err error) {

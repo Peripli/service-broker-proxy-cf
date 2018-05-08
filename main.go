@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Peripli/service-broker-proxy-cf/middleware"
+	"github.com/Peripli/service-broker-proxy/pkg/middleware"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/sirupsen/logrus"
 	"github.com/Peripli/service-broker-proxy-cf/platform"

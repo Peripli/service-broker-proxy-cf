@@ -9,13 +9,12 @@ import (
 )
 
 func main() {
-	//env := env.Default("")
-	env := platform.NewCFEnv(env.Default(""))
-	if err := env.Load(); err != nil {
+	cfEnv := cf.NewCFEnv(env.Default(""))
+	if err := cfEnv.Load(); err != nil {
 		logrus.WithError(err).Fatal("Error loading environment")
 	}
 
-	platformConfig, err := cf.NewConfig(env)
+	platformConfig, err := cf.NewConfig(cfEnv)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error loading configuration")
 	}
@@ -25,7 +24,7 @@ func main() {
 		logrus.WithError(err).Fatal("Error creating cf client")
 	}
 
-	proxyConfig, err := sbproxy.NewConfigFromEnv(env)
+	proxyConfig, err := sbproxy.NewConfigFromEnv(cfEnv)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error loading configuration")
 	}

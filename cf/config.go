@@ -19,8 +19,8 @@ type RegistrationDetails struct {
 	Password string
 }
 
-// CFClientConfiguration type holds config info for building the cf client
-type CFClientConfiguration struct {
+// ClientConfiguration type holds config info for building the cf client
+type ClientConfiguration struct {
 	*cfclient.Config
 	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
 
@@ -28,7 +28,7 @@ type CFClientConfiguration struct {
 }
 
 // Validate validates the configuration and returns appropriate errors in case it is invalid
-func (c *CFClientConfiguration) Validate() error {
+func (c *ClientConfiguration) Validate() error {
 	if c.CfClientCreateFunc == nil {
 		return errors.New("CF ClientCreateFunc missing")
 	}
@@ -51,7 +51,7 @@ func (c *CFClientConfiguration) Validate() error {
 }
 
 type settings struct {
-	Api            string
+	API            string
 	ClientID       string
 	ClientSecret   string
 	Username       string
@@ -65,8 +65,8 @@ type cfSettings struct {
 	Cf *settings
 }
 
-// NewConfig creates CFClientConfiguration from the provided environment
-func NewConfig(env env.Environment) (*CFClientConfiguration, error) {
+// NewConfig creates ClientConfiguration from the provided environment
+func NewConfig(env env.Environment) (*ClientConfiguration, error) {
 
 	platformSettings := &cfSettings{
 		Cf: &settings{},
@@ -77,8 +77,8 @@ func NewConfig(env env.Environment) (*CFClientConfiguration, error) {
 
 	clientConfig := cfclient.DefaultConfig()
 
-	if len(platformSettings.Cf.Api) != 0 {
-		clientConfig.ApiAddress = platformSettings.Cf.Api
+	if len(platformSettings.Cf.API) != 0 {
+		clientConfig.ApiAddress = platformSettings.Cf.API
 	}
 	if len(platformSettings.Cf.ClientID) != 0 {
 		clientConfig.ClientID = platformSettings.Cf.ClientID
@@ -100,7 +100,7 @@ func NewConfig(env env.Environment) (*CFClientConfiguration, error) {
 			Timeout: time.Duration(platformSettings.Cf.TimeoutSeconds) * time.Second,
 		}
 	}
-	return &CFClientConfiguration{
+	return &ClientConfiguration{
 		Config:             clientConfig,
 		Reg:                platformSettings.Cf.Reg,
 		CfClientCreateFunc: cfclient.NewClient,

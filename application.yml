@@ -1,5 +1,4 @@
 # Any of the below config properties can be provided via Environment Variables
-
 app:
   port: 8080
   logLevel: debug

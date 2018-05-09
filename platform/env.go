@@ -13,7 +13,7 @@ type cfEnv struct {
 	cfEnv *cfenv.App
 }
 
-//NewCFEnv creates a new CF proxy environment from the provided default proxy environment
+// NewCFEnv creates a new CF proxy environment from the provided default proxy environment
 func NewCFEnv(delegate sb.Environment) sb.Environment {
 	return &cfEnv{Environment: delegate}
 }

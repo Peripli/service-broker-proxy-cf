@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	//cfEnv := env.Default("")
 	cfEnv := cf.NewCFEnv(env.Default(""))
 	if err := cfEnv.Load(); err != nil {
 		logrus.WithError(err).Fatal("Error loading environment")

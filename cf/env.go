@@ -1,4 +1,4 @@
-package platform
+package cf
 
 import (
 	sb "github.com/Peripli/service-broker-proxy/pkg/env"

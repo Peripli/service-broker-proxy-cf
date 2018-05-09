@@ -1,5 +1,5 @@
-// Package platform contains the platform specific logic for the proxy
-package platform
+// Package cf contains the cf specific logic for the proxy
+package cf
 
 import (
 	"net/http"
@@ -13,13 +13,13 @@ import (
 	"fmt"
 )
 
-// RegistrationDetails type represents the credentials used to register a broker at the platform
+// RegistrationDetails type represents the credentials used to register a broker at the cf
 type RegistrationDetails struct {
 	User     string
 	Password string
 }
 
-// CFClientConfiguration type holds config info for building the platform client
+// CFClientConfiguration type holds config info for building the cf client
 type CFClientConfiguration struct {
 	*cfclient.Config
 	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)

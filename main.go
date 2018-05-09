@@ -4,7 +4,7 @@ import (
 	"github.com/Peripli/service-broker-proxy/pkg/middleware"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/sirupsen/logrus"
-	"github.com/Peripli/service-broker-proxy-cf/platform"
+	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/env"
 )
 
@@ -15,14 +15,14 @@ func main() {
 		logrus.WithError(err).Fatal("Error loading environment")
 	}
 
-	platformConfig, err := platform.NewConfig(env)
+	platformConfig, err := cf.NewConfig(env)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error loading configuration")
 	}
 
-	platformClient, err := platform.NewClient(platformConfig)
+	platformClient, err := cf.NewClient(platformConfig)
 	if err != nil {
-		logrus.WithError(err).Fatal("Error creating platform client")
+		logrus.WithError(err).Fatal("Error creating cf client")
 	}
 
 	proxyConfig, err := sbproxy.NewConfigFromEnv(env)

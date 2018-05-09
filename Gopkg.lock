@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  branch = "initial"
+  branch = "master"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/env",
@@ -16,7 +16,7 @@
     "pkg/sbproxy/server",
     "pkg/sm"
   ]
-  revision = "2777df17fef55e257a61ad13cf00015c662831cb"
+  revision = "4d020bef0c31437c1568ad16cd570d0be4639cac"
 
 [[projects]]
   branch = "master"
@@ -301,6 +301,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3f363518fa847dd6565ccf5404f8975c91353c15acbb6ec02ffa678758ae5a1f"
+  inputs-digest = "533302dbda2e9769bd511e1e6fd3d243482032df23ad4e8c87306aaeec979295"
   solver-name = "gps-cdcl"
   solver-version = 1

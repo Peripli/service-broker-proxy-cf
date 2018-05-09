@@ -1,3 +1,4 @@
+// Package platform contains the platform specific logic for the proxy
 package platform
 
 import (
@@ -12,19 +13,22 @@ import (
 	"fmt"
 )
 
+// RegistrationDetails type represents the credentials used to register a broker at the platform
 type RegistrationDetails struct {
 	User     string
 	Password string
 }
 
-type PlatformClientConfiguration struct {
+// CFClientConfiguration type holds config info for building the platform client
+type CFClientConfiguration struct {
 	*cfclient.Config
 	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
 
 	Reg *RegistrationDetails
 }
 
-func (c *PlatformClientConfiguration) Validate() error {
+// Validate validates the configuration and returns appropriate errors in case it is invalid
+func (c *CFClientConfiguration) Validate() error {
 	if c.CfClientCreateFunc == nil {
 		return errors.New("CF ClientCreateFunc missing")
 	}
@@ -61,7 +65,8 @@ type cfSettings struct {
 	Cf *settings
 }
 
-func NewConfig(env env.Environment) (*PlatformClientConfiguration, error) {
+// NewConfig creates CFClientConfiguration from the provided environment
+func NewConfig(env env.Environment) (*CFClientConfiguration, error) {
 
 	platformSettings := &cfSettings{
 		Cf: &settings{},
@@ -95,13 +100,14 @@ func NewConfig(env env.Environment) (*PlatformClientConfiguration, error) {
 			Timeout: time.Duration(platformSettings.Cf.TimeoutSeconds) * time.Second,
 		}
 	}
-	return &PlatformClientConfiguration{
+	return &CFClientConfiguration{
 		Config:             clientConfig,
 		Reg:                platformSettings.Cf.Reg,
 		CfClientCreateFunc: cfclient.NewClient,
 	}, nil
 }
 
+// String provides a string representation of the registration details
 func (rd RegistrationDetails) String() string {
 	return fmt.Sprintf("Reg details: User: %s", rd.User)
 }

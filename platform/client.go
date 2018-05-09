@@ -7,17 +7,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+// cfError type represents a CF error with improved error message
 type cfError cfclient.CloudFoundryError
 
-type PlatformClient struct {
+// CFPlatformClient provides an implementation of the service-broker-proxy/pkg/platform/Client interface.
+// It is uesd to call into the platform that the proxy deployed at.
+type CFPlatformClient struct {
 	cfClient *cfclient.Client
 	reg      *RegistrationDetails
 }
 
-var _ platform.Client = &PlatformClient{}
-var _ platform.CatalogFetcher = &PlatformClient{}
+var _ platform.Client = &CFPlatformClient{}
+var _ platform.CatalogFetcher = &CFPlatformClient{}
 
-func NewClient(config *PlatformClientConfiguration) (*PlatformClient, error) {
+// NewClient creates a new CF platform client from the specified configuration.
+func NewClient(config *CFClientConfiguration) (*CFPlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
@@ -25,13 +29,15 @@ func NewClient(config *PlatformClientConfiguration) (*PlatformClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PlatformClient{
+	return &CFPlatformClient{
 		cfClient: cfClient,
 		reg:      config.Reg,
 	}, nil
 }
 
-func (b PlatformClient) GetBrokers() ([]platform.ServiceBroker, error) {
+// GetBrokers implements service-broker-proxy/pkg/platform/Client.GetBrokers and provides logic for
+// obtaining the brokers that are already registered at the platform.
+func (b CFPlatformClient) GetBrokers() ([]platform.ServiceBroker, error) {
 	brokers, err := b.cfClient.ListServiceBrokers()
 	if err != nil {
 		return nil, wrapCFError(err)
@@ -50,7 +56,9 @@ func (b PlatformClient) GetBrokers() ([]platform.ServiceBroker, error) {
 	return clientBrokers, nil
 }
 
-func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
+// CreateBroker implements service-broker-proxy/pkg/platform/Client.CreateBroker and provides logic for
+// registering a new broker at the platform.
+func (b CFPlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.CreateServiceBrokerRequest{
 		Username:  b.reg.User,
@@ -74,7 +82,9 @@ func (b PlatformClient) CreateBroker(r *platform.CreateServiceBrokerRequest) (*p
 	return response, nil
 }
 
-func (b PlatformClient) DeleteBroker(r *platform.DeleteServiceBrokerRequest) error {
+// DeleteBroker implements service-broker-proxy/pkg/platform/Client.DeleteBroker and provides logic for
+// registering a new broker at the platform.
+func (b CFPlatformClient) DeleteBroker(r *platform.DeleteServiceBrokerRequest) error {
 
 	if err := b.cfClient.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
@@ -83,7 +93,9 @@ func (b PlatformClient) DeleteBroker(r *platform.DeleteServiceBrokerRequest) err
 	return nil
 }
 
-func (b PlatformClient) UpdateBroker(r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
+// UpdateBroker implements service-broker-proxy/pkg/platform/Client.UpdateBroker and provides logic for
+// updating a broker registration at the platform.
+func (b CFPlatformClient) UpdateBroker(r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.UpdateServiceBrokerRequest{
 		Username:  b.reg.User,
@@ -105,7 +117,9 @@ func (b PlatformClient) UpdateBroker(r *platform.UpdateServiceBrokerRequest) (*p
 	return response, nil
 }
 
-func (b PlatformClient) Fetch(broker *platform.ServiceBroker) error {
+// Fetch implements service-broker-proxy/pkg/platform/Fetcher.Fetch and provides logic for triggering refetching
+// of the broker's catalog
+func (b CFPlatformClient) Fetch(broker *platform.ServiceBroker) error {
 	_, err := b.UpdateBroker(&platform.UpdateServiceBrokerRequest{
 		GUID:      broker.GUID,
 		Name:      broker.Name,

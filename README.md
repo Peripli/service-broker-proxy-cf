@@ -5,3 +5,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/Peripli/service-broker-proxy-cf/badge.svg)](https://coveralls.io/github/Peripli/service-broker-proxy-cf)
 
 CF Specific Implementation for Service Broker Proxy Module
+
+[Run on PCF Dev](./docs/deploy-pcfdev.md)

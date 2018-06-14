@@ -16,6 +16,7 @@
 
 /vendor
 /vendor.orig
+/vendor
 
 # debug executable
 /debug

@@ -9,120 +9,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 	"github.com/pkg/errors"
 	"net/http"
-	"net/url"
-	"reflect"
-	"strings"
 )
-
-// consts
-//types /structs
-// util funcs
-// https://github.com/pmorie/go-open-service-broker-client/blob/master/v2/client_test.go
-
-// InvalidJSON  represents an invalid JSON input
-const InvalidJSON = `{`
-
-type expectedRequest struct {
-	Method   string
-	Path     string
-	RawQuery string
-	Headers  map[string][]string
-	Body     interface{}
-}
-
-type reactionResponse struct {
-	Code    int
-	Body    interface{}
-	Error   error
-	Headers map[string][]string
-}
-
-type mockRoute struct {
-	requestChecks expectedRequest
-	reaction      reactionResponse
-}
-
-func appendRoutes(server *ghttp.Server, routes ...*mockRoute) {
-	for _, route := range routes {
-		var handlers []http.HandlerFunc
-
-		if route == nil || reflect.DeepEqual(*route, mockRoute{}) {
-			continue
-		}
-
-		if route.requestChecks.RawQuery != "" {
-			handlers = append(handlers, ghttp.VerifyRequest(route.requestChecks.Method, route.requestChecks.Path, route.requestChecks.RawQuery))
-		} else {
-			handlers = append(handlers, ghttp.VerifyRequest(route.requestChecks.Method, route.requestChecks.Path))
-		}
-
-		if route.requestChecks.Body != nil {
-			handlers = append(handlers, ghttp.VerifyJSONRepresenting(route.requestChecks.Body))
-		}
-
-		for key, values := range route.requestChecks.Headers {
-			handlers = append(handlers, ghttp.VerifyHeaderKV(key, values...))
-		}
-
-		if route.reaction.Error != nil {
-			handlers = append(handlers, ghttp.RespondWithJSONEncodedPtr(&route.reaction.Code, &route.reaction.Error))
-
-		} else {
-			handlers = append(handlers, ghttp.RespondWithJSONEncodedPtr(&route.reaction.Code, &route.reaction.Body))
-		}
-
-		server.AppendHandlers(ghttp.CombineHandlers(handlers...))
-	}
-}
-
-func encodeQuery(query string) string {
-	q := url.Values{}
-	q.Set("q", query)
-	return q.Encode()
-}
-
-// can directly use this to verify if already defined routes were hit x times
-func verifyRouteHits(server *ghttp.Server, expectedHitsCount int, route *mockRoute) {
-	var hitsCount int
-	expected := route.requestChecks
-	for _, r := range server.ReceivedRequests() {
-		methodsMatch := r.Method == expected.Method
-		pathsMatch := r.URL.Path == expected.Path
-		values, err := url.ParseQuery(expected.RawQuery)
-		Expect(err).ShouldNot(HaveOccurred())
-		queriesMatch := reflect.DeepEqual(r.URL.Query(), values)
-
-		if methodsMatch && pathsMatch && queriesMatch {
-			hitsCount++
-		}
-	}
-
-	if expectedHitsCount != hitsCount {
-		Fail(fmt.Sprintf("Request with method = %s, path = %s, rawQuery = %s expected to be received %d "+
-			"times but was received %d times", expected.Method, expected.Path, expected.RawQuery, expectedHitsCount, hitsCount))
-	}
-}
-
-func verifyReqReceived(server *ghttp.Server, times int, method, path string, rawQuery ...string) {
-	timesReceived := 0
-	for _, req := range server.ReceivedRequests() {
-		if req.Method == method && strings.Contains(req.URL.Path, path) {
-			if len(rawQuery) == 0 {
-				timesReceived++
-				continue
-			}
-			values, err := url.ParseQuery(rawQuery[0])
-			Expect(err).ShouldNot(HaveOccurred())
-			if reflect.DeepEqual(req.URL.Query(), values) {
-				timesReceived++
-			}
-		}
-	}
-	if times != timesReceived {
-		Fail(fmt.Sprintf("Request with method = %s, path = %s, rawQuery = %s expected to be received %d "+
-			"times but was received %d times", method, path, rawQuery, times, timesReceived))
-	}
-}
 
 func assertErrIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
 	cause := errors.Cause(actualErr).(cf.CloudFoundryErr)
@@ -130,7 +17,7 @@ func assertErrIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
 }
 
 func ccClient(URL string) (*cf.ClientConfiguration, *cf.PlatformClient) {
-	cfconfig := &cfclient.Config{
+	cfConfig := &cfclient.Config{
 		ApiAddress: URL,
 	}
 	regDetails := &cf.RegistrationDetails{
@@ -138,7 +25,7 @@ func ccClient(URL string) (*cf.ClientConfiguration, *cf.PlatformClient) {
 		Password: "password",
 	}
 	config := &cf.ClientConfiguration{
-		Config:             cfconfig,
+		Config:             cfConfig,
 		CfClientCreateFunc: cfclient.NewClient,
 		Reg:                regDetails,
 	}

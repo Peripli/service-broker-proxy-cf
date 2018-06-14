@@ -551,7 +551,7 @@ var _ = Describe("Client Service Plan Access", func() {
 	}
 
 	verifyBehaviourUpdateAccessFailsWhenUpdateServicePlanFails := func(assertFunc func(context *json.RawMessage, planGUID *string, expectedError ...error) func()) {
-		Context("when UpdateServicePlan fails", func() {
+		Context("when updateServicePlan fails", func() {
 			BeforeEach(func() {
 				updatePlanRoute.reaction.Error = ccResponseErrBody
 				updatePlanRoute.reaction.Code = ccResponseErrCode
@@ -632,7 +632,6 @@ var _ = Describe("Client Service Plan Access", func() {
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, orgGUID)
 				deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
 
-				//todo maybe move seperatly so no uncalled routes are actually appended and we may reuse somehow in all plans tests
 				routes = append(routes, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute)
 			}
 
@@ -1321,7 +1320,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 			})
 
-			Context("when UpdateServicePlan for any of the plans fails", func() {
+			Context("when updateServicePlan for any of the plans fails", func() {
 				BeforeEach(func() {
 					details[publicPlanGUID].updatePlan = mockRoute{}
 					details[privatePlanGUID].deleteVisibility = mockRoute{}
@@ -1353,7 +1352,6 @@ var _ = Describe("Client Service Plan Access", func() {
 
 					for _, callsForPlan := range details {
 						verifyRouteHits(ccServer, 1, &callsForPlan.listVisibilities)
-						//TODO ugly needs fix - reason for it being here is that private plans have empty visibilities
 						if len(callsForPlan.listVisibilities.reaction.Body.(cfclient.ServicePlanVisibilitiesResponse).Resources) != 0 {
 							verifyRouteHits(ccServer, 1, &callsForPlan.deleteVisibility)
 						}
@@ -1387,11 +1385,6 @@ var _ = Describe("Client Service Plan Access", func() {
 					details[privatePlanGUID].deleteVisibility = mockRoute{}
 				})
 
-				//TODO append only routes needed!!!!! split context per plan and each context appends the routes it needs -
-				//TODO this wway decouple making and appending of routes too (making stays in one beforeeach before all plan contexts)
-				//TODO this way we don't need ugly overrides or ugly continue ifs
-				// do three contexts - when the plan is public, limited, etc and then each validates one
-				// of the routes set in the before (in the before we do prepareRouts (planGUID) once for each plan
 				It("cleans up all access visibilities for the plans", func() {
 					err = client.DisableAccessForService(emptyOrgContext, serviceGUID)
 
@@ -1399,7 +1392,6 @@ var _ = Describe("Client Service Plan Access", func() {
 
 					for _, callsForPlan := range details {
 						verifyRouteHits(ccServer, 1, &callsForPlan.listVisibilities)
-						//TODO workaround because we made private plans to actually be private and have no visibilities
 						if len(callsForPlan.listVisibilities.reaction.Body.(cfclient.ServicePlanVisibilitiesResponse).Resources) != 0 {
 							verifyRouteHits(ccServer, 1, &callsForPlan.deleteVisibility)
 						}
@@ -1426,7 +1418,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		})
 	})
 
-	Describe("UpdateServicePlan", func() {
+	Describe("updateServicePlan", func() {
 		var (
 			planGUID    string
 			requestBody cf.ServicePlanRequest

@@ -157,9 +157,6 @@ func (pc PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) er
 }
 
 func (pc PlatformClient) deleteAccessVisibilities(query url.Values) error {
-	//query := url.Values{}
-	//query.Set("q", fmt.Sprintf("service_plan_guid:%s", planGUID))
-
 	servicePlanVisibilities, err := pc.Client.ListServicePlanVisibilitiesByQuery(query)
 	if err != nil {
 		return wrapCFError(err)
@@ -174,6 +171,7 @@ func (pc PlatformClient) deleteAccessVisibilities(query url.Values) error {
 	return nil
 }
 
+// UpdateServicePlan updates the public property of the plan with the specified GUID
 func (pc PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
 	var planResource cfclient.ServicePlanResource
 	buf := bytes.NewBuffer(nil)

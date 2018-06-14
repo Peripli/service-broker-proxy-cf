@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  branch = "service_access"
+  branch = "base"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/env",
@@ -366,6 +366,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "71c728b37458fcb38c76b42951245a45556503c29fd01ec617b6875d5da45372"
+  inputs-digest = "7d847e7e1b96bba60ed2ebd8ce91488e717031a7a6747d3bfd8f375d486f99d8"
   solver-name = "gps-cdcl"
   solver-version = 1

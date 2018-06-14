@@ -190,7 +190,7 @@ func (pc PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanR
 	}
 
 	decoder := json.NewDecoder(response.Body)
-	defer response.Body.Close()
+	defer response.Body.Close() //nolint
 	if err := decoder.Decode(&planResource); err != nil {
 		return cfclient.ServicePlan{}, errors.Wrap(err, "error decoding response body")
 	}

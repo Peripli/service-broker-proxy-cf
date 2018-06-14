@@ -50,7 +50,7 @@ func (c *ClientConfiguration) Validate() error {
 	return nil
 }
 
-type settings struct {
+type Settings struct {
 	API            string
 	ClientID       string
 	ClientSecret   string
@@ -61,16 +61,22 @@ type settings struct {
 	Reg            *RegistrationDetails
 }
 
-type cfSettings struct {
-	Cf *settings
+// SettingsWrapper are used for loading the CF configuration
+type SettingsWrapper struct {
+	Cf *Settings
 }
 
 // NewConfig creates ClientConfiguration from the provided environment
 func NewConfig(env env.Environment) (*ClientConfiguration, error) {
 
-	platformSettings := &cfSettings{
-		Cf: &settings{},
+	platformSettings := &SettingsWrapper{
+		Cf: &Settings{},
 	}
+
+	if err := env.Load(); err != nil {
+		return nil, err
+	}
+
 	if err := env.Unmarshal(platformSettings); err != nil {
 		return nil, err
 	}

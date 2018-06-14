@@ -14,17 +14,17 @@ type cfEnv struct {
 }
 
 // NewCFEnv creates a new CF proxy environment from the provided default proxy environment
-func NewCFEnv(delegate sb.Environment) sb.Environment {
-	return &cfEnv{Environment: delegate}
+func NewCFEnv(delegate sb.Environment, cfEnvironment *cfenv.App) sb.Environment {
+	return &cfEnv{
+		Environment: delegate,
+		cfEnv:       cfEnvironment,
+	}
 }
 
 // Load implements service-broker-proxy/pkg/env/Env.Load and Loads some env properties
 // from the CF VCAP environment variables.
 func (e *cfEnv) Load() (err error) {
 	if err = e.Environment.Load(); err != nil {
-		return err
-	}
-	if e.cfEnv, err = cfenv.Current(); err != nil {
 		return err
 	}
 	e.Environment.Set("app.host", "https://"+e.cfEnv.ApplicationURIs[0])

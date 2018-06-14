@@ -50,6 +50,7 @@ func (c *ClientConfiguration) Validate() error {
 	return nil
 }
 
+// Settings are used for loading the proxy configuration
 type Settings struct {
 	API            string
 	ClientID       string

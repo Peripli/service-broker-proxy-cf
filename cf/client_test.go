@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+const InvalidJSON = `{invalidjson`
 
 type expectedRequest struct {
 	Method   string

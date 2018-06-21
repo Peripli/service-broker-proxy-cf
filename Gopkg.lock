@@ -16,7 +16,7 @@
     "pkg/sbproxy/server",
     "pkg/sm"
   ]
-  revision = "4d020bef0c31437c1568ad16cd570d0be4639cac"
+  revision = "7233a4b7135577ba8bebe4e168e06dbc92698b0c"
 
 [[projects]]
   branch = "master"

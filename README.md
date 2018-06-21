@@ -19,7 +19,7 @@ Where:
 * SM_HOST is the host of the Service Manager installation that shall be used.
 * CF_USERNAME/CF_PASSWORD are the credentials used for authentication and authorisation when communicate with Cloud Controller. 
 
-## Deployment on your kubernetes cluster
+## Deployment on your CF environment (can be also PCFDev)
 ```
 cf push -f manifest.yml
 ```

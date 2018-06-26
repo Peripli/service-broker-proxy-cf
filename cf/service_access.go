@@ -51,7 +51,7 @@ func (pc PlatformClient) DisableAccessForPlan(context json.RawMessage, catalogPl
 
 func (pc PlatformClient) updateAccessForService(context json.RawMessage, catalogServiceGUID string, isEnabled bool) error {
 	metadata := &Metadata{}
-	if err := json.Unmarshal(context, &metadata); err != nil {
+	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
 	}
 
@@ -80,7 +80,7 @@ func (pc PlatformClient) updateAccessForService(context json.RawMessage, catalog
 
 func (pc PlatformClient) updateAccessForPlan(context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
 	metadata := &Metadata{}
-	if err := json.Unmarshal(context, &metadata); err != nil {
+	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
 	}
 

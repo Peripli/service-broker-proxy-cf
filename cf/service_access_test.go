@@ -63,10 +63,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		postVisibilityForLimitedPlanRequest map[string]string
 		postVisibilityForPrivatePlanRequest map[string]string
 
-		//already limited to the org but delete is still called
-		//postVisibilityForAlreadyLimitedPlanResponse cfclient.ServicePlanVisibilityResource
-		//postVisibilityForPrivatePlanResponse        cfclient.ServicePlanVisibilityResource
-
 		updatePlanToPublicRequest    cf.ServicePlanRequest
 		updatePlanToNonPublicRequest cf.ServicePlanRequest
 

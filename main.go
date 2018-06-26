@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+
+	sb "github.com/Peripli/service-broker-proxy/pkg/env"
 	"github.com/Peripli/service-broker-proxy/pkg/middleware"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/sirupsen/logrus"
@@ -10,11 +13,21 @@ import (
 )
 
 func main() {
-	cfApp, err := cfenv.Current()
-	if err != nil {
-		logrus.WithError(err).Fatal("Error loading CF VCAP environment")
+	var cfEnv sb.Environment
+
+	if _, isCFEnv := os.LookupEnv("VCAP_APPLICATION"); isCFEnv {
+		cfApp, err := cfenv.Current()
+		if err != nil {
+			logrus.WithError(err).Fatal("Error loading CF VCAP environment")
+		}
+		cfEnv = cf.NewCFEnv(env.Default(""), cfApp)
+	} else {
+		cfEnv = sb.Default("")
 	}
-	cfEnv := cf.NewCFEnv(env.Default(""), cfApp)
+
+	if err := cfEnv.Load(); err != nil {
+		logrus.WithError(err).Fatal("Error loading environment")
+	}
 
 	platformConfig, err := cf.NewConfig(cfEnv)
 	if err != nil {

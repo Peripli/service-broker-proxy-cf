@@ -28,6 +28,7 @@ func (e *cfEnv) Load() (err error) {
 		return err
 	}
 	e.Environment.Set("app.host", "https://"+e.cfEnv.ApplicationURIs[0])
+	e.Environment.Set("app.port", e.cfEnv.Port)
 	e.Environment.Set("cf.api", e.cfEnv.CFAPI)
 	return
 }

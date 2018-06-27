@@ -5,15 +5,15 @@ app:
   logLevel: debug
   logFormat: text
   timeoutSeconds: 5
-  host: http://10.0.2.2:8081
+#  host: https://cfproxy.local.pcfdev.io
 sm:
   user: admin
   password: admin
-  host: http://localhost:8085
+#  host: https://smanager.local.pcfdev.io
   osbApi: /v1/osb
   timeoutSeconds: 10
 cf:
-  api: https://api.local.pcfdev.io
+#  api: https://api.local.pcfdev.io
   username: admin
   password: admin
   skipSSLVerify: true

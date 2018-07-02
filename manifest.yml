@@ -12,3 +12,4 @@ applications:
       CF_PASSWORD: admin
       APP_LOGLEVEL: debug
       APP_LOGFORMAT: json
+

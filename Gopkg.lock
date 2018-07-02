@@ -158,6 +158,8 @@
   packages = [
     ".",
     "format",
+    "gbytes",
+    "gexec",
     "ghttp",
     "internal/assertion",
     "internal/asyncassertion",

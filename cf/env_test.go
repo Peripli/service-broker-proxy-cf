@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry-community/go-cfenv"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/spf13/cast"
 )
 
 var _ = Describe("Env", func() {
@@ -36,21 +37,15 @@ var _ = Describe("Env", func() {
 		env = NewCFEnv(fakeEnv, app)
 
 	})
+
 	Describe("Load", func() {
 		assertSetIsCalledWithProperArgs := func(callCount, currentCall int, expectedArgs ...interface{}) {
 			Expect(fakeEnv.SetCallCount()).Should(Equal(callCount))
 			Expect(expectedArgs).To(HaveLen(2))
 			arg1, arg2 := fakeEnv.SetArgsForCall(currentCall)
 
-			expectedArg1 := expectedArgs[0].(string)
-			Expect(arg1).To(Equal(expectedArg1))
-			expectedArg2, isInteger := expectedArgs[1].(int)
-			if isInteger {
-				Expect(arg2).To(Equal(expectedArg2))
-			} else {
-				expectedArg2, _ := expectedArgs[1].(string)
-				Expect(arg2).To(ContainSubstring(expectedArg2))
-			}
+			Expect(cast.ToString(arg1)).To(Equal(cast.ToString(expectedArgs[0])))
+			Expect(cast.ToString(arg2)).To(ContainSubstring(cast.ToString(expectedArgs[1])))
 		}
 
 		It("loads the delegate environment", func() {

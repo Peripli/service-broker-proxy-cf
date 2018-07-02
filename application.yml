@@ -5,11 +5,19 @@ app:
   logLevel: debug
   logFormat: text
   timeoutSeconds: 5
+<<<<<<< HEAD
 #  host: https://cfproxy.local.pcfdev.io
+=======
+  host: http://10.0.2.2:8081
+>>>>>>> refs/heads/master
 sm:
   user: admin
   password: admin
+<<<<<<< HEAD
 #  host: https://smanager.local.pcfdev.io
+=======
+  host: http://localhost:8085
+>>>>>>> refs/heads/master
   osbApi: /v1/osb
   timeoutSeconds: 10
 cf:

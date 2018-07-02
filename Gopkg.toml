@@ -39,7 +39,7 @@
 
 [[constraint]]
  name = "github.com/Peripli/service-broker-proxy"
- branch = "service_access"
+ branch = "master"
 
 [[constraint]]
   name = "github.com/cloudfoundry-community/go-cfenv"

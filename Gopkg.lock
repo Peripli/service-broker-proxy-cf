@@ -8,7 +8,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "service_access"
+  branch = "master"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/env",
@@ -23,7 +23,7 @@
     "pkg/sbproxy/server",
     "pkg/sm"
   ]
-  revision = "ad077cb08bc751cb50e6f63f5d998d0307cfc7cf"
+  revision = "a49615053908de928c7aa1127645bd7b5dbd0952"
 
 [[projects]]
   branch = "master"
@@ -35,7 +35,7 @@
   branch = "master"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
-  revision = "fa0a00f12fa532d25093d8d6492dbeec085c050e"
+  revision = "602b286db1cdbd42444483eaa149617b154437a1"
 
 [[projects]]
   name = "github.com/cloudfoundry-community/go-cfenv"
@@ -238,7 +238,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "7d6f385de8bea29190f15ba9931442a0eaef9af7"
+  revision = "40f013a808ec4fa79def444a1a56de4d1727efcb"
 
 [[projects]]
   name = "github.com/robfig/cron"
@@ -301,7 +301,7 @@
     "html/atom",
     "html/charset"
   ]
-  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
+  revision = "4cb1c02c05b0e749b0365f61ae859a8e0cfceed9"
 
 [[projects]]
   branch = "master"
@@ -320,7 +320,7 @@
     "unix",
     "windows"
   ]
-  revision = "a200a19cb90b19de298170992778b1fda7217bd6"
+  revision = "7138fd3d9dc8335c567ca206f4333fb75eb05d56"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -372,6 +372,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "71c728b37458fcb38c76b42951245a45556503c29fd01ec617b6875d5da45372"
+  inputs-digest = "d245702a36201be59100d4c32c458391e5ac5955163eddc3d15e564c7db3c2bc"
   solver-name = "gps-cdcl"
   solver-version = 1

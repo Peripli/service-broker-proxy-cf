@@ -1,23 +1,23 @@
 # Any of the below config properties can be provided via Environment Variables
 
 app:
-  port: 8080
+  port: 8081
   logLevel: debug
   logFormat: text
-  timeoutSeconds: 500
-  host: http://10.0.2.2:8080
+  timeoutSeconds: 5
+  host: http://10.0.2.2:8081
 sm:
   user: admin
   password: admin
-  host: http://localhost:8081
+  host: http://localhost:8085
   osbApi: /v1/osb
-  timeoutSeconds: 1000
+  timeoutSeconds: 10
 cf:
   api: https://api.local.pcfdev.io
   username: admin
   password: admin
   skipSSLVerify: true
-  timeoutSeconds: 500
+  timeoutSeconds: 5
   reg:
     user: admin
     password: admin

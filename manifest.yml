@@ -12,4 +12,3 @@ applications:
       APP_HOST: http://sm-proxy.local.pcfdev.io
       APP_LOGLEVEL: debug
       APP_LOGFORMAT: json
-#      SPACE_GUID: 917453fa-5c2c-414c-a0e9-904829e5de24

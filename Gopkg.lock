@@ -8,22 +8,29 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
+  branch = "pkg_final"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
-    "pkg/env",
-    "pkg/env/envfakes",
+    "pkg/config",
     "pkg/httputils",
-    "pkg/logger",
+    "pkg/logging",
     "pkg/middleware",
     "pkg/osb",
     "pkg/platform",
     "pkg/sbproxy",
-    "pkg/sbproxy/middleware",
-    "pkg/sbproxy/server",
+    "pkg/server",
     "pkg/sm"
   ]
-  revision = "a49615053908de928c7aa1127645bd7b5dbd0952"
+  revision = "b6d307dd65bae4a8eeca94703581520a3c2242f8"
+
+[[projects]]
+  branch = "pkg_final"
+  name = "github.com/Peripli/service-manager"
+  packages = [
+    "pkg/env",
+    "pkg/env/envfakes"
+  ]
+  revision = "369a9bdf3bbf41250ffc25bb64736b7bc40f5d37"
 
 [[projects]]
   branch = "master"
@@ -40,7 +47,8 @@
 [[projects]]
   name = "github.com/cloudfoundry-community/go-cfenv"
   packages = ["."]
-  revision = "e84b5c116637ef174eb8c7d68a28bc7269b3b9cb"
+  revision = "f920e9562d5f951cbf11785728f67258c38a10d0"
+  version = "v1.17.0"
 
 [[projects]]
   branch = "master"
@@ -81,8 +89,8 @@
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
-  version = "v1.6.1"
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   branch = "master"
@@ -158,8 +166,6 @@
   packages = [
     ".",
     "format",
-    "gbytes",
-    "gexec",
     "ghttp",
     "internal/assertion",
     "internal/asyncassertion",
@@ -190,8 +196,8 @@
 [[projects]]
   name = "github.com/pmorie/go-open-service-broker-client"
   packages = ["v2"]
-  revision = "e8aa16c9036317bd59ced8921e9da6197ab577e3"
-  version = "0.0.5"
+  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
+  version = "0.0.10"
 
 [[projects]]
   name = "github.com/pmorie/osb-broker-lib"
@@ -249,8 +255,8 @@
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -372,6 +378,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d245702a36201be59100d4c32c458391e5ac5955163eddc3d15e564c7db3c2bc"
+  inputs-digest = "d1d5cf86c0d943ec48d284d59c6244fbd00b6a565b5928ba902e184bfecab9e5"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -34,13 +34,9 @@
   branch = "master"
 
 [[constraint]]
- name = "github.com/sirupsen/logrus"
- version = "=1.0.4"
-
-[[constraint]]
- name = "github.com/Peripli/service-broker-proxy"
- branch = "master"
+  name = "github.com/Peripli/service-broker-proxy"
+  branch = "pkg_final"
 
 [[constraint]]
   name = "github.com/cloudfoundry-community/go-cfenv"
-  revision = "e84b5c116637ef174eb8c7d68a28bc7269b3b9cb"
+  version = "1.15.0"

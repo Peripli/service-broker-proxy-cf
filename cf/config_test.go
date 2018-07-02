@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/Peripli/service-broker-proxy/pkg/env/envfakes"
+	"github.com/Peripli/service-manager/pkg/env/envfakes"
 )
 
 var _ = Describe("Config", func() {

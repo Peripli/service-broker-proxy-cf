@@ -23,6 +23,10 @@ func main() {
 		cfEnv = env.Default("")
 	}
 
+	if err := cfEnv.Load(); err != nil {
+				logrus.WithError(err).Fatal("Error loading environment")
+	}
+
 	platformConfig, err := cf.NewConfig(cfEnv)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error loading configuration")

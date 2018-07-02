@@ -7,7 +7,6 @@ import (
 	"github.com/cloudfoundry-community/go-cfenv"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/env"
-	"github.com/cloudfoundry-community/go-cfenv"
 	"os"
 )
 

@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  branch = "base"
+  branch = "master"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/env",

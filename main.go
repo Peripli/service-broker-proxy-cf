@@ -7,14 +7,21 @@ import (
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/env"
 	"github.com/cloudfoundry-community/go-cfenv"
+	"os"
 )
 
 func main() {
-	cfApp, err := cfenv.Current()
-	if err != nil {
-		logrus.WithError(err).Fatal("Error loading CF VCAP environment")
+	var cfEnv env.Environment
+
+	if _, isCFEnv := os.LookupEnv("VCAP_APPLICATION"); isCFEnv {
+		cfApp, err := cfenv.Current()
+		if err != nil {
+			logrus.WithError(err).Fatal("Error loading CF VCAP environment")
+		}
+		cfEnv = cf.NewCFEnv(env.Default(""), cfApp)
+	} else {
+		cfEnv = env.Default("")
 	}
-	cfEnv := cf.NewCFEnv(env.Default(""), cfApp)
 
 	platformConfig, err := cf.NewConfig(cfEnv)
 	if err != nil {

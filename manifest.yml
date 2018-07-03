@@ -1,14 +1,14 @@
 ---
 applications:
-  - name: sm-proxy
+  - name: cfproxy
     memory: 64M
+    buildpack: go_buildpack
     env:
       GOVERSION: go1.10
       GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf
-      SM_HOST: http://service-manager.local.pcfdev.io
-      CF_API: https://api.local.pcfdev.io
+      SM_HOST: https://smanager.local.pcfdev.io
       CF_USERNAME: admin
       CF_PASSWORD: admin
-      APP_HOST: http://sm-proxy.local.pcfdev.io
       APP_LOGLEVEL: debug
       APP_LOGFORMAT: json
+

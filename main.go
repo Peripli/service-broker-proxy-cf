@@ -4,9 +4,9 @@ import (
 	"github.com/Peripli/service-broker-proxy/pkg/middleware"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/sirupsen/logrus"
+	"github.com/cloudfoundry-community/go-cfenv"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/env"
-	"github.com/cloudfoundry-community/go-cfenv"
 	"os"
 )
 
@@ -18,6 +18,7 @@ func main() {
 		if err != nil {
 			logrus.WithError(err).Fatal("Error loading CF VCAP environment")
 		}
+		cfEnv = cf.NewCFEnv(env.Default(""),cfApp)
 		cfEnv = cf.NewCFEnv(env.Default(""), cfApp)
 	} else {
 		cfEnv = env.Default("")

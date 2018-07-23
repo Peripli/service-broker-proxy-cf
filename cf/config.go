@@ -25,10 +25,12 @@ type ClientConfiguration struct {
 
 }
 
+// Settings type wraps the CF client configuration
 type Settings struct {
 	Cf *ClientConfiguration
 }
 
+// DefaultClientConfiguration creates a default config for the CF client
 func DefaultClientConfiguration() *ClientConfiguration {
 	cfClientConfig := cfclient.DefaultConfig()
 	cfClientConfig.HttpClient.Timeout = 10 * time.Second
@@ -40,6 +42,7 @@ func DefaultClientConfiguration() *ClientConfiguration {
 	}
 }
 
+// CreatePFlagsForCFClient adds pflags relevant to the CF client config
 func CreatePFlagsForCFClient(set *pflag.FlagSet) {
 	env.CreatePFlags(set, &Settings{Cf: DefaultClientConfiguration()})
 }

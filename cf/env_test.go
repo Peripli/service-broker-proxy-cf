@@ -1,70 +1,90 @@
 package cf
 
 import (
+	"github.com/Peripli/service-manager/pkg/env"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/spf13/pflag"
+	"os"
 )
 
-var _ = Describe("Env", func() {
+var _ = Describe("CF Env", func() {
+	const VCAP_APPLICATION = `{"instance_id":"fe98dc76ba549876543210abcd1234",
+   "instance_index":0,
+   "host":"0.0.0.0",
+   "port":8080,
+   "started_at":"2013-08-12 00:05:29 +0000",
+   "started_at_timestamp":1376265929,
+   "start":"2013-08-12 00:05:29 +0000",
+   "state_timestamp":1376265929,
+   "limits":{  
+      "mem":512,
+      "disk":1024,
+      "fds":16384
+   },
+   "application_version":"ab12cd34-5678-abcd-0123-abcdef987654",
+   "application_name":"styx-james",
+   "application_uris":[  
+      "example.com"
+   ],
+   "version":"ab12cd34-5678-abcd-0123-abcdef987654",
+   "name":"my-app",
+   "uris":[  
+      "example.com"
+   ],
+   "users":null,
+   "cf_api":"https://example.com"
+}`
 
-	const (
-		testURI = "testURI"
-		testAPI = "testAPI"
+	var (
+		environment env.Environment
+		err         error
 	)
 
-	//var (
-	//	fakeEnv *envfakes.FakeEnvironment
-	//	env     env.Environment
-	//	app     *cfenv.App
-	//)
+	BeforeEach(func() {
+		Expect(os.Setenv("VCAP_APPLICATION", VCAP_APPLICATION)).ShouldNot(HaveOccurred())
+		Expect(os.Setenv("VCAP_SERVICES", "{}")).ShouldNot(HaveOccurred())
 
-	//BeforeEach(func() {
-	//	app = &cfenv.App{
-	//		ApplicationURIs: []string{
-	//			testURI,
-	//		},
-	//		CFAPI: testAPI,
-	//	}
-	//	fakeEnv = &envfakes.FakeEnvironment{}
-	//	env = NewCFEnv(fakeEnv,app)
-	//
-	//})
-	Describe("Load", func() {
-		//
-		//assertSetIsCalledWithProperArgs := func(callCount, currentCall int, expectedArgs ...string) {
-		//	Expect(fakeEnv.SetCallCount()).Should(Equal(callCount))
-		//	Expect(expectedArgs).To(HaveLen(2))
-		//	arg1, arg2 := fakeEnv.SetArgsForCall(currentCall)
-		//	Expect(arg1).To(Equal(expectedArgs[0]))
-		//	Expect(arg2).To(ContainSubstring(expectedArgs[1]))
-		//}
-		//
-		//It("loads the delegate environment", func() {
-		//	err := env.Load()
-		//
-		//	Expect(err).ShouldNot(HaveOccurred())
-		//	Expect(fakeEnv.LoadCallCount()).Should(Equal(1))
-		//})
-		//
-		//It("sets app.host", func() {
-		//	err := env.Load()
-		//
-		//	Expect(err).ShouldNot(HaveOccurred())
-		//	assertSetIsCalledWithProperArgs(2,0, "app.host", testURI)
-		//})
-		//
-		//It("sets cf.api", func() {
-		//	err := env.Load()
-		//
-		//	Expect(err).ShouldNot(HaveOccurred())
-		//	assertSetIsCalledWithProperArgs(2,1, "cf.api", testAPI)
-		//})
-		//
-		//It("propagates errors from loading delegate", func() {
-		//	fakeErr := fmt.Errorf("error")
-		//	fakeEnv.LoadReturns(fakeErr)
-		//
-		//	err := env.Load()
-		//	Expect(err).To(MatchError(fakeErr))
-		//})
+		environment, err = env.New(pflag.CommandLine)
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		Expect(os.Unsetenv("VCAP_APPLICATION")).ShouldNot(HaveOccurred())
+		Expect(os.Unsetenv("VCAP_SERVICES")).ShouldNot(HaveOccurred())
+	})
+
+	Describe("Set CF environment values", func() {
+		Context("when VCAP_APPLICATION is missing", func() {
+			It("returns no error", func() {
+				Expect(os.Unsetenv("VCAP_APPLICATION")).ShouldNot(HaveOccurred())
+
+				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+				Expect(environment.Get("server.host")).Should(BeNil())
+				Expect(environment.Get("server.port")).Should(BeNil())
+				Expect(environment.Get("cf.api")).Should(BeNil())
+
+			})
+		})
+
+		Context("when VCAP_APPLICATION is present", func() {
+			It("sets server.host", func() {
+				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+				Expect(environment.Get("server.host")).To(Equal("https://example.com"))
+			})
+
+			It("sets server.port", func() {
+				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+				Expect(environment.Get("server.port")).To(Equal(8080))
+			})
+
+			It("sets cf.api", func() {
+				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+				Expect(environment.Get("cf.api")).To(Equal("https://example.com"))
+			})
+		})
 	})
 })

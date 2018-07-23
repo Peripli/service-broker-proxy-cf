@@ -25,6 +25,10 @@ type ClientConfiguration struct {
 
 }
 
+type Settings struct {
+	Cf *ClientConfiguration
+}
+
 func DefaultClientConfiguration() *ClientConfiguration {
 	cfClientConfig := cfclient.DefaultConfig()
 	cfClientConfig.HttpClient.Timeout = 10 * time.Second
@@ -37,8 +41,7 @@ func DefaultClientConfiguration() *ClientConfiguration {
 }
 
 func CreatePFlagsForCFClient(set *pflag.FlagSet) {
-	configuration := DefaultClientConfiguration()
-	env.CreatePFlags(set, struct{ Cf *ClientConfiguration}{Cf: configuration})
+	env.CreatePFlags(set, &Settings{Cf: DefaultClientConfiguration()})
 }
 
 // Validate validates the configuration and returns appropriate errors in case it is invalid
@@ -52,7 +55,7 @@ func (c *ClientConfiguration) Validate() error {
 	if len(c.ApiAddress) == 0 {
 		return errors.New("CF client configuration ApiAddress missing")
 	}
-	if c.HttpClient.Timeout == 0 {
+	if c.HttpClient != nil && c.HttpClient.Timeout == 0 {
 		return errors.New("CF client configuration timeout missing")
 	}
 	if c.Reg == nil {
@@ -69,11 +72,9 @@ func (c *ClientConfiguration) Validate() error {
 
 // NewConfig creates ClientConfiguration from the provided environment
 func NewConfig(env env.Environment) (*ClientConfiguration, error) {
-	cfSettings := struct {Cf *ClientConfiguration}{
-		Cf: DefaultClientConfiguration(),
-	}
+	cfSettings := &Settings{Cf: DefaultClientConfiguration()}
 
-	if err := env.Unmarshal(&cfSettings); err != nil {
+	if err := env.Unmarshal(cfSettings); err != nil {
 		return nil, err
 	}
 

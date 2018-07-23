@@ -15,8 +15,8 @@ func SetCFOverrides(env env.Environment) error {
 			return fmt.Errorf("could not load VCAP environment: %s", err)
 		}
 
-		env.Set("app.host", "https://"+cfEnv.ApplicationURIs[0])
-		env.Set("app.port", cfEnv.Port)
+		env.Set("server.host", "https://"+cfEnv.ApplicationURIs[0])
+		env.Set("server.port", cfEnv.Port)
 		env.Set("cf.api", cfEnv.CFAPI)
 	}
 	return nil

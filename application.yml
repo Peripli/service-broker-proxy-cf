@@ -5,7 +5,6 @@ server:
   logFormat: text
   timeout: 5000ms
 #  host: https://cfproxy.local.pcfdev.io
-  host: http://10.0.2.2:8081
 sm:
   user: admin
   password: admin
@@ -17,7 +16,7 @@ cf:
     apiAddress: http://api.local.pcfdev.io
     username: admin
     password: admin
-    SkipSslValidation: true
+    skipSslValidation: true
     httpClient:
       timeout: 6000ms
   reg:

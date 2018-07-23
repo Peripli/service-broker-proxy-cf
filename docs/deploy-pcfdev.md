@@ -4,8 +4,10 @@
 
 * PCF Dev is installed.
 * You are logged in PCF Dev.
-* `go-buildpack` is installed with support for go version 1.10
+* `go_buildpack` is installed with support for go version 1.10
 * [Service-Manager](https://github.com/Peripli/service-manager) is deployed.
+
+**Note:** The used go buildpack should be named `go_buildpack`.
 
 ## Modify manifest.yml
 

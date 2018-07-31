@@ -8,7 +8,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "pkg_final"
+  branch = "master"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/config",
@@ -20,10 +20,10 @@
     "pkg/server",
     "pkg/sm"
   ]
-  revision = "c2e7ad587eff4f657eb950b07fb5976a09c6de15"
+  revision = "67f498397f5518e8af7036f62b2e44c2354efa92"
 
 [[projects]]
-  branch = "refactoring1"
+  branch = "master"
   name = "github.com/Peripli/service-manager"
   packages = [
     "pkg/env",
@@ -32,7 +32,7 @@
     "pkg/util",
     "pkg/web"
   ]
-  revision = "7974ed06727d596941becdad814f25d0131c9ca7"
+  revision = "0c7accec07dad10a411bfd377370345d331cadcb"
 
 [[projects]]
   branch = "master"
@@ -44,7 +44,7 @@
   branch = "master"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
-  revision = "837271b2c11e85810811b640459f4e86e75a25bb"
+  revision = "7900c3c65270cc2bfc467b10cd458d4d0e8f0fad"
 
 [[projects]]
   name = "github.com/cloudfoundry-community/go-cfenv"
@@ -273,7 +273,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "ae68e2d4c00fed4943b5f6698d504a5fe083da8a"
+  revision = "05ee40e3a273f7245e8777337fc7b46e533a9a92"
 
 [[projects]]
   name = "github.com/robfig/cron"
@@ -324,7 +324,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "a2144134853fc9a27a7b1e3eb4f19f1a76df13c9"
+  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [[projects]]
   branch = "master"
@@ -336,7 +336,7 @@
     "html/atom",
     "html/charset"
   ]
-  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
+  revision = "a0f8a16cb08c06df97cbdf9c47f4731ba548c33c"
 
 [[projects]]
   branch = "master"
@@ -346,7 +346,7 @@
     "clientcredentials",
     "internal"
   ]
-  revision = "ef147856a6ddbb60760db74283d2424e98c87bff"
+  revision = "3d292e4d0cdc3a0113e6d207bb137145ef1de42f"
 
 [[projects]]
   branch = "master"
@@ -355,7 +355,7 @@
     "unix",
     "windows"
   ]
-  revision = "ac767d655b305d4e9612f5f6e33120b9176c4ad4"
+  revision = "bd9dbc187b6e1dacfdd2722a87e83093c2d7bd6e"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -420,6 +420,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "66879ace48c17dd29a00e595972f1412a5c1832abcd1bb4643f298e3081703a5"
+  inputs-digest = "326a31aedbc043ce3971f6f746ae8f98cd6082d7b6249115c4fdf49ffc17a6d1"
   solver-name = "gps-cdcl"
   solver-version = 1

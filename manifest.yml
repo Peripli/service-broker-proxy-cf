@@ -1,6 +1,6 @@
 ---
 applications:
-  - name: cfproxy2
+  - name: cfproxy
     memory: 64M
     buildpack: go_buildpack
     env:

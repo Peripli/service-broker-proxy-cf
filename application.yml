@@ -4,7 +4,7 @@ server:
   logLevel: debug
   logFormat: text
   timeout: 5000ms
-  resyncPeriod: 1m
+  # resyncPeriod: 1m
   #  host: https://cfproxy.local.pcfdev.io
 sm:
   user: admin

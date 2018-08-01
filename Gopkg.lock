@@ -8,7 +8,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "skip_ssl"
+  branch = "master"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/config",
@@ -20,7 +20,7 @@
     "pkg/server",
     "pkg/sm"
   ]
-  revision = "376f63108b25a26a15e8d0d898950cee9ebd6df8"
+  revision = "ee4d78cf9fc9b7eba4c61cd1603365b99584e17e"
 
 [[projects]]
   branch = "master"

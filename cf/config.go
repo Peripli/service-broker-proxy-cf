@@ -2,15 +2,13 @@
 package cf
 
 import (
-	"net/http"
-
 	"time"
 
 	"errors"
 
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/Peripli/service-broker-proxy/pkg/env"
-	"fmt"
+	"github.com/Peripli/service-manager/pkg/env"
+	"github.com/spf13/pflag"
 )
 
 // RegistrationDetails type represents the credentials used to register a broker at the cf
@@ -21,10 +19,32 @@ type RegistrationDetails struct {
 
 // ClientConfiguration type holds config info for building the cf client
 type ClientConfiguration struct {
-	*cfclient.Config
+	*cfclient.Config `mapstructure:"client"`
+	Reg *RegistrationDetails
 	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
 
-	Reg *RegistrationDetails
+}
+
+// Settings type wraps the CF client configuration
+type Settings struct {
+	Cf *ClientConfiguration
+}
+
+// DefaultClientConfiguration creates a default config for the CF client
+func DefaultClientConfiguration() *ClientConfiguration {
+	cfClientConfig := cfclient.DefaultConfig()
+	cfClientConfig.HttpClient.Timeout = 10 * time.Second
+
+	return &ClientConfiguration{
+		Config:             cfClientConfig,
+		Reg:                &RegistrationDetails{},
+		CfClientCreateFunc: cfclient.NewClient,
+	}
+}
+
+// CreatePFlagsForCFClient adds pflags relevant to the CF client config
+func CreatePFlagsForCFClient(set *pflag.FlagSet) {
+	env.CreatePFlags(set, &Settings{Cf: DefaultClientConfiguration()})
 }
 
 // Validate validates the configuration and returns appropriate errors in case it is invalid
@@ -35,8 +55,11 @@ func (c *ClientConfiguration) Validate() error {
 	if c.Config == nil {
 		return errors.New("CF client configuration missing")
 	}
-	if len(c.Config.ApiAddress) == 0 {
+	if len(c.ApiAddress) == 0 {
 		return errors.New("CF client configuration ApiAddress missing")
+	}
+	if c.HttpClient != nil && c.HttpClient.Timeout == 0 {
+		return errors.New("CF client configuration timeout missing")
 	}
 	if c.Reg == nil {
 		return errors.New("CF client configuration Registration credentials missing")
@@ -50,72 +73,13 @@ func (c *ClientConfiguration) Validate() error {
 	return nil
 }
 
-// Settings are used for loading the proxy configuration
-type Settings struct {
-	API            string
-	ClientID       string
-	ClientSecret   string
-	Username       string
-	Password       string
-	SkipSSLVerify  bool
-	TimeoutSeconds int
-	Reg            *RegistrationDetails
-}
-
-// SettingsWrapper are used for loading the CF configuration
-type SettingsWrapper struct {
-	Cf *Settings
-}
-
 // NewConfig creates ClientConfiguration from the provided environment
 func NewConfig(env env.Environment) (*ClientConfiguration, error) {
+	cfSettings := &Settings{Cf: DefaultClientConfiguration()}
 
-	platformSettings := &SettingsWrapper{
-		Cf: &Settings{},
-	}
-
-	if err := env.Load(); err != nil {
+	if err := env.Unmarshal(cfSettings); err != nil {
 		return nil, err
 	}
 
-	if err := env.Unmarshal(platformSettings); err != nil {
-		return nil, err
-	}
-
-	clientConfig := cfclient.DefaultConfig()
-
-	if len(platformSettings.Cf.API) != 0 {
-		clientConfig.ApiAddress = platformSettings.Cf.API
-	}
-	if len(platformSettings.Cf.ClientID) != 0 {
-		clientConfig.ClientID = platformSettings.Cf.ClientID
-	}
-	if len(platformSettings.Cf.ClientSecret) != 0 {
-		clientConfig.ClientSecret = platformSettings.Cf.ClientSecret
-	}
-	if len(platformSettings.Cf.Username) != 0 {
-		clientConfig.Username = platformSettings.Cf.Username
-	}
-	if len(platformSettings.Cf.Password) != 0 {
-		clientConfig.Password = platformSettings.Cf.Password
-	}
-	if platformSettings.Cf.SkipSSLVerify {
-		clientConfig.SkipSslValidation = platformSettings.Cf.SkipSSLVerify
-	}
-	if platformSettings.Cf.TimeoutSeconds != 0 {
-		clientConfig.HttpClient = &http.Client{
-			Timeout: time.Duration(platformSettings.Cf.TimeoutSeconds) * time.Second,
-		}
-	}
-	return &ClientConfiguration{
-		Config:             clientConfig,
-		Reg:                platformSettings.Cf.Reg,
-		CfClientCreateFunc: cfclient.NewClient,
-	}, nil
+	return cfSettings.Cf, nil
 }
-
-// String provides a string representation of the registration details
-func (rd RegistrationDetails) String() string {
-	return fmt.Sprintf("Reg details: User: %s", rd.User)
-}
-

@@ -1,54 +1,49 @@
 package main
 
 import (
-	"github.com/Peripli/service-broker-proxy/pkg/middleware"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
-	"github.com/sirupsen/logrus"
-	"github.com/cloudfoundry-community/go-cfenv"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/Peripli/service-broker-proxy/pkg/env"
-	"os"
+	"github.com/Peripli/service-manager/pkg/env"
+	"fmt"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
+	"github.com/Peripli/service-broker-proxy/pkg/middleware"
+	"github.com/spf13/pflag"
+	"github.com/Peripli/service-broker-proxy/pkg/config"
 )
 
 func main() {
-	var cfEnv env.Environment
+	set := env.EmptyFlagSet()
+	addPFlags(set)
 
-	if _, isCFEnv := os.LookupEnv("VCAP_APPLICATION"); isCFEnv {
-		cfApp, err := cfenv.Current()
-		if err != nil {
-			logrus.WithError(err).Fatal("Error loading CF VCAP environment")
-		}
-		cfEnv = cf.NewCFEnv(env.Default(""),cfApp)
-		cfEnv = cf.NewCFEnv(env.Default(""), cfApp)
-	} else {
-		cfEnv = env.Default("")
-	}
-
-	if err := cfEnv.Load(); err != nil {
-				logrus.WithError(err).Fatal("Error loading environment")
-	}
-
-	platformConfig, err := cf.NewConfig(cfEnv)
+	env, err := env.New(set)
 	if err != nil {
-		logrus.WithError(err).Fatal("Error loading configuration")
+		panic(fmt.Errorf("error loading environment: %s", err))
+	}
+	if err := cf.SetCFOverrides(env); err != nil {
+		panic(fmt.Errorf("error setting CF environment values: %s", err))
+	}
+
+	platformConfig, err := cf.NewConfig(env)
+	if err != nil {
+		panic(fmt.Errorf("error loading config: %s", err))
 	}
 
 	platformClient, err := cf.NewClient(platformConfig)
 	if err != nil {
-		logrus.WithError(err).Fatal("Error creating cf client")
+		panic(fmt.Errorf("error creating CF client: %s", err))
 	}
 
-	proxyConfig, err := sbproxy.NewConfigFromEnv(cfEnv)
+	proxy, err := sbproxy.New(env, platformClient)
 	if err != nil {
-		logrus.WithError(err).Fatal("Error loading configuration")
+		panic(fmt.Errorf("error creating proxy: %s", err))
 	}
 
-	sbProxy, err := sbproxy.New(proxyConfig, platformClient)
-	if err != nil {
-		logrus.WithError(err).Fatal("Error creating SB Proxy")
-	}
+	proxy.Server.Use(middleware.BasicAuth(platformConfig.Reg.User, platformConfig.Reg.Password))
 
-	sbProxy.Use(middleware.BasicAuth(platformConfig.Reg.User, platformConfig.Reg.Password))
+	proxy.Run()
+}
 
-	sbProxy.Run()
+func addPFlags(set *pflag.FlagSet) {
+	cf.CreatePFlagsForCFClient(set)
+	env.CreatePFlagsForConfigFile(set)
+	config.CreatePFlagsForProxy(set)
 }

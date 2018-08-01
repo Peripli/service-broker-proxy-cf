@@ -1,34 +1,23 @@
 package cf
 
 import (
-	sb "github.com/Peripli/service-broker-proxy/pkg/env"
+	"github.com/Peripli/service-manager/pkg/env"
 	"github.com/cloudfoundry-community/go-cfenv"
+	"os"
+	"fmt"
 )
 
-// cfEnv implements service-broker-proxy/pkg/env/Env. It is a wrapper of the default proxy environment
-// that adds loading of CF specific environment properties.
-type cfEnv struct {
-	sb.Environment
+// SetCFOverrides overrides some SM environment with values from CF's VCAP environment variables
+func SetCFOverrides(env env.Environment) error {
+	if _, exists := os.LookupEnv("VCAP_APPLICATION"); exists {
+		cfEnv, err := cfenv.Current()
+		if err != nil {
+			return fmt.Errorf("could not load VCAP environment: %s", err)
+		}
 
-	cfEnv *cfenv.App
-}
-
-// NewCFEnv creates a new CF proxy environment from the provided default proxy environment
-func NewCFEnv(delegate sb.Environment, cfEnvironment *cfenv.App) sb.Environment {
-	return &cfEnv{
-		Environment: delegate,
-		cfEnv:       cfEnvironment,
+		env.Set("server.host", "https://"+cfEnv.ApplicationURIs[0])
+		env.Set("server.port", cfEnv.Port)
+		env.Set("cf.api", cfEnv.CFAPI)
 	}
-}
-
-// Load implements service-broker-proxy/pkg/env/Env.Load and Loads some env properties
-// from the CF VCAP environment variables.
-func (e *cfEnv) Load() (err error) {
-	if err = e.Environment.Load(); err != nil {
-		return err
-	}
-	e.Environment.Set("app.host", "https://"+e.cfEnv.ApplicationURIs[0])
-	e.Environment.Set("app.port", e.cfEnv.Port)
-	e.Environment.Set("cf.api", e.cfEnv.CFAPI)
-	return
+	return nil
 }

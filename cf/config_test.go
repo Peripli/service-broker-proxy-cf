@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/Peripli/service-broker-proxy/pkg/env/envfakes"
+	"github.com/Peripli/service-manager/pkg/env/envfakes"
 )
 
 var _ = Describe("Config", func() {
@@ -17,14 +17,9 @@ var _ = Describe("Config", func() {
 	)
 
 		BeforeEach(func() {
-			config = &cf.ClientConfiguration{
-				Config:             cfclient.DefaultConfig(),
-				CfClientCreateFunc: cfclient.NewClient,
-				Reg: &cf.RegistrationDetails{
-					User:     "user",
-					Password: "password",
-				},
-			}
+			config = cf.DefaultClientConfiguration()
+			config.Reg.User = "user"
+			config.Reg.Password = "pass"
 		})
 
 	Describe("Validate", func() {
@@ -97,14 +92,6 @@ var _ = Describe("Config", func() {
 			fakeEnv = &envfakes.FakeEnvironment{}
 		})
 
-		Context("when loading from environment fails", func() {
-			It("returns an error", func() {
-				fakeEnv.LoadReturns(creationError)
-
-				assertErrorDuringNewConfiguration()
-			})
-		})
-
 		Context("when unmarshaling from environment fails", func() {
 			It("returns an error", func() {
 				fakeEnv.UnmarshalReturns(creationError)
@@ -113,29 +100,29 @@ var _ = Describe("Config", func() {
 			})
 		})
 
-		Context("when loading and unmarshaling from environment are successful", func() {
-
+		Context("when unmarshaling from environment is successful", func() {
 			var (
-				settings cf.SettingsWrapper
+				settings cf.Settings
 
-				envSettings = cf.SettingsWrapper{
-					Cf: &cf.Settings{
-						API:            "http://example.com",
-						ClientID:       "test",
-						ClientSecret:   "test",
-						Username: "user",
-						Password: "password",
-						SkipSSLVerify: true,
-						TimeoutSeconds: 5,
-						Reg:            &cf.RegistrationDetails{
+				envSettings = cf.Settings{
+					Cf: &cf.ClientConfiguration{
+						Config: &cfclient.Config{
+							ApiAddress:        "https://example.com",
+							Username:          "user",
+							Password:          "password",
+							ClientID:          "clientid",
+							ClientSecret:      "clientsecret",
+						},
+						Reg: &cf.RegistrationDetails{
 							User:     "user",
 							Password: "passsword",
 						},
+						CfClientCreateFunc: cfclient.NewClient,
 					},
 				}
 
-				emptySettings = cf.SettingsWrapper{
-					Cf: &cf.Settings{
+				emptySettings = cf.Settings{
+					Cf: &cf.ClientConfiguration{
 						Reg: &cf.RegistrationDetails{
 							User:     "user",
 							Password: "password",
@@ -145,16 +132,10 @@ var _ = Describe("Config", func() {
 
 			)
 
-			assertEnvironmentLoadedAndUnmarshaled := func() {
-				Expect(fakeEnv.LoadCallCount()).To(Equal(1))
-				Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
-			}
-
 			BeforeEach(func() {
-				fakeEnv.LoadReturns(nil)
 				fakeEnv.UnmarshalReturns(nil)
 				fakeEnv.UnmarshalStub = func(value interface{}) error {
-					val, ok := value.(*cf.SettingsWrapper)
+					val, ok := value.(*cf.Settings)
 					if ok {
 						*val = settings
 					}
@@ -171,11 +152,11 @@ var _ = Describe("Config", func() {
 					c, err := cf.NewConfig(fakeEnv)
 
 					Expect(err).To(Not(HaveOccurred()))
-					assertEnvironmentLoadedAndUnmarshaled()
+					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
 
 					Expect(err).To(Not(HaveOccurred()))
 
-					Expect(c.ApiAddress).Should(Equal(envSettings.Cf.API))
+					Expect(c.ApiAddress).Should(Equal(envSettings.Cf.ApiAddress))
 					Expect(c.ClientID).Should(Equal(envSettings.Cf.ClientID))
 					Expect(c.ClientSecret).Should(Equal(envSettings.Cf.ClientSecret))
 					Expect(c.Username).Should(Equal(envSettings.Cf.Username))
@@ -188,33 +169,16 @@ var _ = Describe("Config", func() {
 					settings = emptySettings
 				})
 
-				Specify("the default value is used", func() {
+				It("returns an empty config", func() {
 					c, err := cf.NewConfig(fakeEnv)
 					Expect(err).To(Not(HaveOccurred()))
 
 
-					assertEnvironmentLoadedAndUnmarshaled()
+					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
 
-					Expect(c.Config).Should(Equal(config.Config))
-					Expect(c.Reg).Should(Equal(config.Reg))
+					Expect(c).Should(Equal(emptySettings.Cf))
+
 				})
-			})
-		})
-	})
-
-	Describe("Registration details", func() {
-		var regDetails *cf.RegistrationDetails
-
-		Describe("Stringer", func() {
-			BeforeEach(func() {
-				regDetails = &cf.RegistrationDetails{
-					User:     "user",
-					Password: "password",
-				}
-			})
-
-			It("contains the user", func() {
-				Expect(regDetails.String()).Should(ContainSubstring(regDetails.User))
 			})
 		})
 	})

@@ -2,22 +2,17 @@ package main
 
 import (
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/Peripli/service-manager/pkg/env"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/Peripli/service-broker-proxy/pkg/middleware"
 	"github.com/spf13/pflag"
-	"github.com/Peripli/service-broker-proxy/pkg/config"
 )
 
 func main() {
-	set := env.EmptyFlagSet()
-	addPFlags(set)
+	env := sbproxy.DefaultEnv(func(set *pflag.FlagSet) {
+		cf.CreatePFlagsForCFClient(set)
+	})
 
-	env, err := env.New(set)
-	if err != nil {
-		panic(fmt.Errorf("error loading environment: %s", err))
-	}
 	if err := cf.SetCFOverrides(env); err != nil {
 		panic(fmt.Errorf("error setting CF environment values: %s", err))
 	}
@@ -42,8 +37,3 @@ func main() {
 	proxy.Run()
 }
 
-func addPFlags(set *pflag.FlagSet) {
-	cf.CreatePFlagsForCFClient(set)
-	env.CreatePFlagsForConfigFile(set)
-	config.CreatePFlagsForProxy(set)
-}

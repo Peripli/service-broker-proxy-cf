@@ -11,6 +11,7 @@ sm:
   host: https://smanager.local.pcfdev.io
   osbApi: /v1/osb
   requestTimeout: 6000ms
+  skipSslValidation: true
 cf:
   client:
     apiAddress: http://api.local.pcfdev.io

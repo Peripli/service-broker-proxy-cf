@@ -20,7 +20,7 @@
     "pkg/server",
     "pkg/sm"
   ]
-  revision = "67f498397f5518e8af7036f62b2e44c2354efa92"
+  revision = "ee4d78cf9fc9b7eba4c61cd1603365b99584e17e"
 
 [[projects]]
   branch = "master"
@@ -32,7 +32,7 @@
     "pkg/util",
     "pkg/web"
   ]
-  revision = "0c7accec07dad10a411bfd377370345d331cadcb"
+  revision = "6bbeba0c92ac3a6ff0fe64e7495f4a359ca88d07"
 
 [[projects]]
   branch = "master"
@@ -49,8 +49,8 @@
 [[projects]]
   name = "github.com/cloudfoundry-community/go-cfenv"
   packages = ["."]
-  revision = "f920e9562d5f951cbf11785728f67258c38a10d0"
-  version = "v1.17.0"
+  revision = "698e54219275b33fd275dd701cba65b8e089b007"
+  version = "v1.16.0"
 
 [[projects]]
   branch = "master"
@@ -262,7 +262,7 @@
     "internal/bitbucket.org/ww/goautoneg",
     "model"
   ]
-  revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
+  revision = "c7de2306084e37d54b8be01f3541a8464345e9a5"
 
 [[projects]]
   branch = "master"
@@ -336,7 +336,7 @@
     "html/atom",
     "html/charset"
   ]
-  revision = "a0f8a16cb08c06df97cbdf9c47f4731ba548c33c"
+  revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
 
 [[projects]]
   branch = "master"
@@ -420,6 +420,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "326a31aedbc043ce3971f6f746ae8f98cd6082d7b6249115c4fdf49ffc17a6d1"
+  inputs-digest = "314005d044de22a868b40c6a49c5efcc60f8b91f4afc48e50e97e5973d8cd89f"
   solver-name = "gps-cdcl"
   solver-version = 1

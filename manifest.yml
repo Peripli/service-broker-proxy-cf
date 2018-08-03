@@ -7,8 +7,10 @@ applications:
       GOVERSION: go1.10
       GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf
       SM_HOST: https://smanager.local.pcfdev.io
-      CF_USERNAME: admin
-      CF_PASSWORD: admin
+      SM_SKIPSSLVALIDATION: true
+      CF_CLIENT_USERNAME: admin
+      CF_CLIENT_PASSWORD: admin
+      CF_CLIENT_SKIPSSLVALIDATION: true
       APP_LOGLEVEL: debug
       APP_LOGFORMAT: json
 

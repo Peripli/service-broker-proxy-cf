@@ -17,7 +17,7 @@ func SetCFOverrides(env env.Environment) error {
 
 		env.Set("server.host", "https://"+cfEnv.ApplicationURIs[0])
 		env.Set("server.port", cfEnv.Port)
-		env.Set("cf.api", cfEnv.CFAPI)
+		env.Set("cf.client.apiAddress", cfEnv.CFAPI)
 	}
 	return nil
 }

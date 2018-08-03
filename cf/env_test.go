@@ -80,10 +80,10 @@ var _ = Describe("CF Env", func() {
 				Expect(environment.Get("server.port")).To(Equal(8080))
 			})
 
-			It("sets cf.api", func() {
+			It("sets cf.client.apiAddress", func() {
 				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
 
-				Expect(environment.Get("cf.api")).To(Equal("https://example.com"))
+				Expect(environment.Get("cf.client.apiAddress")).To(Equal("https://example.com"))
 			})
 		})
 	})

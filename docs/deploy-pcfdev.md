@@ -15,6 +15,7 @@ In `manifest.yml` you need to configure the following:
 
 * Service-Manager host using the `SM_HOST` env variable.
 * Administrative credentials for PCF Dev with env variables `CF_USERNAME` and `CF_PASSWORD`.
+* Platform credentials for Service Manager with env variables `SM_USER` and `SM_PASSWORD`
 
 In addition you can change other configurations like log level and log format.
 You can also use the `application.yml` file which has lower priority than the Environment variables.

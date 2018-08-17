@@ -10,8 +10,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:6d16cacc409be5f4f24161972f8c9b98984bf62c24acd16820caf42cdd166057"
+  branch = "reverse-proxy"
+  digest = "1:52b2e3817d0be129b41b109085a96191be2ce80128368761c8cc1e58b4d00cab"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/config",
@@ -20,33 +20,39 @@
     "pkg/osb",
     "pkg/platform",
     "pkg/sbproxy",
-    "pkg/server",
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "ee4d78cf9fc9b7eba4c61cd1603365b99584e17e"
+  revision = "c17e729adace689aeff2cadd8458e74c641fae4f"
 
 [[projects]]
-  branch = "master"
-  digest = "1:99d43b48cd4bec0903492e3693f1519a36b38367490c35742a2072c1b0e7d210"
+  branch = "reverse-proxy"
+  digest = "1:85af0eb8a7cb0797650e799cef3df29dda87007007ceda84dc401e4d45eb25b6"
   name = "github.com/Peripli/service-manager"
   packages = [
+    "api",
+    "api/broker",
+    "api/catalog",
+    "api/filters",
+    "api/filters/authn",
+    "api/healthcheck",
+    "api/info",
+    "api/osb",
+    "api/platform",
     "pkg/env",
     "pkg/env/envfakes",
+    "pkg/log",
+    "pkg/server",
     "pkg/types",
     "pkg/util",
     "pkg/web",
+    "security",
+    "security/basic",
+    "security/oidc",
+    "storage",
   ]
   pruneopts = "UT"
-  revision = "2bf99368c99dd46aeeeb3dbfdb242917daeca001"
-
-[[projects]]
-  branch = "master"
-  digest = "1:d6afaeed1502aa28e80a4ed0981d570ad91b2579193404256ce672ed0a609e0d"
-  name = "github.com/beorn7/perks"
-  packages = ["quantile"]
-  pruneopts = "UT"
-  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+  revision = "340a9a20db321cfab2dc091f1457964064433145"
 
 [[projects]]
   branch = "master"
@@ -71,6 +77,13 @@
   packages = ["fileutils"]
   pruneopts = "UT"
   revision = "4d0c80011a0f37da1711c184028bc40137cd45af"
+
+[[projects]]
+  digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
+  name = "github.com/coreos/go-oidc"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
 
 [[projects]]
   digest = "1:ca82a3b99694824c627573c2a76d0e49719b4a9c02d1d85a2ac91f1c1f52ab9b"
@@ -130,6 +143,14 @@
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:185a43b59a1f4e7ad4e7ccafb8a1538193d897a2a75be16dda093ec42ad231cf"
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
+  version = "v1.3.0"
+
+[[projects]]
   digest = "1:88aa9e326e2bd6045a46e00a922954b3e1a9ac5787109f49ac85366df370e1e5"
   name = "github.com/gorilla/mux"
   packages = ["."]
@@ -177,14 +198,6 @@
   pruneopts = "UT"
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
-
-[[projects]]
-  digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
-  name = "github.com/matttproud/golang_protobuf_extensions"
-  packages = ["pbutil"]
-  pruneopts = "UT"
-  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
-  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
@@ -271,69 +284,23 @@
   version = "v0.8.0"
 
 [[projects]]
-  digest = "1:d9bb77380eab78f8f74224ad3e08c42c6235babac2bc0263e9ef3b2e79e72b4a"
+  digest = "1:8658f775ba5edb37ede96d8ec9eaecdfe06bc4aef1776152070185e6513dc0cc"
   name = "github.com/pmorie/go-open-service-broker-client"
   packages = ["v2"]
   pruneopts = "UT"
-  revision = "e8aa16c9036317bd59ced8921e9da6197ab577e3"
-  version = "0.0.5"
-
-[[projects]]
-  digest = "1:65f55cb1d33a320785f7359dbb2f2c187ebb1075b76c70669154da76f0ea0f15"
-  name = "github.com/pmorie/osb-broker-lib"
-  packages = [
-    "pkg/broker",
-    "pkg/metrics",
-    "pkg/rest",
-    "pkg/server",
-  ]
-  pruneopts = "UT"
-  revision = "f4ca270ef323318b363f986229bd10bccb2d28b1"
+  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
   version = "0.0.10"
 
 [[projects]]
-  digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
-  name = "github.com/prometheus/client_golang"
-  packages = [
-    "prometheus",
-    "prometheus/promhttp",
-  ]
-  pruneopts = "UT"
-  revision = "c5b7fccd204277076155f10851dad72b76a49317"
-  version = "v0.8.0"
-
-[[projects]]
   branch = "master"
-  digest = "1:2d5cd61daa5565187e1d96bae64dbbc6080dacf741448e9629c64fd93203b0d4"
-  name = "github.com/prometheus/client_model"
-  packages = ["go"]
-  pruneopts = "UT"
-  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
-
-[[projects]]
-  branch = "master"
-  digest = "1:63b68062b8968092eb86bedc4e68894bd096ea6b24920faca8b9dcf451f54bb5"
-  name = "github.com/prometheus/common"
-  packages = [
-    "expfmt",
-    "internal/bitbucket.org/ww/goautoneg",
-    "model",
-  ]
-  pruneopts = "UT"
-  revision = "c7de2306084e37d54b8be01f3541a8464345e9a5"
-
-[[projects]]
-  branch = "master"
-  digest = "1:8c49953a1414305f2ff5465147ee576dd705487c35b15918fcd4efdc0cb7a290"
-  name = "github.com/prometheus/procfs"
+  digest = "1:bd9efe4e0b0f768302a1e2f0c22458149278de533e521206e5ddc71848c269a0"
+  name = "github.com/pquerna/cachecontrol"
   packages = [
     ".",
-    "internal/util",
-    "nfs",
-    "xfs",
+    "cacheobject",
   ]
   pruneopts = "UT"
-  revision = "05ee40e3a273f7245e8777337fc7b46e533a9a92"
+  revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
 
 [[projects]]
   branch = "master"
@@ -342,6 +309,13 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+
+[[projects]]
+  digest = "1:ff6b0586c0621a76832cf783eee58cbb9d9795d2ce8acbc199a4131db11c42a9"
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
 
 [[projects]]
   digest = "1:5622116f2c79239f2d25d47b881e14f96a8b8c17b63b8a8326a38ee1a332b007"
@@ -396,11 +370,16 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
+  digest = "1:8e241498e35f550e5192ee6b1f6ff2c0a7ffe81feff9541d297facffe1383979"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = [
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "pbkdf2",
+    "ssh/terminal",
+  ]
   pruneopts = "UT"
-  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
+  revision = "aabede6cba87e37f413b3e60ebfc214f8eeca1b0"
 
 [[projects]]
   branch = "master"
@@ -492,6 +471,18 @@
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   source = "https://github.com/fsnotify/fsnotify.git"
   version = "v1.4.7"
+
+[[projects]]
+  digest = "1:02d2c5be9a35ce750536e74af0d98aca806f225913a3ab28f285843d6283c70d"
+  name = "gopkg.in/square/go-jose.v2"
+  packages = [
+    ".",
+    "cipher",
+    "json",
+  ]
+  pruneopts = "UT"
+  revision = "8254d6c783765f38c8675fae4427a1fe73fbd09d"
+  version = "v2.1.8"
 
 [[projects]]
   branch = "v1"

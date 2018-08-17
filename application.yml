@@ -1,4 +1,5 @@
 # Any of the below config properties can be provided via Environment Variables
+self_host: http://10.0.2.2:8081
 server:
   port: 8081
   request_timeout: 4000ms
@@ -11,10 +12,10 @@ sm:
   user: admin
   password: admin
   host: https://smanager.local.pcfdev.io
-  osbApi: /v1/osb
-  requestTimeout: 6000ms
-  skipSslValidation: false
-  # resyncPeriod: 1m
+  osb_api: /v1/osb
+  request_timeout: 6000ms
+  skip_ssl_validation: false
+  resync_period: 30s
 cf:
   client:
     apiAddress: http://api.local.pcfdev.io

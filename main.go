@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
+
+	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/middleware"
-	"github.com/spf13/pflag"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/Peripli/service-manager/pkg/util"
+	"github.com/spf13/pflag"
 )
 
 func main() {

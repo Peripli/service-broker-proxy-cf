@@ -1,10 +1,11 @@
 package cf
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/Peripli/service-manager/pkg/env"
 	"github.com/cloudfoundry-community/go-cfenv"
-	"os"
-	"fmt"
 )
 
 // SetCFOverrides overrides some SM environment with values from CF's VCAP environment variables
@@ -15,7 +16,7 @@ func SetCFOverrides(env env.Environment) error {
 			return fmt.Errorf("could not load VCAP environment: %s", err)
 		}
 
-		env.Set("server.host", "https://"+cfEnv.ApplicationURIs[0])
+		env.Set("self_host", "https://"+cfEnv.ApplicationURIs[0])
 		env.Set("server.port", cfEnv.Port)
 		env.Set("cf.client.apiAddress", cfEnv.CFAPI)
 	}

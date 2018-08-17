@@ -11,7 +11,7 @@ log:
 sm:
   user: admin
   password: admin
-  host: https://smanager.local.pcfdev.io
+  host: http://localhost:8080
   osb_api: /v1/osb
   request_timeout: 6000ms
   skip_ssl_validation: false

@@ -34,7 +34,7 @@ func main() {
 	proxyBuilder := sbproxy.New(ctx, env, platformClient)
 	proxy := proxyBuilder.Build()
 
-	proxy.Server.Use(middleware.BasicAuth(platformConfig.Reg.User, platformConfig.Reg.Password))
+	proxy.Use(middleware.BasicAuth(platformConfig.Reg.User, platformConfig.Reg.Password))
 
 	proxy.Run()
 }

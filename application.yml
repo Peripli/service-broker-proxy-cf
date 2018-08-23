@@ -1,5 +1,5 @@
 # Any of the below config properties can be provided via Environment Variables
-self_host: http://10.0.2.2:8081
+self_url: http://10.0.2.2:8081
 server:
   port: 8081
   request_timeout: 4000ms
@@ -11,8 +11,8 @@ log:
 sm:
   user: admin
   password: admin
-  host: http://localhost:8080
-  osb_api: /v1/osb
+  url: http://localhost:8080
+  osb_api_path: /v1/osb
   request_timeout: 6000ms
   skip_ssl_validation: false
   resync_period: 30s

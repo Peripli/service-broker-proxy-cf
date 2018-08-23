@@ -13,7 +13,7 @@
 
 In `manifest.yml` you need to configure the following:
 
-* Service-Manager host using the `SM_HOST` env variable.
+* Service-Manager URL using the `SM_URL` env variable.
 * Administrative credentials for PCF Dev with env variables `CF_USERNAME` and `CF_PASSWORD`.
 * Platform credentials for Service Manager with env variables `SM_USER` and `SM_PASSWORD`
 

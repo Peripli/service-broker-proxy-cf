@@ -1,11 +1,12 @@
 package cf
 
 import (
+	"os"
+
 	"github.com/Peripli/service-manager/pkg/env"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/pflag"
-	"os"
 )
 
 var _ = Describe("CF Env", func() {
@@ -68,10 +69,10 @@ var _ = Describe("CF Env", func() {
 		})
 
 		Context("when VCAP_APPLICATION is present", func() {
-			It("sets server.host", func() {
+			It("sets self_url", func() {
 				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
 
-				Expect(environment.Get("server.host")).To(Equal("https://example.com"))
+				Expect(environment.Get("self_url")).To(Equal("https://example.com"))
 			})
 
 			It("sets server.port", func() {

@@ -17,46 +17,60 @@
     "pkg/osb",
     "pkg/platform",
     "pkg/sbproxy",
-    "pkg/server",
     "pkg/sm"
   ]
-  revision = "ee4d78cf9fc9b7eba4c61cd1603365b99584e17e"
+  revision = "8fe36b08cf14e0c39204f1f0dc1e4b6c9f0e01c5"
 
 [[projects]]
   branch = "master"
   name = "github.com/Peripli/service-manager"
   packages = [
+    "api",
+    "api/broker",
+    "api/catalog",
+    "api/filters",
+    "api/filters/authn",
+    "api/healthcheck",
+    "api/info",
+    "api/osb",
+    "api/platform",
     "pkg/env",
     "pkg/env/envfakes",
+    "pkg/log",
+    "pkg/server",
     "pkg/types",
     "pkg/util",
-    "pkg/web"
+    "pkg/util/slice",
+    "pkg/web",
+    "security",
+    "security/basic",
+    "security/oidc",
+    "storage"
   ]
-  revision = "6bbeba0c92ac3a6ff0fe64e7495f4a359ca88d07"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/beorn7/perks"
-  packages = ["quantile"]
-  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+  revision = "701137e6017f26067a3f7c73fe3a9e6b7835f706"
 
 [[projects]]
   branch = "master"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
-  revision = "7900c3c65270cc2bfc467b10cd458d4d0e8f0fad"
+  revision = "398c9ba6076d734fa8a7bfeaaf833b46e0d71c35"
 
 [[projects]]
   name = "github.com/cloudfoundry-community/go-cfenv"
   packages = ["."]
-  revision = "698e54219275b33fd275dd701cba65b8e089b007"
-  version = "v1.16.0"
+  revision = "f920e9562d5f951cbf11785728f67258c38a10d0"
+  version = "v1.17.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/cloudfoundry/gofileutils"
   packages = ["fileutils"]
   revision = "4d0c80011a0f37da1711c184028bc40137cd45af"
+
+[[projects]]
+  name = "github.com/coreos/go-oidc"
+  packages = ["."]
+  revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
 
 [[projects]]
   name = "github.com/fatih/structs"
@@ -86,6 +100,12 @@
   version = "v0.2.3"
 
 [[projects]]
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  revision = "d41eeda0759468834c84365a32d1b1ec4264c75f"
+  version = "v3.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/golang/glog"
   packages = ["."]
@@ -94,8 +114,8 @@
 [[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -104,13 +124,18 @@
   version = "v1.1.1"
 
 [[projects]]
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
   revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
   version = "v1.6.1"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
@@ -124,7 +149,8 @@
     "json/scanner",
     "json/token"
   ]
-  revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
+  revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/hpcloud/tail"
@@ -145,16 +171,10 @@
   version = "v1.8.0"
 
 [[projects]]
-  name = "github.com/matttproud/golang_protobuf_extensions"
-  packages = ["pbutil"]
-  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
-  version = "v1.0.1"
-
-[[projects]]
-  branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
+  revision = "fa473d140ef3c6adf42d6b391fe76707f1f243c8"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -163,7 +183,7 @@
     "filename",
     "formatter"
   ]
-  revision = "00f4ddfaeb23824ce8b9ce969095a9b2529b9eca"
+  revision = "ca0a758702be2ae04725ba88dcd27a71949faf33"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -225,55 +245,17 @@
 [[projects]]
   name = "github.com/pmorie/go-open-service-broker-client"
   packages = ["v2"]
-  revision = "e8aa16c9036317bd59ced8921e9da6197ab577e3"
-  version = "0.0.5"
-
-[[projects]]
-  name = "github.com/pmorie/osb-broker-lib"
-  packages = [
-    "pkg/broker",
-    "pkg/metrics",
-    "pkg/rest",
-    "pkg/server"
-  ]
-  revision = "f4ca270ef323318b363f986229bd10bccb2d28b1"
+  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
   version = "0.0.10"
 
 [[projects]]
-  name = "github.com/prometheus/client_golang"
-  packages = [
-    "prometheus",
-    "prometheus/promhttp"
-  ]
-  revision = "c5b7fccd204277076155f10851dad72b76a49317"
-  version = "v0.8.0"
-
-[[projects]]
   branch = "master"
-  name = "github.com/prometheus/client_model"
-  packages = ["go"]
-  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/prometheus/common"
-  packages = [
-    "expfmt",
-    "internal/bitbucket.org/ww/goautoneg",
-    "model"
-  ]
-  revision = "c7de2306084e37d54b8be01f3541a8464345e9a5"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/prometheus/procfs"
+  name = "github.com/pquerna/cachecontrol"
   packages = [
     ".",
-    "internal/util",
-    "nfs",
-    "xfs"
+    "cacheobject"
   ]
-  revision = "05ee40e3a273f7245e8777337fc7b46e533a9a92"
+  revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
 
 [[projects]]
   name = "github.com/robfig/cron"
@@ -306,7 +288,7 @@
   branch = "master"
   name = "github.com/spf13/jwalterweatherman"
   packages = ["."]
-  revision = "7c0cea34c8ece3fbeb2b27ab9b59511d360fb394"
+  revision = "14d3d4c518341bea657dd8a226f5121c0ff8c9f2"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -323,8 +305,13 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
+  packages = [
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "pbkdf2",
+    "ssh/terminal"
+  ]
+  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
 
 [[projects]]
   branch = "master"
@@ -336,7 +323,7 @@
     "html/atom",
     "html/charset"
   ]
-  revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
+  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
 
 [[projects]]
   branch = "master"
@@ -346,7 +333,7 @@
     "clientcredentials",
     "internal"
   ]
-  revision = "3d292e4d0cdc3a0113e6d207bb137145ef1de42f"
+  revision = "d2e6202438beef2727060aa7cabdd924d92ebfd9"
 
 [[projects]]
   branch = "master"
@@ -355,7 +342,7 @@
     "unix",
     "windows"
   ]
-  revision = "bd9dbc187b6e1dacfdd2722a87e83093c2d7bd6e"
+  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -406,6 +393,16 @@
   version = "v1.4.7"
 
 [[projects]]
+  name = "gopkg.in/square/go-jose.v2"
+  packages = [
+    ".",
+    "cipher",
+    "json"
+  ]
+  revision = "8254d6c783765f38c8675fae4427a1fe73fbd09d"
+  version = "v2.1.8"
+
+[[projects]]
   branch = "v1"
   name = "gopkg.in/tomb.v1"
   packages = ["."]
@@ -420,6 +417,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "314005d044de22a868b40c6a49c5efcc60f8b91f4afc48e50e97e5973d8cd89f"
+  inputs-digest = "620dc5b6c63dbcaed0abf5e2be91fa00926a9aa88647c71e8025f4a37ebe4966"
   solver-name = "gps-cdcl"
   solver-version = 1

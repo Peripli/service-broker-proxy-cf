@@ -1,18 +1,21 @@
 # Any of the below config properties can be provided via Environment Variables
+self_url: http://10.0.2.2:8081
 server:
   port: 8081
-  logLevel: debug
-  logFormat: text
-  timeout: 5000ms
-  # resyncPeriod: 1m
+  request_timeout: 4000ms
+  shutdown_timeout: 4000ms
   #  host: https://cfproxy.local.pcfdev.io
+log:
+  level: debug
+  format: text
 sm:
   user: admin
   password: admin
-  host: https://smanager.local.pcfdev.io
-  osbApi: /v1/osb
-  requestTimeout: 6000ms
-  skipSslValidation: false
+  url: http://localhost:8080
+  osb_api_path: /v1/osb
+  request_timeout: 6000ms
+  skip_ssl_validation: false
+  resync_period: 30s
 cf:
   client:
     apiAddress: http://api.local.pcfdev.io

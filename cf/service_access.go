@@ -2,9 +2,9 @@ package cf
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy-cf/.vendor-new/golang.org/x/net/context"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/cloudfoundry-community/go-cfclient"

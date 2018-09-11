@@ -1,6 +1,7 @@
 package cf_test
 
 import (
+	"context"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -12,18 +13,21 @@ import (
 
 var _ = Describe("Client FetchCatalog", func() {
 	var (
-		config         *cf.ClientConfiguration
-		client         *cf.PlatformClient
-		ccServer       *ghttp.Server
-		testBroker     *platform.ServiceBroker
-		ccResponseCode int
-		ccResponse        interface{}
-		ccResponseErr cf.CloudFoundryErr
+		config          *cf.ClientConfiguration
+		client          *cf.PlatformClient
+		ccServer        *ghttp.Server
+		testBroker      *platform.ServiceBroker
+		ccResponseCode  int
+		ccResponse      interface{}
+		ccResponseErr   cf.CloudFoundryErr
 		expectedRequest interface{}
-		err error
+		err             error
+		ctx             context.Context
 	)
 
 	BeforeEach(func() {
+		ctx = context.TODO()
+
 		testBroker = &platform.ServiceBroker{
 			GUID:      "test-testBroker-guid",
 			Name:      "test-testBroker-name",
@@ -72,7 +76,7 @@ var _ = Describe("Client FetchCatalog", func() {
 			})
 
 			It("returns no error", func() {
-				err = client.Fetch(testBroker)
+				err = client.Fetch(ctx, testBroker)
 
 				Expect(err).ShouldNot(HaveOccurred())
 			})
@@ -91,7 +95,7 @@ var _ = Describe("Client FetchCatalog", func() {
 			})
 
 			It("propagates the error", func() {
-				err = client.Fetch(testBroker)
+				err = client.Fetch(ctx, testBroker)
 
 				assertErrIsCFError(err, ccResponseErr)
 			})

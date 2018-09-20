@@ -1,6 +1,7 @@
 package cf_test
 
 import (
+	"context"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -20,6 +21,7 @@ var _ = Describe("Client ServiceBroker", func() {
 		ccResponse      interface{}
 		ccResponseErr   cf.CloudFoundryErr
 		expectedRequest interface{}
+		ctx             context.Context
 	)
 
 	assertBrokersFoundMatchTestBroker := func(expectedCount int, actualBrokers ...platform.ServiceBroker) {
@@ -30,6 +32,8 @@ var _ = Describe("Client ServiceBroker", func() {
 	}
 
 	BeforeEach(func() {
+		ctx = context.TODO()
+
 		testBroker = &platform.ServiceBroker{
 			GUID:      "test-testBroker-guid",
 			Name:      "test-testBroker-name",
@@ -69,7 +73,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.GetBrokers()
+				_, err := client.GetBrokers(ctx)
 
 				assertErrIsCFError(err, ccResponseErr)
 			})
@@ -87,7 +91,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns an empty slice", func() {
-				brokers, err := client.GetBrokers()
+				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				assertBrokersFoundMatchTestBroker(0, brokers...)
@@ -117,7 +121,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns all of the brokers", func() {
-				brokers, err := client.GetBrokers()
+				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				assertBrokersFoundMatchTestBroker(1, brokers...)
@@ -163,7 +167,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.CreateBroker(actualRequest)
+				_, err := client.CreateBroker(ctx, actualRequest)
 
 				assertErrIsCFError(err, ccResponseErr)
 			})
@@ -173,8 +177,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			BeforeEach(func() {
 				ccResponseCode = http.StatusCreated
 				ccResponse = cfclient.ServiceBrokerResource{
-					Meta:   cfclient.Meta{
-						Guid:      testBroker.GUID,
+					Meta: cfclient.Meta{
+						Guid: testBroker.GUID,
 					},
 					Entity: cfclient.ServiceBroker{
 						Name:      testBroker.Name,
@@ -185,7 +189,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns the created broker", func() {
-				broker, err := client.CreateBroker(actualRequest)
+				broker, err := client.CreateBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(broker).To(Equal(testBroker))
@@ -223,7 +227,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns an error", func() {
-				err := client.DeleteBroker(actualRequest)
+				err := client.DeleteBroker(ctx, actualRequest)
 
 				assertErrIsCFError(err, ccResponseErr)
 			})
@@ -236,7 +240,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns no error", func() {
-				err := client.DeleteBroker(actualRequest)
+				err := client.DeleteBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
 			})
@@ -283,7 +287,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateBroker(actualRequest)
+				_, err := client.UpdateBroker(ctx, actualRequest)
 
 				assertErrIsCFError(err, ccResponseErr)
 			})
@@ -306,7 +310,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns the updated broker", func() {
-				broker, err := client.UpdateBroker(actualRequest)
+				broker, err := client.UpdateBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(broker).Should(Equal(testBroker))

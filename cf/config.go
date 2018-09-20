@@ -6,8 +6,8 @@ import (
 
 	"errors"
 
-	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/Peripli/service-manager/pkg/env"
+	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/spf13/pflag"
 )
 
@@ -19,10 +19,9 @@ type RegistrationDetails struct {
 
 // ClientConfiguration type holds config info for building the cf client
 type ClientConfiguration struct {
-	*cfclient.Config `mapstructure:"client"`
-	Reg *RegistrationDetails
+	*cfclient.Config   `mapstructure:"client"`
+	Reg                *RegistrationDetails
 	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
-
 }
 
 // Settings type wraps the CF client configuration

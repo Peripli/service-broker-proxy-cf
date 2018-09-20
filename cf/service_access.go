@@ -2,12 +2,13 @@ package cf
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 )
@@ -27,29 +28,29 @@ var _ platform.ServiceAccess = &PlatformClient{}
 
 // EnableAccessForService implements service-broker-proxy/pkg/cf/ServiceAccess.EnableAccessForService
 // and provides logic for enabling the service access for all plans of a service by the service's catalog GUID.
-func (pc PlatformClient) EnableAccessForService(context json.RawMessage, catalogServiceGUID string) error {
-	return pc.updateAccessForService(context, catalogServiceGUID, true)
+func (pc PlatformClient) EnableAccessForService(ctx context.Context, context json.RawMessage, catalogServiceGUID string) error {
+	return pc.updateAccessForService(ctx, context, catalogServiceGUID, true)
 }
 
 // DisableAccessForService implements service-broker-proxy/pkg/cf/ServiceAccess.DisableAccessForService
 // and provides logic for disabling the service access for all plans of a service by the service's catalog GUID.
-func (pc PlatformClient) DisableAccessForService(context json.RawMessage, catalogServiceGUID string) error {
-	return pc.updateAccessForService(context, catalogServiceGUID, false)
+func (pc PlatformClient) DisableAccessForService(ctx context.Context, context json.RawMessage, catalogServiceGUID string) error {
+	return pc.updateAccessForService(ctx, context, catalogServiceGUID, false)
 }
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceAccess.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
-func (pc PlatformClient) EnableAccessForPlan(context json.RawMessage, catalogPlanGUID string) error {
-	return pc.updateAccessForPlan(context, catalogPlanGUID, true)
+func (pc PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
+	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, true)
 }
 
 // DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceAccess.DisableAccessForPlan
 // and provides logic for disabling the service access for a specified plan by the plan's catalog GUID.
-func (pc PlatformClient) DisableAccessForPlan(context json.RawMessage, catalogPlanGUID string) error {
-	return pc.updateAccessForPlan(context, catalogPlanGUID, false)
+func (pc PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
+	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, false)
 }
 
-func (pc PlatformClient) updateAccessForService(context json.RawMessage, catalogServiceGUID string, isEnabled bool) error {
+func (pc PlatformClient) updateAccessForService(ctx context.Context, context json.RawMessage, catalogServiceGUID string, isEnabled bool) error {
 	metadata := &Metadata{}
 	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
@@ -66,7 +67,7 @@ func (pc PlatformClient) updateAccessForService(context json.RawMessage, catalog
 	}
 
 	if metadata.OrgGUID != "" {
-		if err := pc.updateOrgVisibilitiesForPlans(plans, isEnabled, metadata.OrgGUID); err != nil {
+		if err := pc.updateOrgVisibilitiesForPlans(ctx, plans, isEnabled, metadata.OrgGUID); err != nil {
 			return err
 		}
 	} else {
@@ -78,7 +79,7 @@ func (pc PlatformClient) updateAccessForService(context json.RawMessage, catalog
 	return nil
 }
 
-func (pc PlatformClient) updateAccessForPlan(context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
+func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
 	metadata := &Metadata{}
 	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
@@ -90,7 +91,7 @@ func (pc PlatformClient) updateAccessForPlan(context json.RawMessage, catalogPla
 	}
 
 	if metadata.OrgGUID != "" {
-		if err := pc.updateOrgVisibilityForPlan(plan, isEnabled, metadata.OrgGUID); err != nil {
+		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, metadata.OrgGUID); err != nil {
 			return err
 		}
 	} else {
@@ -102,9 +103,9 @@ func (pc PlatformClient) updateAccessForPlan(context json.RawMessage, catalogPla
 	return nil
 }
 
-func (pc PlatformClient) updateOrgVisibilitiesForPlans(plans []cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
+func (pc PlatformClient) updateOrgVisibilitiesForPlans(ctx context.Context, plans []cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
 	for _, plan := range plans {
-		if err := pc.updateOrgVisibilityForPlan(plan, isEnabled, orgGUID); err != nil {
+		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
 			return err
 		}
 	}
@@ -112,10 +113,10 @@ func (pc PlatformClient) updateOrgVisibilitiesForPlans(plans []cfclient.ServiceP
 	return nil
 }
 
-func (pc PlatformClient) updateOrgVisibilityForPlan(plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
+func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
 	switch {
 	case plan.Public:
-		logrus.Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
+		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
 			"visibility for org with GUID = %s will be ignored", plan.Guid, plan.Name, orgGUID)
 	case isEnabled:
 		if _, err := pc.Client.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
@@ -190,7 +191,7 @@ func (pc PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanR
 	}
 
 	decoder := json.NewDecoder(response.Body)
-	defer response.Body.Close() //nolint
+	defer response.Body.Close() // nolint
 	if err := decoder.Decode(&planResource); err != nil {
 		return cfclient.ServicePlan{}, errors.Wrap(err, "error decoding response body")
 	}

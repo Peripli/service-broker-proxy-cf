@@ -1,10 +1,10 @@
 # Any of the below config properties can be provided via Environment Variables
-self_url: http://10.0.2.2:8081
+app:
+  url: http://localhost:8080
 server:
-  port: 8081
+  port: 8080
   request_timeout: 4000ms
   shutdown_timeout: 4000ms
-  #  host: https://cfproxy.local.pcfdev.io
 log:
   level: debug
   format: text

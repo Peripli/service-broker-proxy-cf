@@ -1,8 +1,8 @@
 # Any of the below config properties can be provided via Environment Variables
 app:
-  url: http://localhost:8080
+  url: http://10.0.2.2
 server:
-  port: 8080
+  port: 8081
   request_timeout: 4000ms
   shutdown_timeout: 4000ms
 log:

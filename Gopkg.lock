@@ -10,7 +10,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "tests2"
+  branch = "master"
   digest = "1:0b48afd9a1df6c2ba4c5c173ec9e8a54e48d267557a4bad574e35684a5198318"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -23,7 +23,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "de692caf3a6f80a0db010305342bd2377a1c9bde"
+  revision = "eaf9eefe0765855056d52946790afbef96a1337a"
 
 [[projects]]
   branch = "master"

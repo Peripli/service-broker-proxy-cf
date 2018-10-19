@@ -10,8 +10,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:0b48afd9a1df6c2ba4c5c173ec9e8a54e48d267557a4bad574e35684a5198318"
+  branch = "race"
+  digest = "1:ef3139317c5509024a11039f9b5aa036fcef9c933ed62b9afa0bfbbab5895ca1"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -23,11 +23,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "eaf9eefe0765855056d52946790afbef96a1337a"
+  revision = "d159193a3af483a0d3f8c1b1aacd02742f98058c"
 
 [[projects]]
   branch = "master"
-  digest = "1:17551db1bece7d0f87d4b480ee98ab2d13ad315f3a070427c404b606bf266faa"
+  digest = "1:9e05b4a649598f80c8224e5b812af7615f6b06def43b7903f8a1da9c58726b8c"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -35,12 +35,12 @@
     "api/catalog",
     "api/filters",
     "api/filters/authn",
-    "api/healthcheck",
     "api/info",
     "api/osb",
     "api/platform",
     "pkg/env",
     "pkg/env/envfakes",
+    "pkg/health",
     "pkg/log",
     "pkg/server",
     "pkg/types",
@@ -53,15 +53,15 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "a9dcbac9f21259013baac38a2d8264d3593488bb"
+  revision = "95076f31f0720603d326f5d9d859e400d781f6b3"
 
 [[projects]]
   branch = "master"
-  digest = "1:a34219fcd9d7ae8fc239223224246f0ea1f7024d7b7e9d9b7b4eab581a3e9625"
+  digest = "1:a6250ed6436c1bdf3ddab98c53c1d6bea0c9761a3558bee7a936c76f12b7cba6"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "149e140bbeec150b461d9257942bd7777b6ad513"
+  revision = "d4bc455068cf68e431cfa7a953a8f2f50627a2db"
 
 [[projects]]
   digest = "1:d689318918dac8435731a16f090349f48f3758a3dbe5f967e913185bf264abaf"
@@ -201,20 +201,20 @@
   version = "v1.8.0"
 
 [[projects]]
-  digest = "1:645110e089152bd0f4a011a2648fbb0e4df5977be73ca605781157ac297f50c4"
+  digest = "1:53bc4cd4914cd7cd52139990d5170d6dc99067ae31c56530621b18b35fc30318"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   pruneopts = "UT"
-  revision = "fa473d140ef3c6adf42d6b391fe76707f1f243c8"
-  version = "v1.0.0"
+  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
+  version = "v1.1.2"
 
 [[projects]]
   branch = "master"
-  digest = "1:4323c6f79178c6f811a0528b1b2eba03bad0cae33605636f1e38c8f907b5cbf7"
+  digest = "1:7b00688590bccf501dc8b1f43f5948a80bc72494c501d9c995abb68be1e766f2"
   name = "github.com/onrik/logrus"
   packages = ["filename"]
   pruneopts = "UT"
-  revision = "ca0a758702be2ae04725ba88dcd27a71949faf33"
+  revision = "c9849815bc7c2abf20d58e4bc06c242198ebb741"
 
 [[projects]]
   digest = "1:42e29deef12327a69123b9cb2cb45fee4af5c12c2a23c6e477338279a052703f"
@@ -370,11 +370,11 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "5295e8364332db77d75fce11f1d19c053919a9c9"
+  revision = "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
 
 [[projects]]
   branch = "master"
-  digest = "1:1773c29e859f20619b8d70811ff67de2b4dcad02a5fc0bfac16501fa666df147"
+  digest = "1:d0a0bdd2b64d981aa4e6a1ade90431d042cd7fa31b584e33d45e62cbfec43380"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -384,11 +384,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
+  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
 
 [[projects]]
   branch = "master"
-  digest = "1:9cd9b6067f4b13c6d948e3698dc2075811bbb0f76d5fc626eab14c5c1f71060d"
+  digest = "1:3f224b12f04060f6098b22819c35ace3b0d91c9c65850dedf3223ed095212351"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -396,18 +396,18 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "d2e6202438beef2727060aa7cabdd924d92ebfd9"
+  revision = "9dcd33a902f40452422c2367fefcb95b54f9f8f8"
 
 [[projects]]
   branch = "master"
-  digest = "1:2c607ffa8a0a34a9acba4aba7b33d981b5a2150bfcec41b1f2ef1d791bcf6c14"
+  digest = "1:bececf436a23bf63181438c4ef4f7f47816b87ff879083d83ca1321f9001a354"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "dad3d9fb7b6e83d0f9ac8f54670f6334c3a287b4"
+  revision = "8f1d3d21f81be6e86ebcd6febee89c89bc50719f"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"

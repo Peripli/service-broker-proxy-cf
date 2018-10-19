@@ -10,12 +10,11 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "race"
-  digest = "1:ef3139317c5509024a11039f9b5aa036fcef9c933ed62b9afa0bfbbab5895ca1"
+  digest = "1:ef78ab5c150aeab35f49e980411bbb7cea7511f2f52ef1b0b964ff4fa2c12946"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
+    "pkg/filter",
     "pkg/logging",
-    "pkg/middleware",
     "pkg/osb",
     "pkg/platform",
     "pkg/sbproxy",
@@ -23,18 +22,19 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "d159193a3af483a0d3f8c1b1aacd02742f98058c"
+  revision = "e3a1d9ba9ff65981d12749a4bec1bfda4423b539"
+  version = "v0.1.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:9e05b4a649598f80c8224e5b812af7615f6b06def43b7903f8a1da9c58726b8c"
+  digest = "1:a7ed1b484595f328ef1b9ba97a1a3654dd9cfd1f3cbd57b1d34432017452851c"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
     "api/broker",
-    "api/catalog",
     "api/filters",
-    "api/filters/authn",
+    "api/filters/authn/basic",
+    "api/filters/authn/oauth",
+    "api/healthcheck",
     "api/info",
     "api/osb",
     "api/platform",
@@ -42,18 +42,19 @@
     "pkg/env/envfakes",
     "pkg/health",
     "pkg/log",
+    "pkg/security",
+    "pkg/security/filters",
+    "pkg/security/middlewares",
     "pkg/server",
     "pkg/types",
     "pkg/util",
     "pkg/util/slice",
     "pkg/web",
-    "security",
-    "security/basic",
-    "security/oidc",
     "storage",
   ]
   pruneopts = "UT"
-  revision = "95076f31f0720603d326f5d9d859e400d781f6b3"
+  revision = "04f873027c938d84832e90624f5ce0c14f5cdb7d"
+  version = "v0.1.1"
 
 [[projects]]
   branch = "master"
@@ -495,13 +496,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/Peripli/service-broker-proxy/pkg/middleware",
     "github.com/Peripli/service-broker-proxy/pkg/platform",
     "github.com/Peripli/service-broker-proxy/pkg/sbproxy",
     "github.com/Peripli/service-manager/pkg/env",
     "github.com/Peripli/service-manager/pkg/env/envfakes",
     "github.com/Peripli/service-manager/pkg/log",
-    "github.com/Peripli/service-manager/pkg/util",
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-community/go-cfenv",
     "github.com/onsi/ginkgo",

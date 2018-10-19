@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/Peripli/service-broker-proxy/pkg/middleware"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/spf13/pflag"
 )
@@ -34,8 +33,6 @@ func main() {
 
 	proxyBuilder := sbproxy.New(ctx, cancel, env, platformClient)
 	proxy := proxyBuilder.Build()
-
-	proxy.Use(middleware.BasicAuth(platformConfig.Reg.User, platformConfig.Reg.Password))
 
 	proxy.Run()
 }

@@ -2,6 +2,7 @@
 package cf
 
 import (
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"time"
 
 	"errors"
@@ -11,16 +12,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// RegistrationDetails type represents the credentials used to register a broker at the cf
-type RegistrationDetails struct {
-	User     string
-	Password string
-}
-
 // ClientConfiguration type holds config info for building the cf client
 type ClientConfiguration struct {
 	*cfclient.Config   `mapstructure:"client"`
-	Reg                *RegistrationDetails
+	Reg                *reconcile.Settings
 	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error)
 }
 
@@ -36,7 +31,7 @@ func DefaultClientConfiguration() *ClientConfiguration {
 
 	return &ClientConfiguration{
 		Config:             cfClientConfig,
-		Reg:                &RegistrationDetails{},
+		Reg:                &reconcile.Settings{},
 		CfClientCreateFunc: cfclient.NewClient,
 	}
 }
@@ -63,13 +58,7 @@ func (c *ClientConfiguration) Validate() error {
 	if c.Reg == nil {
 		return errors.New("CF client configuration Registration credentials missing")
 	}
-	if len(c.Reg.User) == 0 {
-		return errors.New("CF client configuration Registration details user missing")
-	}
-	if len(c.Reg.Password) == 0 {
-		return errors.New("CF client configuration Registration details password missing")
-	}
-	return nil
+	return c.Reg.Validate()
 }
 
 // NewConfig creates ClientConfiguration from the provided environment

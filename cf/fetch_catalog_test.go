@@ -41,7 +41,7 @@ var _ = Describe("Client FetchCatalog", func() {
 		expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 			Name:      testBroker.Name,
 			BrokerURL: testBroker.BrokerURL,
-			Username:  config.Reg.User,
+			Username:  config.Reg.Username,
 			Password:  config.Reg.Password,
 		}
 

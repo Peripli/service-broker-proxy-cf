@@ -1,10 +1,9 @@
 package cf
 
-import
-(
+import (
 	"context"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-community/go-cfclient"
 )
 
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
@@ -33,7 +32,7 @@ func (pc PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBrok
 func (pc PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.CreateServiceBrokerRequest{
-		Username:  pc.reg.User,
+		Username:  pc.reg.Username,
 		Password:  pc.reg.Password,
 		Name:      r.Name,
 		BrokerURL: r.BrokerURL,
@@ -69,7 +68,7 @@ func (pc PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSer
 func (pc PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.UpdateServiceBrokerRequest{
-		Username:  pc.reg.User,
+		Username:  pc.reg.Username,
 		Password:  pc.reg.Password,
 		Name:      r.Name,
 		BrokerURL: r.BrokerURL,

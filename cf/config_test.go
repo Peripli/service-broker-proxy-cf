@@ -1,13 +1,14 @@
 package cf_test
 
 import (
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/Peripli/service-manager/pkg/env/envfakes"
+	"github.com/cloudfoundry-community/go-cfclient"
 )
 
 var _ = Describe("Config", func() {
@@ -16,11 +17,12 @@ var _ = Describe("Config", func() {
 		config *cf.ClientConfiguration
 	)
 
-		BeforeEach(func() {
-			config = cf.DefaultClientConfiguration()
-			config.Reg.User = "user"
-			config.Reg.Password = "pass"
-		})
+	BeforeEach(func() {
+		config = cf.DefaultClientConfiguration()
+		config.Reg.URL = "http://10.0.2.2"
+		config.Reg.Username = "user"
+		config.Reg.Password = "pass"
+	})
 
 	Describe("Validate", func() {
 		assertErrorDuringValidate := func() {
@@ -32,7 +34,6 @@ var _ = Describe("Config", func() {
 			err = config.Validate()
 			Expect(err).ShouldNot(HaveOccurred())
 		}
-
 
 		Context("when config is valid", func() {
 			It("returns no error", func() {
@@ -63,7 +64,7 @@ var _ = Describe("Config", func() {
 
 		Context("when log level is missing", func() {
 			It("returns an error", func() {
-				config.Reg.User = ""
+				config.Reg.Username = ""
 				assertErrorDuringValidate()
 			})
 		})
@@ -107,14 +108,15 @@ var _ = Describe("Config", func() {
 				envSettings = cf.Settings{
 					Cf: &cf.ClientConfiguration{
 						Config: &cfclient.Config{
-							ApiAddress:        "https://example.com",
-							Username:          "user",
-							Password:          "password",
-							ClientID:          "clientid",
-							ClientSecret:      "clientsecret",
+							ApiAddress:   "https://example.com",
+							Username:     "user",
+							Password:     "password",
+							ClientID:     "clientid",
+							ClientSecret: "clientsecret",
 						},
-						Reg: &cf.RegistrationDetails{
-							User:     "user",
+						Reg: &reconcile.Settings{
+							URL:      "http://10.0.2.2",
+							Username: "user",
 							Password: "passsword",
 						},
 						CfClientCreateFunc: cfclient.NewClient,
@@ -123,13 +125,13 @@ var _ = Describe("Config", func() {
 
 				emptySettings = cf.Settings{
 					Cf: &cf.ClientConfiguration{
-						Reg: &cf.RegistrationDetails{
-							User:     "user",
+						Reg: &reconcile.Settings{
+							URL:      "http://10.0.2.2",
+							Username: "user",
 							Password: "password",
 						},
 					},
 				}
-
 			)
 
 			BeforeEach(func() {
@@ -172,7 +174,6 @@ var _ = Describe("Config", func() {
 				It("returns an empty config", func() {
 					c, err := cf.NewConfig(fakeEnv)
 					Expect(err).To(Not(HaveOccurred()))
-
 
 					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
 

@@ -3,14 +3,15 @@ package cf_test
 import (
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 	"github.com/pkg/errors"
 	"net/http"
-	"reflect"
 	"net/url"
+	"reflect"
 	"strings"
 )
 
@@ -35,7 +36,6 @@ type mockRoute struct {
 	requestChecks expectedRequest
 	reaction      reactionResponse
 }
-
 
 func appendRoutes(server *ghttp.Server, routes ...*mockRoute) {
 	for _, route := range routes {
@@ -128,8 +128,9 @@ func ccClient(URL string) (*cf.ClientConfiguration, *cf.PlatformClient) {
 	cfConfig := &cfclient.Config{
 		ApiAddress: URL,
 	}
-	regDetails := &cf.RegistrationDetails{
-		User:     "user",
+	regDetails := &reconcile.Settings{
+		URL:      "http://10.0.2.2",
+		Username: "user",
 		Password: "password",
 	}
 	config := &cf.ClientConfiguration{
@@ -183,8 +184,9 @@ var _ = Describe("Client", func() {
 			config = &cf.ClientConfiguration{
 				Config:             cfclient.DefaultConfig(),
 				CfClientCreateFunc: cfclient.NewClient,
-				Reg: &cf.RegistrationDetails{
-					User:     "user",
+				Reg: &reconcile.Settings{
+					URL:      "http://10.0.2.2",
+					Username: "user",
 					Password: "password",
 				},
 			}

@@ -21,8 +21,6 @@ sm:
 cf:
   client:
     apiAddress: http://api.local.pcfdev.io
-    username: admin
-    password: admin
     skipSslValidation: false
     httpClient:
       timeout: 6000ms

@@ -3,6 +3,7 @@ package cf
 import (
 	"fmt"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
@@ -10,12 +11,11 @@ import (
 // CloudFoundryErr type represents a CF error with improved error message
 type CloudFoundryErr cfclient.CloudFoundryError
 
-
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
 	*cfclient.Client
-	reg      *RegistrationDetails
+	reg *reconcile.Settings
 }
 
 var _ platform.Client = &PlatformClient{}
@@ -31,7 +31,7 @@ func NewClient(config *ClientConfiguration) (*PlatformClient, error) {
 	}
 	return &PlatformClient{
 		Client: cfClient,
-		reg:      config.Reg,
+		reg:    config.Reg,
 	}, nil
 }
 
@@ -46,5 +46,3 @@ func wrapCFError(err error) error {
 	}
 	return err
 }
-
-

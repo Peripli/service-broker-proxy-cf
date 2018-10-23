@@ -124,7 +124,7 @@ func assertErrIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
 	Expect(cause).To(MatchError(expectedErr))
 }
 
-func ccClient(URL string) (*cf.ClientConfiguration, *cf.PlatformClient) {
+func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
 	cfConfig := &cfclient.Config{
 		ApiAddress: URL,
 	}
@@ -136,12 +136,12 @@ func ccClient(URL string) (*cf.ClientConfiguration, *cf.PlatformClient) {
 	config := &cf.ClientConfiguration{
 		Config:             cfConfig,
 		CfClientCreateFunc: cfclient.NewClient,
-		Reg:                regDetails,
 	}
-	client, err := cf.NewClient(config)
+	settings := &cf.Settings{Cf: config, Reg: regDetails}
+	client, err := cf.NewClient(settings)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(client).ShouldNot(BeNil())
-	return config, client
+	return settings, client
 }
 
 func fakeCCServer(allowUnhandled bool) *ghttp.Server {
@@ -177,28 +177,29 @@ func fakeCCServer(allowUnhandled bool) *ghttp.Server {
 var _ = Describe("Client", func() {
 	Describe("NewClient", func() {
 		var (
-			config *cf.ClientConfiguration
+			settings *cf.Settings
 		)
 
 		BeforeEach(func() {
-			config = &cf.ClientConfiguration{
+			config := &cf.ClientConfiguration{
 				Config:             cfclient.DefaultConfig(),
 				CfClientCreateFunc: cfclient.NewClient,
-				Reg: &reconcile.Settings{
-					URL:      "http://10.0.2.2",
-					Username: "user",
-					Password: "password",
-				},
 			}
+			regDetails := &reconcile.Settings{
+				URL:      "http://10.0.2.2",
+				Username: "user",
+				Password: "password",
+			}
+			settings = &cf.Settings{Cf: config, Reg: regDetails}
 		})
 
 		Context("when create func fails", func() {
 			BeforeEach(func() {
-				config.CfClientCreateFunc = nil
+				settings.Cf.CfClientCreateFunc = nil
 			})
 
 			It("returns an error", func() {
-				_, err := cf.NewClient(config)
+				_, err := cf.NewClient(settings)
 
 				Expect(err).Should(HaveOccurred())
 			})
@@ -206,11 +207,11 @@ var _ = Describe("Client", func() {
 
 		Context("when the config is invalid", func() {
 			BeforeEach(func() {
-				config.Config.ApiAddress = "invalidAPI"
+				settings.Cf.Config.ApiAddress = "invalidAPI"
 			})
 
 			It("returns an error", func() {
-				_, err := cf.NewClient(config)
+				_, err := cf.NewClient(settings)
 
 				Expect(err).Should(HaveOccurred())
 			})

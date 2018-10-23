@@ -13,25 +13,25 @@ import (
 
 var _ = Describe("Config", func() {
 	var (
-		err    error
-		config *cf.ClientConfiguration
+		err      error
+		settings *cf.Settings
 	)
 
 	BeforeEach(func() {
-		config = cf.DefaultClientConfiguration()
-		config.Reg.URL = "http://10.0.2.2"
-		config.Reg.Username = "user"
-		config.Reg.Password = "pass"
+		settings = &cf.Settings{Cf: cf.DefaultClientConfiguration(), Reg: &reconcile.Settings{}}
+		settings.Reg.URL = "http://10.0.2.2"
+		settings.Reg.Username = "user"
+		settings.Reg.Password = "pass"
 	})
 
 	Describe("Validate", func() {
 		assertErrorDuringValidate := func() {
-			err = config.Validate()
+			err = settings.Validate()
 			Expect(err).Should(HaveOccurred())
 		}
 
 		assertNoErrorDuringValidate := func() {
-			err = config.Validate()
+			err = settings.Validate()
 			Expect(err).ShouldNot(HaveOccurred())
 		}
 
@@ -43,35 +43,35 @@ var _ = Describe("Config", func() {
 
 		Context("when address is missing", func() {
 			It("returns an error", func() {
-				config.Config = nil
+				settings.Cf.Config = nil
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when request timeout is missing", func() {
 			It("returns an error", func() {
-				config.ApiAddress = ""
+				settings.Cf.ApiAddress = ""
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when shutdown timeout is missing", func() {
 			It("returns an error", func() {
-				config.Reg = nil
+				settings.Cf = nil
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when log level is missing", func() {
 			It("returns an error", func() {
-				config.Reg.Username = ""
+				settings.Reg.Username = ""
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when log format  is missing", func() {
 			It("returns an error", func() {
-				config.Reg.Password = ""
+				settings.Reg.Password = ""
 				assertErrorDuringValidate()
 			})
 		})
@@ -114,22 +114,21 @@ var _ = Describe("Config", func() {
 							ClientID:     "clientid",
 							ClientSecret: "clientsecret",
 						},
-						Reg: &reconcile.Settings{
-							URL:      "http://10.0.2.2",
-							Username: "user",
-							Password: "passsword",
-						},
 						CfClientCreateFunc: cfclient.NewClient,
+					},
+					Reg: &reconcile.Settings{
+						URL:      "http://10.0.2.2",
+						Username: "user",
+						Password: "passsword",
 					},
 				}
 
 				emptySettings = cf.Settings{
-					Cf: &cf.ClientConfiguration{
-						Reg: &reconcile.Settings{
-							URL:      "http://10.0.2.2",
-							Username: "user",
-							Password: "password",
-						},
+					Cf: &cf.ClientConfiguration{},
+					Reg: &reconcile.Settings{
+						URL:      "http://10.0.2.2",
+						Username: "user",
+						Password: "password",
 					},
 				}
 			)
@@ -158,11 +157,11 @@ var _ = Describe("Config", func() {
 
 					Expect(err).To(Not(HaveOccurred()))
 
-					Expect(c.ApiAddress).Should(Equal(envSettings.Cf.ApiAddress))
-					Expect(c.ClientID).Should(Equal(envSettings.Cf.ClientID))
-					Expect(c.ClientSecret).Should(Equal(envSettings.Cf.ClientSecret))
-					Expect(c.Username).Should(Equal(envSettings.Cf.Username))
-					Expect(c.Password).Should(Equal(envSettings.Cf.Password))
+					Expect(c.Cf.ApiAddress).Should(Equal(envSettings.Cf.ApiAddress))
+					Expect(c.Cf.ClientID).Should(Equal(envSettings.Cf.ClientID))
+					Expect(c.Cf.ClientSecret).Should(Equal(envSettings.Cf.ClientSecret))
+					Expect(c.Cf.Username).Should(Equal(envSettings.Cf.Username))
+					Expect(c.Cf.Password).Should(Equal(envSettings.Cf.Password))
 				})
 			})
 
@@ -177,7 +176,7 @@ var _ = Describe("Config", func() {
 
 					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
 
-					Expect(c).Should(Equal(emptySettings.Cf))
+					Expect(c.Cf).Should(Equal(emptySettings.Cf))
 
 				})
 			})

@@ -21,11 +21,11 @@ type PlatformClient struct {
 var _ platform.Client = &PlatformClient{}
 
 // NewClient creates a new CF cf client from the specified configuration.
-func NewClient(config *ClientConfiguration) (*PlatformClient, error) {
+func NewClient(config *Settings) (*PlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	cfClient, err := config.CfClientCreateFunc(config.Config)
+	cfClient, err := config.Cf.CfClientCreateFunc(config.Cf.Config)
 	if err != nil {
 		return nil, err
 	}

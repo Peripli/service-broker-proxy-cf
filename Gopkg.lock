@@ -10,7 +10,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "auth"
+  branch = "master"
   digest = "1:0c6ec1c5e28c7583962a0d227233a05e972021b899665b9874229718b0be51fc"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -23,7 +23,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "8b671f233dff085573ec9cbd1dc049952943160f"
+  revision = "83b0c0c250c7df23be8a26b4f0f36b4f82fc220e"
 
 [[projects]]
   digest = "1:a7ed1b484595f328ef1b9ba97a1a3654dd9cfd1f3cbd57b1d34432017452851c"
@@ -498,6 +498,7 @@
   input-imports = [
     "github.com/Peripli/service-broker-proxy/pkg/platform",
     "github.com/Peripli/service-broker-proxy/pkg/sbproxy",
+    "github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile",
     "github.com/Peripli/service-manager/pkg/env",
     "github.com/Peripli/service-manager/pkg/env/envfakes",
     "github.com/Peripli/service-manager/pkg/log",

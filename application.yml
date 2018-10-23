@@ -1,7 +1,7 @@
 # Any of the below config properties can be provided via Environment Variables
 app:
   url: http://10.0.2.2
-  user: admin
+  username: admin
   password: admin
 server:
   port: 8081
@@ -11,16 +11,18 @@ log:
   level: debug
   format: text
 sm:
-  user: admin
-  password: admin
-  url: http://localhost:8080
+  user: 0io+wJsaJjVDkpfZp8jr9DJUOK6QfIuplJHFSK7Y/fc=
+  password: EOUmUk8ahYl5x/Lh7XJ22rQrONkFarzgwW7i4aEzl04=
+  url: https://service-manager.cfapps.sm.hanavlab.ondemand.com
   osb_api_path: /v1/osb
   request_timeout: 6000ms
   skip_ssl_validation: false
   resync_period: 30s
 cf:
   client:
-    apiAddress: http://api.local.pcfdev.io
+    apiAddress: https://api.cf.sm.hanavlab.ondemand.com
+    username: admin
+    password: DaSheJakfubezwozoplifekxoxeph426
     skipSslValidation: false
     httpClient:
       timeout: 6000ms

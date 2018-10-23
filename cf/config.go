@@ -25,6 +25,7 @@ type Settings struct {
 	Reg *reconcile.Settings `mapstructure:"app"`
 }
 
+// Validate validates the application settings
 func (s *Settings) Validate() error {
 	if err := s.Cf.Validate(); err != nil {
 		return err

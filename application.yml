@@ -11,18 +11,18 @@ log:
   level: debug
   format: text
 sm:
-  user: 0io+wJsaJjVDkpfZp8jr9DJUOK6QfIuplJHFSK7Y/fc=
-  password: EOUmUk8ahYl5x/Lh7XJ22rQrONkFarzgwW7i4aEzl04=
-  url: https://service-manager.cfapps.sm.hanavlab.ondemand.com
+  user: admin
+  password: admin
+  url: http://localhost:8080
   osb_api_path: /v1/osb
   request_timeout: 6000ms
   skip_ssl_validation: false
   resync_period: 30s
 cf:
   client:
-    apiAddress: https://api.cf.sm.hanavlab.ondemand.com
+    apiAddress: http://api.local.pcfdev.io
     username: admin
-    password: DaSheJakfubezwozoplifekxoxeph426
+    password: admin
     skipSslValidation: false
     httpClient:
       timeout: 6000ms

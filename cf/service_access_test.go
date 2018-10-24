@@ -34,13 +34,12 @@ var _ = Describe("Client Service Plan Access", func() {
 	)
 
 	var (
-		ccServer          *ghttp.Server
-		config            *cf.ClientConfiguration
-		client            *cf.PlatformClient
+		ccServer       *ghttp.Server
+		client         *cf.PlatformClient
 		validOrgData   json.RawMessage
 		invalidOrgData json.RawMessage
 		emptyOrgData   json.RawMessage
-		err               error
+		err            error
 
 		ccResponseErrBody cf.CloudFoundryErr
 		ccResponseErrCode int
@@ -92,7 +91,7 @@ var _ = Describe("Client Service Plan Access", func() {
 
 		ccServer = fakeCCServer(true)
 
-		config, client = ccClient(ccServer.URL())
+		_, client = ccClient(ccServer.URL())
 
 		verifyReqReceived(ccServer, 1, http.MethodGet, "/v2/info")
 		verifyReqReceived(ccServer, 1, http.MethodPost, "/oauth/token")

@@ -1,6 +1,8 @@
 # Any of the below config properties can be provided via Environment Variables
 app:
   url: http://10.0.2.2
+  username: admin
+  password: admin
 server:
   port: 8081
   request_timeout: 4000ms
@@ -24,6 +26,3 @@ cf:
     skipSslValidation: false
     httpClient:
       timeout: 6000ms
-  reg:
-    user: admin
-    password: admin

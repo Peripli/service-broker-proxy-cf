@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("Client FetchCatalog", func() {
 	var (
-		config          *cf.ClientConfiguration
+		settings        *cf.Settings
 		client          *cf.PlatformClient
 		ccServer        *ghttp.Server
 		testBroker      *platform.ServiceBroker
@@ -36,13 +36,13 @@ var _ = Describe("Client FetchCatalog", func() {
 
 		ccServer = fakeCCServer(false)
 
-		config, client = ccClient(ccServer.URL())
+		settings, client = ccClient(ccServer.URL())
 
 		expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 			Name:      testBroker.Name,
 			BrokerURL: testBroker.BrokerURL,
-			Username:  config.Reg.User,
-			Password:  config.Reg.Password,
+			Username:  settings.Reg.Username,
+			Password:  settings.Reg.Password,
 		}
 
 		ccServer.AppendHandlers(

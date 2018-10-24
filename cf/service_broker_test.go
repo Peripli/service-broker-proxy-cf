@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("Client ServiceBroker", func() {
 	var (
-		config          *cf.ClientConfiguration
+		settings        *cf.Settings
 		client          *cf.PlatformClient
 		ccServer        *ghttp.Server
 		testBroker      *platform.ServiceBroker
@@ -42,7 +42,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		ccServer = fakeCCServer(false)
 
-		config, client = ccClient(ccServer.URL())
+		settings, client = ccClient(ccServer.URL())
 
 	})
 
@@ -112,7 +112,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      testBroker.Name,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  config.Reg.User,
+								Username:  settings.Reg.Username,
 							},
 						},
 					},
@@ -136,8 +136,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.CreateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  config.Reg.User,
-				Password:  config.Reg.Password,
+				Username:  settings.Reg.Username,
+				Password:  settings.Reg.Password,
 			}
 
 			actualRequest = &platform.CreateServiceBrokerRequest{
@@ -183,7 +183,7 @@ var _ = Describe("Client ServiceBroker", func() {
 					Entity: cfclient.ServiceBroker{
 						Name:      testBroker.Name,
 						BrokerURL: testBroker.BrokerURL,
-						Username:  config.Reg.User,
+						Username:  settings.Reg.Username,
 					},
 				}
 			})
@@ -256,8 +256,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  config.Reg.User,
-				Password:  config.Reg.Password,
+				Username:  settings.Reg.Username,
+				Password:  settings.Reg.Password,
 			}
 
 			actualRequest = &platform.UpdateServiceBrokerRequest{

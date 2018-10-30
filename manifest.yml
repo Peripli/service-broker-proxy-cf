@@ -2,7 +2,6 @@
 applications:
   - name: cfproxy
     memory: 64M
-    buildpack: go_buildpack
     docker:
       image: quay.io/service-manager/sb-proxy-cf
     env:

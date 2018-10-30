@@ -1,9 +1,10 @@
 ---
 applications:
   - name: cfproxy
-    path: .
     memory: 64M
     buildpack: go_buildpack
+    docker:
+      image: quay.io/service-manager/sb-proxy-cf
     env:
       GOVERSION: go1.10
       GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf

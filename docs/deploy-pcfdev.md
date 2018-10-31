@@ -16,7 +16,6 @@ In `manifest.yml` you need to configure the following:
 * Platform credentials for Service Manager with env variables `SM_USER` and `SM_PASSWORD`
 
 In addition you can change other configurations like log level and log format.
-You can also use the `application.yml` file which has lower priority than the Environment variables.
 
 ## Push
 

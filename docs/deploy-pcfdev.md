@@ -4,10 +4,8 @@
 
 * PCF Dev is installed.
 * You are logged in PCF Dev.
-* `go_buildpack` is installed with support for go version 1.10
 * [Service-Manager](https://github.com/Peripli/service-manager) is deployed.
 
-**Note:** The used go buildpack should be named `go_buildpack`.
 
 ## Modify manifest.yml
 
@@ -18,7 +16,6 @@ In `manifest.yml` you need to configure the following:
 * Platform credentials for Service Manager with env variables `SM_USER` and `SM_PASSWORD`
 
 In addition you can change other configurations like log level and log format.
-You can also use the `application.yml` file which has lower priority than the Environment variables.
 
 ## Push
 

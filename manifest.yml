@@ -5,11 +5,11 @@ applications:
     docker:
       image: quay.io/service-manager/sb-proxy-cf
     env:
-      GOVERSION: go1.10
       GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf
       APP_USERNAME: admin
       APP_PASSWORD: admin
       SM_URL: https://smanager.local.pcfdev.io
+      SM_OSB_API_PATH: /v1/osb
       SM_SKIP_SSL_VALIDATION: false
       SM_USER: admin
       SM_PASSWORD: admin
@@ -18,4 +18,3 @@ applications:
       CF_CLIENT_SKIPSSLVALIDATION: false
       LOG_LEVEL: debug
       LOG_FORMAT: json
-

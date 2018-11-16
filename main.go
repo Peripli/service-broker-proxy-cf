@@ -5,11 +5,14 @@ import (
 	"fmt"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy-cf/version"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/spf13/pflag"
 )
 
 func main() {
+	version.Log()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

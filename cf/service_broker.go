@@ -2,6 +2,8 @@ package cf
 
 import (
 	"context"
+
+	"github.com/Peripli/service-broker-proxy-cf/version"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
 )
@@ -9,6 +11,9 @@ import (
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered at the cf.
 func (pc PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBroker, error) {
+	// Log the version regularly so it is not lost with old log messages
+	version.Log()
+
 	brokers, err := pc.Client.ListServiceBrokers()
 	if err != nil {
 		return nil, wrapCFError(err)

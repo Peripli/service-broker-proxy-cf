@@ -5,18 +5,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
+
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
-	"net/http"
-	"net/url"
 )
 
 // Metadata represents CF specific metadata that the proxy is concerned with.
 // It is currently used to provide context details for enabling and disabling of service access.
 type Metadata struct {
-	OrgGUID string `json:"org_guid"`
+	OrgGUID string `json:"organization_guid"`
 }
 
 // ServicePlanRequest represents a service plan request
@@ -84,6 +85,7 @@ func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.R
 	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
 	}
+
 
 	plan, err := pc.getPlanForCatalogPlanGUID(catalogPlanGUID)
 	if err != nil {

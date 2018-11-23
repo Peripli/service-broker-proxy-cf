@@ -25,8 +25,8 @@ func (pc PlatformClient) GetAllVisibilities(ctx context.Context) (paging.Pager, 
 			labels := make(map[string]string)
 			labels[OrgLabelKey] = resource.Entity.OrganizationGuid
 			resources = append(resources, platform.ServiceVisibilityEntity{
-				ServicePlanGUID: resource.Entity.ServicePlanGuid,
-				Labels:          labels,
+				CatalogPlanID: resource.Entity.ServicePlanGuid,
+				Labels:        labels,
 			})
 		}
 
@@ -42,10 +42,16 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 		// TODO: Err context
 		return nil, err
 	}
+
 	visibilities, err := pc.getPlanVisibilities(ctx, platformPlans)
 	if err != nil {
 		// TODO: Err context
 		return nil, err
+	}
+
+	uuidToCatalogID := make(map[string]string)
+	for _, plan := range platformPlans {
+		uuidToCatalogID[plan.Guid] = plan.UniqueId
 	}
 
 	resources := make([]*platform.ServiceVisibilityEntity, 0, len(visibilities))
@@ -53,8 +59,8 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 		labels := make(map[string]string)
 		labels[OrgLabelKey] = visibility.OrganizationGuid
 		resources = append(resources, &platform.ServiceVisibilityEntity{
-			ServicePlanGUID: visibility.ServicePlanGuid,
-			Labels:          labels,
+			CatalogPlanID: uuidToCatalogID[visibility.ServicePlanGuid],
+			Labels:        labels,
 		})
 	}
 
@@ -109,7 +115,8 @@ func (pc PlatformClient) getPlanVisibilities(ctx context.Context, plans []cfclie
 	result := make([]cfclient.ServicePlanVisibility, 0)
 
 	fmt.Println(">>>>>>>PLANS:", plans)
-	fmt.Println("<<<<PLANS")
+	fmt.Println("<<<<PLANSlen=", len(plans))
+
 	visibilitiesChunks := make([][]cfclient.ServicePlan, 0, int(len(plans)/maxSliceLength))
 	for {
 		plansCount := len(plans)
@@ -122,7 +129,6 @@ func (pc PlatformClient) getPlanVisibilities(ctx context.Context, plans []cfclie
 		plans = plans[sliceLength:]
 	}
 	fmt.Println(">>>>>>>visibilitiesChunks:", visibilitiesChunks)
-	fmt.Println("<<<<visibilitiesChunks")
 
 	for _, r := range visibilitiesChunks {
 		builder := strings.Builder{}

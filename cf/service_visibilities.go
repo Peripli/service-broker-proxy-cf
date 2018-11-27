@@ -36,7 +36,7 @@ func (pc PlatformClient) GetAllVisibilities(ctx context.Context) (paging.Pager, 
 	return NewPager(pc.Client, requestURL, parseFunc), nil
 }
 
-func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.Plan) ([]*platform.ServiceVisibilityEntity, error) {
+func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
 	platformPlans, err := pc.getServicePlans(ctx, plans)
 	if err != nil {
 		// TODO: Err context
@@ -69,10 +69,10 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 
 const maxSliceLength = 50
 
-func (pc PlatformClient) getServicePlans(ctx context.Context, plans []*types.Plan) ([]cfclient.ServicePlan, error) {
+func (pc PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
 	result := make([]cfclient.ServicePlan, 0)
 
-	planChunks := make([][]*types.Plan, 0)
+	planChunks := make([][]*types.ServicePlan, 0)
 	for {
 		plansCount := len(plans)
 		sliceLength := int(math.Min(float64(plansCount), float64(maxSliceLength)))

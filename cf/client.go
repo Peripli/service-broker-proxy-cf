@@ -2,9 +2,12 @@ package cf
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 )
 
@@ -15,7 +18,8 @@ type CloudFoundryErr cfclient.CloudFoundryError
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
 	*cfclient.Client
-	reg *reconcile.Settings
+	reg   *reconcile.Settings
+	cache *cache.Cache
 }
 
 var _ platform.Client = &PlatformClient{}
@@ -29,9 +33,14 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: Extract constants
+	c := cache.New(5*time.Minute, 10*time.Minute)
+
 	return &PlatformClient{
 		Client: cfClient,
 		reg:    config.Reg,
+		cache:  c,
 	}, nil
 }
 

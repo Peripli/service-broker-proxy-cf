@@ -9,7 +9,7 @@ import (
 	"net/url"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/Peripli/service-manager/pkg/log"
+	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
@@ -86,8 +86,7 @@ func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.R
 		return err
 	}
 
-
-	plan, err := pc.getPlanForCatalogPlanGUID(catalogPlanGUID)
+	plan, err := pc.getPlanForCatalogPlanGUID(ctx, catalogPlanGUID)
 	if err != nil {
 		return err
 	}
@@ -116,10 +115,13 @@ func (pc PlatformClient) updateOrgVisibilitiesForPlans(ctx context.Context, plan
 }
 
 func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
+	if plan.Public {
+		if err := pc.updatePlan(plan, false); err != nil {
+			return wrapCFError(err)
+		}
+	}
+
 	switch {
-	case plan.Public:
-		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
-			"visibility for org with GUID = %s will be ignored", plan.Guid, plan.Name, orgGUID)
 	case isEnabled:
 		if _, err := pc.Client.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
 			return wrapCFError(err)
@@ -223,10 +225,11 @@ func (pc PlatformClient) getServiceForCatalogServiceGUID(catalogServiceGUID stri
 	return services[0], nil
 }
 
-func (pc PlatformClient) getPlanForCatalogPlanGUID(catalogPlanGUID string) (cfclient.ServicePlan, error) {
-	query := url.Values{}
-	query.Set("q", fmt.Sprintf("unique_id:%s", catalogPlanGUID))
-	plans, err := pc.Client.ListServicePlansByQuery(query)
+func (pc PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
+	plans, err := pc.getServicePlans(ctx, []*types.ServicePlan{&types.ServicePlan{
+		CatalogID: catalogPlanGUID,
+	}})
+
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}

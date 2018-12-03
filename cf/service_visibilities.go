@@ -6,50 +6,25 @@ import (
 	"math"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/pkg/errors"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
-	"github.com/Peripli/service-broker-proxy/pkg/paging"
 	"github.com/cloudfoundry-community/go-cfclient"
 )
 
-const (
-	platformPlansCacheKey = "platform-plans"
-)
-
-// TODO: Wrap errors
-func (pc PlatformClient) GetAllVisibilities(ctx context.Context) (paging.Pager, error) {
-	requestURL := "/v2/service_plan_visibilities"
-
-	parseFunc := func(resp *cfclient.ServicePlanVisibilitiesResponse) (interface{}, error) {
-		resources := make([]platform.ServiceVisibilityEntity, 0)
-		for _, resource := range resp.Resources {
-			labels := make(map[string]string)
-			labels[OrgLabelKey] = resource.Entity.OrganizationGuid
-			resources = append(resources, platform.ServiceVisibilityEntity{
-				CatalogPlanID: resource.Entity.ServicePlanGuid,
-				Labels:        labels,
-			})
-		}
-
-		return resources, nil
-	}
-
-	return NewPager(pc.Client, requestURL, parseFunc), nil
-}
+var _ platform.ServiceVisibility = &PlatformClient{}
 
 func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
-	platformPlans, err := pc.getServicePlans(ctx, plans)
+	platformPlans, err := pc.getServicePlansWithCache(ctx, plans)
 	if err != nil {
 		// TODO: Err context
 		return nil, err
 	}
 
-	visibilities, err := pc.getPlanVisibilities(ctx, platformPlans)
+	visibilities, err := pc.getPlansVisibilities(ctx, platformPlans)
 	if err != nil {
 		// TODO: Err context
 		return nil, err
@@ -75,129 +50,57 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 
 const maxSliceLength = 50
 
-func (pc PlatformClient) GetServicePlansByFilter(ctx context.Context, filter platform.Filter) ([]*platform.PlanEntity, error) {
-	plans := filter.ByPlan()
-	platformPlans, err := pc.getServicePlans(ctx, plans)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*platform.PlanEntity, 0, len(platformPlans))
-	for _, platformPlan := range platformPlans {
-		result = append(result, &platform.PlanEntity{
-			"public": platformPlan.Public,
-		})
-	}
-
-	return result, nil
-}
-
 func (pc PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
-	cachedPlans, found := pc.cache.Get(platformPlansCacheKey)
-	if found {
-		plansMap, ok := cachedPlans.(map[string]*cfclient.ServicePlan)
-		if !ok {
-			return nil, errors.New("cached plans are not cf ServicePlan")
-		}
-		result := make([]cfclient.ServicePlan, 0)
-		for _, plan := range plans {
-			p, f := plansMap[plan.CatalogID]
-			if f {
-				result = append(result, *p)
-			}
-		}
-		return result, nil
-	}
-
 	result := make([]cfclient.ServicePlan, 0)
 
-	planChunks := make([][]*types.ServicePlan, 0)
-	for {
-		plansCount := len(plans)
-		sliceLength := int(math.Min(float64(plansCount), float64(maxSliceLength)))
-		if sliceLength < maxSliceLength {
-			planChunks = append(planChunks, plans)
-			break
-		}
-		planChunks = append(planChunks, plans[:sliceLength])
-		plans = plans[sliceLength:]
+	chunks := makeChunks(plans)
+	planChunks, ok := chunks.([][]*types.ServicePlan)
+	if !ok {
+		return nil, errors.New("could not convert chunks")
 	}
 
-	for _, r := range planChunks {
-		builder := strings.Builder{}
-		for _, p := range r {
-			_, err := builder.WriteString(p.CatalogID + ",")
-			if err != nil {
-				// TODO: err context
-				return nil, err
-			}
-		}
-		values := builder.String()
-		values = values[:len(values)-1]
-
-		query := url.Values{
-			"q": []string{fmt.Sprintf("unique_id IN %s", values)},
+	for _, chunk := range planChunks {
+		catalogIDs := make([]string, 0, len(chunk))
+		for _, p := range chunk {
+			catalogIDs = append(catalogIDs, p.CatalogID)
 		}
 
 		// TODO: retry
-		platformPlans, err := pc.Client.ListServicePlansByQuery(query)
+		platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, platformPlans...)
 	}
 
-	plansMap := convertToMap(result)
-	pc.cache.Set(platformPlansCacheKey, plansMap, time.Minute*60)
-
 	return result, nil
 }
 
-func convertToMap(plans []cfclient.ServicePlan) map[string]*cfclient.ServicePlan {
-	result := make(map[string]*cfclient.ServicePlan)
-	for i, plan := range plans {
-		result[plan.UniqueId] = &plans[i]
+func (pc PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
+	values := strings.Join(catalogIDs, ",")
+	query := url.Values{
+		"q": []string{fmt.Sprintf("unique_id IN %s", values)},
 	}
-	return result
+	return pc.Client.ListServicePlansByQuery(query)
 }
 
-func (pc PlatformClient) getPlanVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
+func (pc PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
 	result := make([]cfclient.ServicePlanVisibility, 0)
 
-	fmt.Println(">>>>>>>PLANS:", plans)
-	fmt.Println("<<<<PLANSlen=", len(plans))
-
-	visibilitiesChunks := make([][]cfclient.ServicePlan, 0, int(len(plans)/maxSliceLength))
-	for {
-		plansCount := len(plans)
-		sliceLength := int(math.Min(float64(plansCount), float64(maxSliceLength)))
-		if sliceLength < maxSliceLength {
-			visibilitiesChunks = append(visibilitiesChunks, plans)
-			break
-		}
-		visibilitiesChunks = append(visibilitiesChunks, plans[:sliceLength])
-		plans = plans[sliceLength:]
+	chunks := makeChunks(plans)
+	visibilitiesChunks, ok := chunks.([][]cfclient.ServicePlan)
+	if !ok {
+		return nil, errors.New("could not convert chunks")
 	}
-	fmt.Println(">>>>>>>visibilitiesChunks:", visibilitiesChunks)
 
-	for _, r := range visibilitiesChunks {
-		builder := strings.Builder{}
-		for _, p := range r {
-			_, err := builder.WriteString(p.Guid + ",")
-			if err != nil {
-				// TODO: err context
-				return nil, err
-			}
-		}
-		values := builder.String()
-		values = values[:len(values)-1]
-
-		query := url.Values{
-			"q": []string{fmt.Sprintf("service_plan_guid IN %s", values)},
+	for _, chunk := range visibilitiesChunks {
+		plansGUID := make([]string, 0, len(chunk))
+		for _, p := range chunk {
+			plansGUID = append(plansGUID, p.Guid)
 		}
 
 		// TODO: retry
-		platformPlans, err := pc.Client.ListServicePlanVisibilitiesByQuery(query)
+		platformPlans, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
 		if err != nil {
 			return nil, err
 		}
@@ -206,3 +109,66 @@ func (pc PlatformClient) getPlanVisibilities(ctx context.Context, plans []cfclie
 
 	return result, nil
 }
+
+func (pc PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
+	values := strings.Join(plansGUID, ",")
+	query := url.Values{
+		"q": []string{fmt.Sprintf("service_plan_guid IN %s", values)},
+	}
+	return pc.Client.ListServicePlanVisibilitiesByQuery(query)
+}
+
+func makeChunks(data interface{}) interface{} {
+	switch values := data.(type) {
+	case []*types.ServicePlan:
+		resultChunks := make([][]*types.ServicePlan, 0)
+		for {
+			count := len(values)
+			sliceLength := int(math.Min(float64(count), float64(maxSliceLength)))
+			if sliceLength < maxSliceLength {
+				resultChunks = append(resultChunks, values)
+				break
+			}
+			resultChunks = append(resultChunks, values[:sliceLength])
+			values = values[sliceLength:]
+		}
+		return resultChunks
+
+	case []cfclient.ServicePlan:
+		resultChunks := make([][]cfclient.ServicePlan, 0, int(len(values)/maxSliceLength))
+		for {
+			count := len(values)
+			sliceLength := int(math.Min(float64(count), float64(maxSliceLength)))
+			if sliceLength < maxSliceLength {
+				resultChunks = append(resultChunks, values)
+				break
+			}
+			resultChunks = append(resultChunks, values[:sliceLength])
+			values = values[sliceLength:]
+		}
+		return resultChunks
+	}
+
+	return nil
+}
+
+// TODO: Wrap errors
+// func (pc PlatformClient) GetAllVisibilities(ctx context.Context) (paging.Pager, error) {
+// 	requestURL := "/v2/service_plan_visibilities"
+
+// 	parseFunc := func(resp *cfclient.ServicePlanVisibilitiesResponse) (interface{}, error) {
+// 		resources := make([]platform.ServiceVisibilityEntity, 0)
+// 		for _, resource := range resp.Resources {
+// 			labels := make(map[string]string)
+// 			labels[OrgLabelKey] = resource.Entity.OrganizationGuid
+// 			resources = append(resources, platform.ServiceVisibilityEntity{
+// 				CatalogPlanID: resource.Entity.ServicePlanGuid,
+// 				Labels:        labels,
+// 			})
+// 		}
+
+// 		return resources, nil
+// 	}
+
+// 	return NewPager(pc.Client, requestURL, parseFunc), nil
+// }

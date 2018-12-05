@@ -228,7 +228,7 @@ func (pc PlatformClient) getServiceForCatalogServiceGUID(catalogServiceGUID stri
 func (pc PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
 	plans, err := pc.getServicePlansWithCache(ctx, []*types.ServicePlan{&types.ServicePlan{
 		CatalogID: catalogPlanGUID,
-	}})
+	}}, false)
 
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)

@@ -18,7 +18,7 @@ import (
 var _ platform.ServiceVisibility = &PlatformClient{}
 
 func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
-	platformPlans, err := pc.getServicePlansWithCache(ctx, plans)
+	platformPlans, err := pc.getServicePlansWithCache(ctx, plans, true)
 	if err != nil {
 		// TODO: Err context
 		return nil, err

@@ -13,9 +13,9 @@ const (
 	platformPlansCacheKey = "platform-plans"
 )
 
-func (pc PlatformClient) getServicePlansWithCache(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
+func (pc PlatformClient) getServicePlansWithCache(ctx context.Context, plans []*types.ServicePlan, updateCache bool) ([]cfclient.ServicePlan, error) {
 	cachedPlans, found := pc.cache.Get(platformPlansCacheKey)
-	if found {
+	if !updateCache && found {
 		plansMap, ok := cachedPlans.(map[string]*cfclient.ServicePlan)
 		if !ok {
 			return nil, errors.New("cached plans are not cf ServicePlan")

@@ -2,12 +2,13 @@ package cf
 
 import (
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-broker-proxy/pkg/sm"
 	"github.com/Peripli/service-manager/pkg/types"
 )
 
 const OrgLabelKey = "organization_guid"
 
-func (pc PlatformClient) Convert(visibility *types.Visibility) ([]*platform.ServiceVisibilityEntity, error) {
+func (pc PlatformClient) Convert(visibility sm.Visibility, smPlan *types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
 	result := make([]*platform.ServiceVisibilityEntity, 0)
 	orgLabelIndex := -1
 	labels := make(map[string]string)
@@ -30,7 +31,7 @@ func (pc PlatformClient) Convert(visibility *types.Visibility) ([]*platform.Serv
 		}
 		labelsCopy[visibility.Labels[orgLabelIndex].Key] = value
 		result = append(result, &platform.ServiceVisibilityEntity{
-			CatalogPlanID: visibility.CatalogPlanID,
+			CatalogPlanID: smPlan.CatalogID,
 			Labels:        labelsCopy,
 		})
 	}

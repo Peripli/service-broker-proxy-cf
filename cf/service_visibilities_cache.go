@@ -2,7 +2,6 @@ package cf
 
 import (
 	"context"
-	"time"
 
 	"github.com/Peripli/service-manager/pkg/types"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
@@ -15,7 +14,8 @@ const (
 
 func (pc PlatformClient) getServicePlansWithCache(ctx context.Context, plans []*types.ServicePlan, updateCache bool) ([]cfclient.ServicePlan, error) {
 	cachedPlans, found := pc.cache.Get(platformPlansCacheKey)
-	if !updateCache && found {
+	// TODO: change visibilityCache to platformCache
+	if pc.reg.VisibilityCache && !updateCache && found {
 		plansMap, ok := cachedPlans.(map[string]*cfclient.ServicePlan)
 		if !ok {
 			return nil, errors.New("cached plans are not cf ServicePlan")
@@ -35,8 +35,10 @@ func (pc PlatformClient) getServicePlansWithCache(ctx context.Context, plans []*
 		return nil, err
 	}
 
-	plansMap := convertToMap(result)
-	pc.cache.Set(platformPlansCacheKey, plansMap, time.Minute*60)
+	if pc.reg.VisibilityCache {
+		plansMap := convertToMap(result)
+		pc.cache.Set(platformPlansCacheKey, plansMap, pc.reg.CacheExpiration)
+	}
 
 	return result, nil
 }

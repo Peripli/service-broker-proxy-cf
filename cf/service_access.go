@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
@@ -115,13 +116,10 @@ func (pc PlatformClient) updateOrgVisibilitiesForPlans(ctx context.Context, plan
 }
 
 func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
-	if plan.Public {
-		if err := pc.updatePlan(plan, false); err != nil {
-			return wrapCFError(err)
-		}
-	}
-
 	switch {
+	case plan.Public:
+		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
+			"visibility for org with GUID = %s will be ignored", plan.Guid, plan.Name, orgGUID)
 	case isEnabled:
 		if _, err := pc.Client.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
 			return wrapCFError(err)
@@ -219,7 +217,6 @@ func (pc PlatformClient) getServiceForCatalogServiceGUID(catalogServiceGUID stri
 	}
 	if len(services) > 1 {
 		return cfclient.Service{}, errors.Errorf("more than one service with catalog service GUID = %s found", catalogServiceGUID)
-
 	}
 
 	return services[0], nil

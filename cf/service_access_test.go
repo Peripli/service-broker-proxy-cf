@@ -24,6 +24,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		updatePlanRequest        *cf.ServicePlanRequest
 		updatePlanResponse       *cfclient.ServicePlanResource
 	}
+
 	const (
 		orgGUID                      = "orgGUID"
 		serviceGUID                  = "serviceGUID"
@@ -400,7 +401,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		if len(planGUIDs) > 1 {
 			route.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("service_guid:%s", serviceGUID))
 		} else if len(planGUIDs) == 1 {
-			route.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id:%s", planGUID))
+			route.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id IN %s", planGUID))
 		}
 
 		return route
@@ -506,7 +507,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when more than one plan is found", func() {
 				BeforeEach(func() {
 					getPlansRoute = prepareGetPlansRoute(publicPlanGUID, privatePlanGUID, limitedPlanGUID)
-					getPlansRoute.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id:%s", planGUID))
+					getPlansRoute.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id IN %s", planGUID))
 				})
 
 				It("returns an error", assertFunc(&orgData, &planGUID, fmt.Errorf("more than one plan")))

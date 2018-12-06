@@ -151,24 +151,3 @@ func makeChunks(data interface{}) interface{} {
 
 	return nil
 }
-
-// TODO: Wrap errors
-// func (pc PlatformClient) GetAllVisibilities(ctx context.Context) (paging.Pager, error) {
-// 	requestURL := "/v2/service_plan_visibilities"
-
-// 	parseFunc := func(resp *cfclient.ServicePlanVisibilitiesResponse) (interface{}, error) {
-// 		resources := make([]platform.ServiceVisibilityEntity, 0)
-// 		for _, resource := range resp.Resources {
-// 			labels := make(map[string]string)
-// 			labels[OrgLabelKey] = resource.Entity.OrganizationGuid
-// 			resources = append(resources, platform.ServiceVisibilityEntity{
-// 				CatalogPlanID: resource.Entity.ServicePlanGuid,
-// 				Labels:        labels,
-// 			})
-// 		}
-
-// 		return resources, nil
-// 	}
-
-// 	return NewPager(pc.Client, requestURL, parseFunc), nil
-// }

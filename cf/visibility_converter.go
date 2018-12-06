@@ -20,8 +20,13 @@ func (pc PlatformClient) Convert(visibility sm.Visibility, smPlan *types.Service
 		labels[label.Key] = label.Values[0]
 	}
 
-	if visibility.Labels[orgLabelIndex] == nil {
-		return nil, nil
+	if orgLabelIndex == -1 {
+		result = append(result, &platform.ServiceVisibilityEntity{
+			PlatformID:    visibility.PlatformID,
+			CatalogPlanID: smPlan.CatalogID,
+			Labels:        labels,
+		})
+		return result, nil
 	}
 
 	for _, value := range visibility.Labels[orgLabelIndex].Values {
@@ -31,6 +36,7 @@ func (pc PlatformClient) Convert(visibility sm.Visibility, smPlan *types.Service
 		}
 		labelsCopy[visibility.Labels[orgLabelIndex].Key] = value
 		result = append(result, &platform.ServiceVisibilityEntity{
+			PlatformID:    visibility.PlatformID,
 			CatalogPlanID: smPlan.CatalogID,
 			Labels:        labelsCopy,
 		})

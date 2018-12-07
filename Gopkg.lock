@@ -23,10 +23,10 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "d6006576ab7f742432a160173374050bdc4cd7a7"
+  revision = "2b104a828359aaa7452c14fb256196d806e67bf6"
 
 [[projects]]
-  digest = "1:240b6224cd179dce8f83549c45c961ae02106223508fb5d4f58e81aa07dcd1f3"
+  digest = "1:9b4e59ad8e9af447f7d33e5cb70bfbef90a1234aa53da28ae9cf356339779684"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -55,8 +55,8 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "fc19aafe3cdbcb3d288cee9c7b83bfc2ed0208c4"
-  version = "v0.1.3"
+  revision = "d047a5e3a208d879d96cc232109479dbdb9196f2"
+  version = "v0.1.5"
 
 [[projects]]
   branch = "master"
@@ -373,7 +373,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "e657309f52e71501f9934566ac06dc5c2f7f11a1"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
 [[projects]]
   branch = "master"
@@ -387,11 +387,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+  revision = "351d144fa1fc0bd934e2408202be0c29f25e35a0"
 
 [[projects]]
   branch = "master"
-  digest = "1:a1ceb5b5a719b70122f4f6508cc42e57c8f279a233f7ed643581066359c0466b"
+  digest = "1:49bc8446f20e5797fe7b3b0ea47789db90476aadf85c74fbff1dcdee99f74229"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -399,18 +399,18 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "8f65e3013ebad444f13bc19536f7865efc793816"
+  revision = "d668ce993890a79bda886613ee587a69dd5da7a6"
 
 [[projects]]
   branch = "master"
-  digest = "1:f343f077a5b0bc3a3788b3a04e24dd417e3e25b2acb529c413e212d2c42416ef"
+  digest = "1:b9dceb1408ba5105803d5859193bc7d89ac3199b611cf8681dbaa0aa09c10d9c"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "62eef0e2fa9b2c385f7b2778e763486da6880d37"
+  revision = "70b957f3b65e069b4930ea94e2721eefa0f8f695"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"
@@ -467,7 +467,7 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:26a278a34e30cc8fbd09d5f7474488ac4cbad325c2b592b30e76e5d7d2fc1f10"
+  digest = "1:feab1308bceeb3d0e078b1c10397f2ce3b9d6f030c209d46e8b6f62fc97f90f3"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -475,8 +475,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "ef984e69dd356202fd4e4910d4d9c24468bdf0b8"
-  version = "v2.1.9"
+  revision = "72415094398e2f013bf50b76fd6de36df47938ea"
+  version = "v2.2.1"
 
 [[projects]]
   branch = "v1"

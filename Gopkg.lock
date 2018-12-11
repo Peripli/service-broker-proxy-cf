@@ -10,8 +10,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:9fa9386a7c13d535ea2380c2fccf9eaeb0d910d0b27e2990828d94b1bbf0889e"
+  branch = "visibilities"
+  digest = "1:a82b5b2fd02c7c1c48a5f70121e5fad10bb937ca96d1f86b245ad0424d1c31f1"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -23,10 +23,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "d6006576ab7f742432a160173374050bdc4cd7a7"
+  revision = "c4277c80a60d5f3a5ab91cccc2eebf7e3de6bf1c"
 
 [[projects]]
-  digest = "1:240b6224cd179dce8f83549c45c961ae02106223508fb5d4f58e81aa07dcd1f3"
+  branch = "query-interpreter"
+  digest = "1:ede9ff6d8b0d3c77742da3744a2a9ffa439f0ce839e0881479733b0a2342c97e"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -40,6 +41,7 @@
     "api/platform",
     "api/service_offering",
     "api/service_plan",
+    "api/visibility",
     "pkg/env",
     "pkg/env/envfakes",
     "pkg/health",
@@ -47,6 +49,7 @@
     "pkg/security",
     "pkg/security/filters",
     "pkg/security/middlewares",
+    "pkg/selection",
     "pkg/server",
     "pkg/types",
     "pkg/util",
@@ -55,8 +58,7 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "fc19aafe3cdbcb3d288cee9c7b83bfc2ed0208c4"
-  version = "v0.1.3"
+  revision = "aadcc76644b32fa6945849caf4a2f9ff18a45930"
 
 [[projects]]
   branch = "master"
@@ -269,6 +271,14 @@
   version = "v1.4.3"
 
 [[projects]]
+  digest = "1:808cdddf087fb64baeae67b8dfaee2069034d9704923a3cb8bd96a995421a625"
+  name = "github.com/patrickmn/go-cache"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0"
+  version = "v2.1.0"
+
+[[projects]]
   digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
@@ -373,7 +383,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "e657309f52e71501f9934566ac06dc5c2f7f11a1"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
 [[projects]]
   branch = "master"
@@ -387,11 +397,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
 
 [[projects]]
   branch = "master"
-  digest = "1:a1ceb5b5a719b70122f4f6508cc42e57c8f279a233f7ed643581066359c0466b"
+  digest = "1:49bc8446f20e5797fe7b3b0ea47789db90476aadf85c74fbff1dcdee99f74229"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -399,18 +409,18 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "8f65e3013ebad444f13bc19536f7865efc793816"
+  revision = "d668ce993890a79bda886613ee587a69dd5da7a6"
 
 [[projects]]
   branch = "master"
-  digest = "1:f343f077a5b0bc3a3788b3a04e24dd417e3e25b2acb529c413e212d2c42416ef"
+  digest = "1:c73348dab344986c67ff12db47eee08aa2ec1f6bf431dcd73514c6dd8c502a57"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "62eef0e2fa9b2c385f7b2778e763486da6880d37"
+  revision = "7da8ea5c81829e397bdf930c5d8ba4b703616f33"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"
@@ -467,7 +477,7 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:26a278a34e30cc8fbd09d5f7474488ac4cbad325c2b592b30e76e5d7d2fc1f10"
+  digest = "1:feab1308bceeb3d0e078b1c10397f2ce3b9d6f030c209d46e8b6f62fc97f90f3"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -475,8 +485,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "ef984e69dd356202fd4e4910d4d9c24468bdf0b8"
-  version = "v2.1.9"
+  revision = "72415094398e2f013bf50b76fd6de36df47938ea"
+  version = "v2.2.1"
 
 [[projects]]
   branch = "v1"
@@ -504,11 +514,13 @@
     "github.com/Peripli/service-manager/pkg/env",
     "github.com/Peripli/service-manager/pkg/env/envfakes",
     "github.com/Peripli/service-manager/pkg/log",
+    "github.com/Peripli/service-manager/pkg/types",
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-community/go-cfenv",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/ghttp",
+    "github.com/patrickmn/go-cache",
     "github.com/pkg/errors",
     "github.com/spf13/pflag",
   ]

@@ -2,13 +2,13 @@ package cf
 
 import (
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/Peripli/service-broker-proxy/pkg/sm"
 	"github.com/Peripli/service-manager/pkg/types"
 )
 
 const OrgLabelKey = "organization_guid"
 
-func (pc PlatformClient) Convert(visibility sm.Visibility, smPlan *types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
+// Convert takes as parameters the visibilities and plans from SM and returns core visibilities
+func (pc PlatformClient) Convert(visibility types.Visibility, smPlan *types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
 	result := make([]*platform.ServiceVisibilityEntity, 0)
 	orgLabelIndex := -1
 	labels := make(map[string]string)
@@ -17,7 +17,7 @@ func (pc PlatformClient) Convert(visibility sm.Visibility, smPlan *types.Service
 			orgLabelIndex = i
 			continue
 		}
-		labels[label.Key] = label.Values[0]
+		labels[label.Key] = label.Value[0]
 	}
 
 	if orgLabelIndex == -1 {
@@ -29,7 +29,7 @@ func (pc PlatformClient) Convert(visibility sm.Visibility, smPlan *types.Service
 		return result, nil
 	}
 
-	for _, value := range visibility.Labels[orgLabelIndex].Values {
+	for _, value := range visibility.Labels[orgLabelIndex].Value {
 		labelsCopy := make(map[string]string)
 		for k, v := range labels {
 			labelsCopy[k] = v

@@ -15,5 +15,8 @@ func NewVisibilityMapper() *VisibilityMapper {
 }
 
 func (v *VisibilityMapper) Map(visibility *platform.ServiceVisibilityEntity) string {
-	return strings.Join([]string{visibility.PlatformID, visibility.Labels[OrgLabelKey], visibility.CatalogPlanID}, idSeparator)
+	if visibility.Public {
+		return strings.Join([]string{"public", "", visibility.CatalogPlanID}, idSeparator)
+	}
+	return strings.Join([]string{"!public", visibility.Labels[OrgLabelKey], visibility.CatalogPlanID}, idSeparator)
 }

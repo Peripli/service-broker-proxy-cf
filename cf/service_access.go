@@ -11,7 +11,7 @@ import (
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
-	"github.com/cloudfoundry-community/go-cfclient"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
 
@@ -223,9 +223,9 @@ func (pc PlatformClient) getServiceForCatalogServiceGUID(catalogServiceGUID stri
 }
 
 func (pc PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
-	plans, err := pc.getServicePlansWithCache(ctx, []*types.ServicePlan{&types.ServicePlan{
+	plans, err := pc.getServicePlans(ctx, []*types.ServicePlan{&types.ServicePlan{
 		CatalogID: catalogPlanGUID,
-	}}, false)
+	}})
 
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)

@@ -12,13 +12,16 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
-	"github.com/cloudfoundry-community/go-cfclient"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
 
 var _ platform.ServiceVisibility = &PlatformClient{}
 
+// GetVisibilitiesByPlans returns []*platform.ServiceVisibilityEntity based on given SM plans.
+// The visibilities are taken from CF cloud controller.
+// For public plans visibilities are created so that reconcilation with sm visibilities is possible
 func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
-	platformPlans, err := pc.getServicePlansWithCache(ctx, plans, true)
+	platformPlans, err := pc.getServicePlans(ctx, plans)
 	if err != nil {
 		// TODO: Err context
 		return nil, err
@@ -31,17 +34,31 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 	}
 
 	uuidToCatalogID := make(map[string]string)
+	publicPlans := make([]*cfclient.ServicePlan, 0)
+
 	for _, plan := range platformPlans {
 		uuidToCatalogID[plan.Guid] = plan.UniqueId
+		if plan.Public {
+			publicPlans = append(publicPlans, &plan)
+		}
 	}
 
-	resources := make([]*platform.ServiceVisibilityEntity, 0, len(visibilities))
+	resources := make([]*platform.ServiceVisibilityEntity, 0, len(visibilities)+len(publicPlans))
 	for _, visibility := range visibilities {
 		labels := make(map[string]string)
 		labels[OrgLabelKey] = visibility.OrganizationGuid
 		resources = append(resources, &platform.ServiceVisibilityEntity{
+			Public:        false,
 			CatalogPlanID: uuidToCatalogID[visibility.ServicePlanGuid],
 			Labels:        labels,
+		})
+	}
+
+	for _, plan := range publicPlans {
+		resources = append(resources, &platform.ServiceVisibilityEntity{
+			Public:        true,
+			CatalogPlanID: plan.UniqueId,
+			Labels:        map[string]string{},
 		})
 	}
 

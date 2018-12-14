@@ -7,40 +7,42 @@ import (
 
 const OrgLabelKey = "organization_guid"
 
-// Convert takes as parameters the visibilities and plans from SM and returns core visibilities
-func (pc PlatformClient) Convert(visibility types.Visibility, smPlan *types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
-	result := make([]*platform.ServiceVisibilityEntity, 0)
-	orgLabelIndex := -1
-	labels := make(map[string]string)
-	for i, label := range visibility.Labels {
-		if label.Key == OrgLabelKey {
-			orgLabelIndex = i
-			continue
+// Convert takes as parameters the visibility and plan from SM and returns core visibilities
+func (pc PlatformClient) Convert(visibility *types.Visibility, smPlan *types.ServicePlan) []*platform.ServiceVisibilityEntity {
+	if visibility.PlatformID == "" {
+		return []*platform.ServiceVisibilityEntity{
+			&platform.ServiceVisibilityEntity{
+				Public:        true,
+				CatalogPlanID: smPlan.CatalogID,
+				Labels:        map[string]string{},
+			},
 		}
-		labels[label.Key] = label.Value[0]
 	}
 
+	orgLabelIndex := findOrgLabelIndex(visibility.Labels)
 	if orgLabelIndex == -1 {
-		result = append(result, &platform.ServiceVisibilityEntity{
-			PlatformID:    visibility.PlatformID,
-			CatalogPlanID: smPlan.CatalogID,
-			Labels:        labels,
-		})
-		return result, nil
+		return []*platform.ServiceVisibilityEntity{}
 	}
 
-	for _, value := range visibility.Labels[orgLabelIndex].Value {
-		labelsCopy := make(map[string]string)
-		for k, v := range labels {
-			labelsCopy[k] = v
-		}
-		labelsCopy[visibility.Labels[orgLabelIndex].Key] = value
+	orgIDs := visibility.Labels[orgLabelIndex].Value
+	result := make([]*platform.ServiceVisibilityEntity, 0, len(orgIDs))
+	for _, orgID := range orgIDs {
 		result = append(result, &platform.ServiceVisibilityEntity{
-			PlatformID:    visibility.PlatformID,
+			Public:        false,
 			CatalogPlanID: smPlan.CatalogID,
-			Labels:        labelsCopy,
+			Labels:        map[string]string{OrgLabelKey: orgID},
 		})
 	}
-
-	return result, nil
+	return result
 }
+
+func findOrgLabelIndex(labels []*types.VisibilityLabel) int {
+	for i, label := range labels {
+		if label.Key == OrgLabelKey {
+			return i
+		}
+	}
+	return -1
+}
+
+// When updating cache the visibility is not set correctly

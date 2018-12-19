@@ -11,18 +11,18 @@ log:
   level: debug
   format: text
 sm:
-  user: T3V7Txbbuxzj+OUdoTSu0iFBoHAQ8+q+cdiMAZq3gy0=
-  password: SwtqGEPwG8nxvmkTrsfhY5F09ZBoR+Fyv43xeEK/7Ys=
+  user: admin
+  password: admin
   url: http://localhost:8080
   osb_api_path: /v1/osb
   request_timeout: 6000ms
-  skip_ssl_validation: true
-  resync_period: 10s
+  skip_ssl_validation: false
+  resync_period: 30s
 cf:
   client:
-    apiAddress: http://api.local.dev
+    apiAddress: http://api.local.pcfdev.io
     username: admin
     password: admin
     skipSslValidation: false
     httpClient:
-      timeout: 16000ms
+      timeout: 6000ms

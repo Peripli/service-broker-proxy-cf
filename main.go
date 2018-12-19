@@ -31,9 +31,7 @@ func main() {
 		panic(fmt.Errorf("error creating CF client: %s", err))
 	}
 
-	visibilityMapper := cf.NewVisibilityMapper()
-
-	proxyBuilder := sbproxy.New(ctx, cancel, env, platformClient, visibilityMapper)
+	proxyBuilder := sbproxy.New(ctx, cancel, env, platformClient)
 	proxy := proxyBuilder.Build()
 
 	proxy.Run()

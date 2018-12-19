@@ -21,6 +21,7 @@ type PlatformClient struct {
 }
 
 var _ platform.Client = &PlatformClient{}
+var _ platform.ServiceVisibilityHandler = &PlatformClient{}
 
 // NewClient creates a new CF cf client from the specified configuration.
 func NewClient(config *Settings) (*PlatformClient, error) {

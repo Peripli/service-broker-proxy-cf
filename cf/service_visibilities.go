@@ -3,7 +3,6 @@ package cf
 import (
 	"context"
 	"fmt"
-	"math"
 	"net/url"
 	"strings"
 
@@ -15,22 +14,20 @@ import (
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
 
-var _ platform.ServiceVisibility = &PlatformClient{}
+const maxSliceLength = 50
 
 // GetVisibilitiesByPlans returns []*platform.ServiceVisibilityEntity based on given SM plans.
 // The visibilities are taken from CF cloud controller.
-// For public plans visibilities are created so that reconcilation with sm visibilities is possible
+// For public plans, visibilities are created so that sync with sm visibilities is possible
 func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
 	platformPlans, err := pc.getServicePlans(ctx, plans)
 	if err != nil {
-		// TODO: Err context
-		return nil, err
+		return nil, errors.Wrap(err, "could not get service plans from platform")
 	}
 
 	visibilities, err := pc.getPlansVisibilities(ctx, platformPlans)
 	if err != nil {
-		// TODO: Err context
-		return nil, err
+		return nil, errors.Wrap(err, "could not get visibilities from platform")
 	}
 
 	uuidToCatalogID := make(map[string]string)
@@ -65,24 +62,15 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 	return resources, nil
 }
 
-const maxSliceLength = 50
-
 func (pc PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
 	result := make([]cfclient.ServicePlan, 0)
 
-	chunks := makeChunks(plans)
-	planChunks, ok := chunks.([][]*types.ServicePlan)
-	if !ok {
-		return nil, errors.New("could not convert chunks")
-	}
-
-	for _, chunk := range planChunks {
+	for _, chunk := range splitSMPlansIntoChuncks(plans) {
 		catalogIDs := make([]string, 0, len(chunk))
 		for _, p := range chunk {
 			catalogIDs = append(catalogIDs, p.CatalogID)
 		}
 
-		// TODO: retry
 		platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
 		if err != nil {
 			return nil, err
@@ -104,19 +92,12 @@ func (pc PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfc
 func (pc PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
 	result := make([]cfclient.ServicePlanVisibility, 0)
 
-	chunks := makeChunks(plans)
-	visibilitiesChunks, ok := chunks.([][]cfclient.ServicePlan)
-	if !ok {
-		return nil, errors.New("could not convert chunks")
-	}
-
-	for _, chunk := range visibilitiesChunks {
+	for _, chunk := range splitCFPlansIntoChuncks(plans) {
 		plansGUID := make([]string, 0, len(chunk))
 		for _, p := range chunk {
 			plansGUID = append(plansGUID, p.Guid)
 		}
 
-		// TODO: retry
 		platformPlans, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
 		if err != nil {
 			return nil, err
@@ -135,36 +116,39 @@ func (pc PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cf
 	return pc.Client.ListServicePlanVisibilitiesByQuery(query)
 }
 
-func makeChunks(data interface{}) interface{} {
-	switch values := data.(type) {
-	case []*types.ServicePlan:
-		resultChunks := make([][]*types.ServicePlan, 0)
-		for {
-			count := len(values)
-			sliceLength := int(math.Min(float64(count), float64(maxSliceLength)))
-			if sliceLength < maxSliceLength {
-				resultChunks = append(resultChunks, values)
-				break
-			}
-			resultChunks = append(resultChunks, values[:sliceLength])
-			values = values[sliceLength:]
+func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
+	resultChunks := make([][]cfclient.ServicePlan, 0)
+	for {
+		count := len(plans)
+		sliceLength := min(count, maxSliceLength)
+		if sliceLength < maxSliceLength {
+			resultChunks = append(resultChunks, plans)
+			break
 		}
-		return resultChunks
-
-	case []cfclient.ServicePlan:
-		resultChunks := make([][]cfclient.ServicePlan, 0, int(len(values)/maxSliceLength))
-		for {
-			count := len(values)
-			sliceLength := int(math.Min(float64(count), float64(maxSliceLength)))
-			if sliceLength < maxSliceLength {
-				resultChunks = append(resultChunks, values)
-				break
-			}
-			resultChunks = append(resultChunks, values[:sliceLength])
-			values = values[sliceLength:]
-		}
-		return resultChunks
+		resultChunks = append(resultChunks, plans[:sliceLength])
+		plans = plans[sliceLength:]
 	}
+	return resultChunks
+}
 
-	return nil
+func splitSMPlansIntoChuncks(plans []*types.ServicePlan) [][]*types.ServicePlan {
+	resultChunks := make([][]*types.ServicePlan, 0)
+	for {
+		count := len(plans)
+		sliceLength := min(count, maxSliceLength)
+		if sliceLength < maxSliceLength {
+			resultChunks = append(resultChunks, plans)
+			break
+		}
+		resultChunks = append(resultChunks, plans[:sliceLength])
+		plans = plans[sliceLength:]
+	}
+	return resultChunks
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

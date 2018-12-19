@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
@@ -26,59 +25,16 @@ type ServicePlanRequest struct {
 	Public bool `json:"public"`
 }
 
-var _ platform.ServiceAccess = &PlatformClient{}
-
-// EnableAccessForService implements service-broker-proxy/pkg/cf/ServiceAccess.EnableAccessForService
-// and provides logic for enabling the service access for all plans of a service by the service's catalog GUID.
-func (pc PlatformClient) EnableAccessForService(ctx context.Context, context json.RawMessage, catalogServiceGUID string) error {
-	return pc.updateAccessForService(ctx, context, catalogServiceGUID, true)
-}
-
-// DisableAccessForService implements service-broker-proxy/pkg/cf/ServiceAccess.DisableAccessForService
-// and provides logic for disabling the service access for all plans of a service by the service's catalog GUID.
-func (pc PlatformClient) DisableAccessForService(ctx context.Context, context json.RawMessage, catalogServiceGUID string) error {
-	return pc.updateAccessForService(ctx, context, catalogServiceGUID, false)
-}
-
-// EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceAccess.EnableAccessForPlan
+// EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
 func (pc PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
 	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, true)
 }
 
-// DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceAccess.DisableAccessForPlan
+// DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.DisableAccessForPlan
 // and provides logic for disabling the service access for a specified plan by the plan's catalog GUID.
 func (pc PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
 	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, false)
-}
-
-func (pc PlatformClient) updateAccessForService(ctx context.Context, context json.RawMessage, catalogServiceGUID string, isEnabled bool) error {
-	metadata := &Metadata{}
-	if err := json.Unmarshal(context, metadata); err != nil {
-		return err
-	}
-
-	service, err := pc.getServiceForCatalogServiceGUID(catalogServiceGUID)
-	if err != nil {
-		return err
-	}
-
-	plans, err := pc.getPlansForPlatformServiceGUID(service.Guid)
-	if err != nil {
-		return err
-	}
-
-	if metadata.OrgGUID != "" {
-		if err := pc.updateOrgVisibilitiesForPlans(ctx, plans, isEnabled, metadata.OrgGUID); err != nil {
-			return err
-		}
-	} else {
-		if err := pc.updatePlans(plans, isEnabled); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
@@ -105,16 +61,6 @@ func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.R
 	return nil
 }
 
-func (pc PlatformClient) updateOrgVisibilitiesForPlans(ctx context.Context, plans []cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
-	for _, plan := range plans {
-		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
 	switch {
 	case plan.Public:
@@ -128,16 +74,6 @@ func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cf
 		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.Guid, orgGUID)}}
 		if err := pc.deleteAccessVisibilities(query); err != nil {
 			return wrapCFError(err)
-		}
-	}
-
-	return nil
-}
-
-func (pc PlatformClient) updatePlans(plans []cfclient.ServicePlan, isPublic bool) error {
-	for _, plan := range plans {
-		if err := pc.updatePlan(plan, isPublic); err != nil {
-			return err
 		}
 	}
 
@@ -204,24 +140,6 @@ func (pc PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanR
 	return servicePlan, nil
 }
 
-func (pc PlatformClient) getServiceForCatalogServiceGUID(catalogServiceGUID string) (cfclient.Service, error) {
-	query := url.Values{}
-	query.Set("q", fmt.Sprintf("unique_id:%s", catalogServiceGUID))
-
-	services, err := pc.Client.ListServicesByQuery(query)
-	if err != nil {
-		return cfclient.Service{}, wrapCFError(err)
-	}
-	if len(services) == 0 {
-		return cfclient.Service{}, errors.Errorf("zero services with catalog service GUID = %s found", catalogServiceGUID)
-	}
-	if len(services) > 1 {
-		return cfclient.Service{}, errors.Errorf("more than one service with catalog service GUID = %s found", catalogServiceGUID)
-	}
-
-	return services[0], nil
-}
-
 func (pc PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
 	plans, err := pc.getServicePlans(ctx, []*types.ServicePlan{&types.ServicePlan{
 		CatalogID: catalogPlanGUID,
@@ -239,16 +157,4 @@ func (pc PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogP
 	}
 
 	return plans[0], nil
-}
-
-func (pc PlatformClient) getPlansForPlatformServiceGUID(serviceGUID string) ([]cfclient.ServicePlan, error) {
-	query := url.Values{}
-	query.Set("q", fmt.Sprintf("service_guid:%s", serviceGUID))
-
-	servicePlans, err := pc.Client.ListServicePlansByQuery(query)
-	if err != nil {
-		return []cfclient.ServicePlan{}, wrapCFError(err)
-	}
-
-	return servicePlans, nil
 }

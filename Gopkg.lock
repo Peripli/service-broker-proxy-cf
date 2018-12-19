@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "visibilities"
-  digest = "1:4525a0dc13992516ccf836f3428ef158a253b2aa2db9d6b7e927e3d65c56d0a5"
+  digest = "1:e3408799f733a55951f868811c8fb522d0404f861c79fc53c2e1f1b93b2f1560"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -23,11 +23,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "35d1f164332b00d68062de40b9c4cb2a94ff9acd"
+  revision = "f76b1ca284d6d707b611ae1c64d292c0c1ab05d5"
 
 [[projects]]
   branch = "query-interpreter"
-  digest = "1:0cf6b6eb4cadc793302aff494a3c57949e332a32f992099be1b1cbf15b2ebbff"
+  digest = "1:35a7f571b863ca97f3fe0bc91430a41756bbfa69d6a742f84487bd4a73af4bbb"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -48,6 +48,7 @@
     "pkg/log",
     "pkg/query",
     "pkg/security",
+    "pkg/security/authenticators",
     "pkg/security/filters",
     "pkg/security/middlewares",
     "pkg/server",
@@ -58,7 +59,7 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "33cab33e18ccaac7b997f3ac98a7199c98cb53dc"
+  revision = "a6c4363e699e0388ae8f4d3fc20e179694999505"
 
 [[projects]]
   branch = "master"
@@ -330,15 +331,15 @@
   version = "v1.0.4"
 
 [[projects]]
-  digest = "1:6a4a11ba764a56d2758899ec6f3848d24698d48442ebce85ee7a3f63284526cd"
+  digest = "1:d707dbc1330c0ed177d4642d6ae102d5e2c847ebd0eb84562d0dc4f024531cfc"
   name = "github.com/spf13/afero"
   packages = [
     ".",
     "mem",
   ]
   pruneopts = "UT"
-  revision = "d40851caa0d747393da1ffb28f7f9d8b4eeffebd"
-  version = "v1.1.2"
+  revision = "a5d6946387efe7d64d09dcba68cdd523dc1273a3"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:516e71bed754268937f57d4ecb190e01958452336fa73dbac880894164e91c1f"
@@ -389,6 +390,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:ea8da5f44f5e15bb589cca1bd9b85ceb9c05257e83824a725fb0243665e3ce1c"
+  name = "github.com/tidwall/sjson"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c943cc8c8d751d9b33444adf78ae04c2fc8be754"
+  version = "v1.0.3"
+
+[[projects]]
   branch = "master"
   digest = "1:b06f45abbe7431aec373695c6cf9770a051fa4ac81ad31b3fa73ddf3bb76bb27"
   name = "golang.org/x/crypto"
@@ -413,7 +422,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "891ebc4b82d6e74f468c533b06f983c7be918a96"
+  revision = "e147a9138326bc0e9d4e179541ffd8af41cff8a9"
 
 [[projects]]
   branch = "master"
@@ -436,7 +445,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "4d1cda033e0619309c606fc686de3adcf599539e"
+  revision = "074acd46bca67915925527c07849494d115e7c43"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"

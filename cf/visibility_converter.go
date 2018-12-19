@@ -5,6 +5,7 @@ import (
 	"github.com/Peripli/service-manager/pkg/types"
 )
 
+// OrgLabelKey label key for CF organization visibilities
 const OrgLabelKey = "organization_guid"
 
 // Convert takes as parameters the visibility and plan from SM and returns core visibilities
@@ -44,5 +45,3 @@ func findOrgLabelIndex(labels []*types.VisibilityLabel) int {
 	}
 	return -1
 }
-
-// When updating cache the visibility is not set correctly

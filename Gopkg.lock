@@ -22,11 +22,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "21d158da1d30d1726116a631cf90bbe0b022c175"
-  version = "v0.1.3"
+  revision = "4faa7ab5381ec8c81d36f16661540db9e47bcd89"
+  version = "v0.1.4"
 
 [[projects]]
-  digest = "1:9478ef09f4a67fe693e1181cdb875a1188609451ee9af4af6771507dd5a0151f"
+  digest = "1:18e67cf869b6b8738512e38506eaae4b6065ca2777e71c75c171a87e468eb001"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -57,8 +57,8 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "f45d843d248508a3b54517cb2b5466c6ef3d3cd7"
-  version = "v0.1.6"
+  revision = "b9b016cfab6e3e1317555916a8e4252b8f91f4c2"
+  version = "v0.1.7"
 
 [[projects]]
   branch = "master"
@@ -405,7 +405,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "e147a9138326bc0e9d4e179541ffd8af41cff8a9"
+  revision = "927f97764cc334a6575f4b7a1584a147864d5723"
 
 [[projects]]
   branch = "master"
@@ -421,14 +421,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ba8cbf57cfd92d5f8592b4aca1a35d92c162363d32aeabd5b12555f8896635e7"
+  digest = "1:ba2c0719b7ca1fb531afa5aae9bda558846438a075f0e0282d3dffcd887de90d"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "074acd46bca67915925527c07849494d115e7c43"
+  revision = "b00e65af1da0681cde6c8227839a0ca53bbf16bb"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"
@@ -460,7 +460,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:08206298775e5b462e6c0333f4471b44e63f1a70e42952b6ede4ecc9572281eb"
+  digest = "1:6f3bd49ddf2e104e52062774d797714371fac1b8bddfd8e124ce78e6b2264a10"
   name = "google.golang.org/appengine"
   packages = [
     "internal",
@@ -472,8 +472,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
-  version = "v1.3.0"
+  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"

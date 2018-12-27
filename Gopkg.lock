@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "visibilities"
-  digest = "1:f2644b27962a88b9d39ed7bc74cd83130e09bbe80dee93fb62093ecd8b7d142e"
+  digest = "1:ee910264f172749d44ad3d376f5de039baea0de2546041248b345dfea763b7e7"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -23,7 +23,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "093f922ffdfddb74da04c0ccb770b79ab59e4320"
+  revision = "f19c7fcdb4fc3d395801e6d6677ee057cb4a2298"
 
 [[projects]]
   branch = "query-interpreter"

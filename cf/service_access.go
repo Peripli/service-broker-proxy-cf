@@ -27,17 +27,17 @@ type ServicePlanRequest struct {
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
-func (pc PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
+func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
 	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, true)
 }
 
 // DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.DisableAccessForPlan
 // and provides logic for disabling the service access for a specified plan by the plan's catalog GUID.
-func (pc PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
+func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
 	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, false)
 }
 
-func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
+func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
 	metadata := &Metadata{}
 	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
@@ -61,7 +61,7 @@ func (pc PlatformClient) updateAccessForPlan(ctx context.Context, context json.R
 	return nil
 }
 
-func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
+func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
 	switch {
 	case plan.Public:
 		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
@@ -80,7 +80,7 @@ func (pc PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cf
 	return nil
 }
 
-func (pc PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) error {
+func (pc *PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) error {
 	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s", plan.Guid)}}
 	if err := pc.deleteAccessVisibilities(query); err != nil {
 		return err
@@ -95,7 +95,7 @@ func (pc PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) er
 	return err
 }
 
-func (pc PlatformClient) deleteAccessVisibilities(query url.Values) error {
+func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {
 	servicePlanVisibilities, err := pc.Client.ListServicePlanVisibilitiesByQuery(query)
 	if err != nil {
 		return wrapCFError(err)
@@ -111,7 +111,7 @@ func (pc PlatformClient) deleteAccessVisibilities(query url.Values) error {
 }
 
 // UpdateServicePlan updates the public property of the plan with the specified GUID
-func (pc PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
+func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
 	var planResource cfclient.ServicePlanResource
 	buf := bytes.NewBuffer(nil)
 	if err := json.NewEncoder(buf).Encode(request); err != nil {
@@ -140,7 +140,7 @@ func (pc PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanR
 	return servicePlan, nil
 }
 
-func (pc PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
+func (pc *PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
 	plans, err := pc.getServicePlans(ctx, []*types.ServicePlan{&types.ServicePlan{
 		CatalogID: catalogPlanGUID,
 	}})

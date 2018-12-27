@@ -16,10 +16,18 @@ import (
 
 const maxSliceLength = 50
 
+// OrgLabelKey label key for CF organization visibilities
+const OrgLabelKey = "organization_guid"
+
+// VisibilityScopeLabelKey returns key to be used when scoping visibilities
+func (pc *PlatformClient) VisibilityScopeLabelKey() string {
+	return OrgLabelKey
+}
+
 // GetVisibilitiesByPlans returns []*platform.ServiceVisibilityEntity based on given SM plans.
 // The visibilities are taken from CF cloud controller.
 // For public plans, visibilities are created so that sync with sm visibilities is possible
-func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
+func (pc *PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
 	platformPlans, err := pc.getServicePlans(ctx, plans)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get service plans from platform")
@@ -62,7 +70,7 @@ func (pc PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*ty
 	return resources, nil
 }
 
-func (pc PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
+func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
 	result := make([]cfclient.ServicePlan, 0)
 
 	for _, chunk := range splitSMPlansIntoChuncks(plans) {
@@ -81,7 +89,7 @@ func (pc PlatformClient) getServicePlans(ctx context.Context, plans []*types.Ser
 	return result, nil
 }
 
-func (pc PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
+func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
 	values := strings.Join(catalogIDs, ",")
 	query := url.Values{
 		"q": []string{fmt.Sprintf("unique_id IN %s", values)},
@@ -89,7 +97,7 @@ func (pc PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfc
 	return pc.Client.ListServicePlansByQuery(query)
 }
 
-func (pc PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
 	result := make([]cfclient.ServicePlanVisibility, 0)
 
 	for _, chunk := range splitCFPlansIntoChuncks(plans) {
@@ -108,7 +116,7 @@ func (pc PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcli
 	return result, nil
 }
 
-func (pc PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
 	values := strings.Join(plansGUID, ",")
 	query := url.Values{
 		"q": []string{fmt.Sprintf("service_plan_guid IN %s", values)},

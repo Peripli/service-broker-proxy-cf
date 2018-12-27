@@ -20,8 +20,20 @@ type PlatformClient struct {
 	reg *reconcile.Settings
 }
 
-var _ platform.Client = &PlatformClient{}
-var _ platform.ServiceVisibilityHandler = &PlatformClient{}
+// Broker returns platform client which can perform platform broker operations
+func (c *PlatformClient) Broker() platform.BrokerClient {
+	return c
+}
+
+// Visibility returns platform client which can perform visibility operations
+func (c *PlatformClient) Visibility() platform.VisibilityClient {
+	return c
+}
+
+// CatalogFetcher returns platform client which can perform refetching of service broker catalogs
+func (c *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
+	return c
+}
 
 // NewClient creates a new CF cf client from the specified configuration.
 func NewClient(config *Settings) (*PlatformClient, error) {

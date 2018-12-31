@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cloudfoundry-community/go-cfclient"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-manager/pkg/types"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -20,18 +19,22 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		ccServer *ghttp.Server
 		client   *cf.PlatformClient
 
-		smPlans1 []*types.ServicePlan
+		smPlans []*types.ServicePlan
 
 		routes []*mockRoute
 
-		publicPlanGUID              string
-		catalogPlanID               string
-		visibilityForPublicPlanGUID string
+		plan1GUID              string
+		catalogPlanID1         string
+		visibilityForPlan1GUID string
 
-		servicePlan                 cfclient.ServicePlan
+		publicPlan1GUID      string
+		catalogPublicPlanID1 string
+
+		servicePlan1                cfclient.ServicePlan
+		servicePublicPlan1          cfclient.ServicePlan
 		servicePlanResponse         cfclient.ServicePlansResponse
 		getVisibilitiesPlanResponse cfclient.ServicePlanVisibilitiesResponse
-		visibilityForPublicPlan     cfclient.ServicePlanVisibilityResource
+		visibilityForPlan1          cfclient.ServicePlanVisibilityResource
 
 		ctx context.Context
 	)
@@ -43,45 +46,64 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 		_, client = ccClient(ccServer.URL())
 
-		catalogPlanID = "catalogPlanID1"
+		catalogPlanID1 = "catalogPlanID1"
+		catalogPublicPlanID1 = "catalogPublicPlanID1"
 
-		smPlans1 = []*types.ServicePlan{
+		smPlans = []*types.ServicePlan{
 			&types.ServicePlan{
 				ID:        "planID1",
-				CatalogID: catalogPlanID,
+				CatalogID: catalogPlanID1,
+			},
+			&types.ServicePlan{
+				ID:        "publicPlanID1",
+				CatalogID: catalogPublicPlanID1,
 			},
 		}
 
-		publicPlanGUID = "servicePlanGUID1"
+		plan1GUID = "servicePlanGUID1"
+		publicPlan1GUID = "servicePublicPlanGUID1"
 
-		servicePlan = cfclient.ServicePlan{
-			Guid:     publicPlanGUID,
+		servicePlan1 = cfclient.ServicePlan{
+			Guid:     plan1GUID,
 			Name:     "servicePlanName1",
 			Public:   false,
-			UniqueId: catalogPlanID,
+			UniqueId: catalogPlanID1,
+		}
+		servicePublicPlan1 = cfclient.ServicePlan{
+			Guid:     publicPlan1GUID,
+			Name:     "servicePublicPlanName1",
+			Public:   true,
+			UniqueId: catalogPublicPlanID1,
 		}
 
 		servicePlanResponse = cfclient.ServicePlansResponse{
-			Count: 1,
+			Count: 2,
 			Pages: 1,
 			Resources: []cfclient.ServicePlanResource{
 				cfclient.ServicePlanResource{
 					Meta: cfclient.Meta{
-						Guid: publicPlanGUID,
+						Guid: plan1GUID,
 						Url:  "http://example.com",
 					},
-					Entity: servicePlan,
+					Entity: servicePlan1,
+				},
+				cfclient.ServicePlanResource{
+					Meta: cfclient.Meta{
+						Guid: publicPlan1GUID,
+						Url:  "http://example2.com",
+					},
+					Entity: servicePublicPlan1,
 				},
 			},
 		}
 
-		visibilityForPublicPlan = cfclient.ServicePlanVisibilityResource{
+		visibilityForPlan1 = cfclient.ServicePlanVisibilityResource{
 			Meta: cfclient.Meta{
-				Guid: visibilityForPublicPlanGUID,
+				Guid: visibilityForPlan1GUID,
 				Url:  "http://example.com",
 			},
 			Entity: cfclient.ServicePlanVisibility{
-				ServicePlanGuid: publicPlanGUID,
+				ServicePlanGuid: plan1GUID,
 				ServicePlanUrl:  "http://example.com",
 			},
 		}
@@ -90,7 +112,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			Count: 1,
 			Pages: 1,
 			Resources: []cfclient.ServicePlanVisibilityResource{
-				visibilityForPublicPlan,
+				visibilityForPlan1,
 			},
 		}
 	})
@@ -138,17 +160,18 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 		Context("when visibilities are available", func() {
 			BeforeEach(func() {
-				getVisibilitiesRoute := prepareGetVisibilities([]string{publicPlanGUID}, getVisibilitiesPlanResponse)
+				getVisibilitiesRoute := prepareGetVisibilities([]string{plan1GUID, publicPlan1GUID}, getVisibilitiesPlanResponse)
 				getPlansRoute := prepareGetPlans()
 
 				routes = append(routes, &getPlansRoute, &getVisibilitiesRoute)
 			})
 
 			It("should return all visibilities", func() {
-				platformVisibilities, err := client.GetVisibilitiesByPlans(ctx, smPlans1)
+				platformVisibilities, err := client.GetVisibilitiesByPlans(ctx, smPlans)
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(platformVisibilities).To(HaveLen(1))
-				Expect(platformVisibilities[0].CatalogPlanID).To(Equal(catalogPlanID))
+				Expect(platformVisibilities).To(HaveLen(2))
+				Expect(platformVisibilities[0].CatalogPlanID).To(Equal(catalogPlanID1))
+				Expect(platformVisibilities[1].CatalogPlanID).To(Equal(catalogPublicPlanID1))
 			})
 		})
 

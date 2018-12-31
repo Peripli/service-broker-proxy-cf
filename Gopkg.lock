@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "visibilities"
-  digest = "1:90e9c096168edd387ed71eb4c805d0477d7007009a5ed6953e9ba326d9a35190"
+  digest = "1:01934b551cd5cfa85f60d4345713e82341686de850ded69f1feecc6547d6adab"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -23,7 +23,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "c563024254aca478c15cc186b4fee59509d01f56"
+  revision = "4c26dba661fec9cab21c69718737ce87a40ee0e9"
 
 [[projects]]
   branch = "query-interpreter"
@@ -220,7 +220,7 @@
   name = "github.com/onrik/logrus"
   packages = ["filename"]
   pruneopts = "UT"
-  revision = "11c5d81510976de4ae9feea551b03722ea8d9abc"
+  revision = "05335c5abaa99d4c7a3f36df162b483106ef38a8"
 
 [[projects]]
   digest = "1:5f4b78246f0bcb105b1e3b2b9e22b52a57cd02f57a8078572fe27c62f4a75ff7"
@@ -438,14 +438,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ab070eba73decd4e1956c3a12002e0dfad793bda7a9c1174ad62b4418b11ff85"
+  digest = "1:10405139b45e3a97a3842c93984710e30466eb933545f219ad3f5e45246973b4"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "c6cbdbf9e68a68b19802a5c44e537c284b9c8e1a"
+  revision = "9a3f9b0469bbc6b8802087ae5c0af9f61502de01"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"

@@ -10,7 +10,7 @@ import (
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered at the cf.
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBroker, error) {
-	brokers, err := pc.Client.ListServiceBrokers()
+	brokers, err := pc.CC.ListServiceBrokers()
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
@@ -39,7 +39,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 		BrokerURL: r.BrokerURL,
 	}
 
-	broker, err := pc.Client.CreateServiceBroker(request)
+	broker, err := pc.CC.CreateServiceBroker(request)
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
@@ -57,7 +57,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 // registering a new broker at the cf.
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
 
-	if err := pc.Client.DeleteServiceBroker(r.GUID); err != nil {
+	if err := pc.CC.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
 	}
 
@@ -75,7 +75,7 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 		BrokerURL: r.BrokerURL,
 	}
 
-	broker, err := pc.Client.UpdateServiceBroker(r.GUID, request)
+	broker, err := pc.CC.UpdateServiceBroker(r.GUID, request)
 	if err != nil {
 		return nil, wrapCFError(err)
 	}

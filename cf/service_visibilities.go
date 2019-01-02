@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
+
+	"github.com/Peripli/service-manager/pkg/log"
 
 	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/pkg/errors"
@@ -71,20 +74,54 @@ func (pc *PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*t
 }
 
 func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
-	result := make([]cfclient.ServicePlan, 0)
+	result := make([]cfclient.ServicePlan, 0, len(plans))
+	cc := make(chan cfclient.ServicePlan, 2)
+	chunks := splitSMPlansIntoChuncks(plans)
+	errs := make([]error, len(chunks))
 
-	for _, chunk := range splitSMPlansIntoChuncks(plans) {
-		catalogIDs := make([]string, 0, len(chunk))
-		for _, p := range chunk {
-			catalogIDs = append(catalogIDs, p.CatalogID)
+	var wg sync.WaitGroup
+
+	for chunkNumber, chunk := range chunks {
+		execAsync(&wg, func(from int, chunk []*types.ServicePlan) func() error {
+			return func() error {
+				catalogIDs := make([]string, 0, len(chunk))
+				for _, p := range chunk {
+					catalogIDs = append(catalogIDs, p.CatalogID)
+				}
+
+				platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
+				if err != nil {
+					errs[from] = err
+					return err
+				}
+
+				for _, p := range platformPlans {
+					cc <- p
+				}
+
+				return nil
+			}
+		}(chunkNumber*maxSliceLength, chunk))
+	}
+
+	done := make(chan bool)
+	go func() {
+		for e := range cc {
+			result = append(result, e)
 		}
+		done <- true
+	}()
 
-		platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
+	wg.Wait()
+	close(cc)
+
+	for _, err := range errs {
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, platformPlans...)
 	}
+
+	<-done
 
 	return result, nil
 }
@@ -94,24 +131,58 @@ func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cf
 	query := url.Values{
 		"q": []string{fmt.Sprintf("unique_id IN %s", values)},
 	}
-	return pc.Client.ListServicePlansByQuery(query)
+	return pc.CC.ListServicePlansByQuery(query)
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
-	result := make([]cfclient.ServicePlanVisibility, 0)
+	result := make([]cfclient.ServicePlanVisibility, 0, len(plans))
+	cc := make(chan cfclient.ServicePlanVisibility, 2)
 
-	for _, chunk := range splitCFPlansIntoChuncks(plans) {
-		plansGUID := make([]string, 0, len(chunk))
-		for _, p := range chunk {
-			plansGUID = append(plansGUID, p.Guid)
+	chunks := splitCFPlansIntoChuncks(plans)
+	errs := make([]error, len(chunks))
+
+	var wg sync.WaitGroup
+
+	for chunkNumber, chunk := range chunks {
+		execAsync(&wg, func(from int, chunk []cfclient.ServicePlan) func() error {
+			return func() error {
+				plansGUID := make([]string, 0, len(chunk))
+				for _, p := range chunk {
+					plansGUID = append(plansGUID, p.Guid)
+				}
+
+				visibilities, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
+				if err != nil {
+					errs[from] = err
+					return err
+				}
+				for _, v := range visibilities {
+					cc <- v
+				}
+
+				return nil
+			}
+		}(chunkNumber, chunk))
+	}
+
+	done := make(chan bool)
+	go func() {
+		for e := range cc {
+			result = append(result, e)
 		}
+		done <- true
+	}()
 
-		platformPlans, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
+	wg.Wait()
+	close(cc)
+
+	for _, err := range errs {
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, platformPlans...)
 	}
+
+	<-done
 
 	return result, nil
 }
@@ -121,7 +192,19 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]c
 	query := url.Values{
 		"q": []string{fmt.Sprintf("service_plan_guid IN %s", values)},
 	}
-	return pc.Client.ListServicePlanVisibilitiesByQuery(query)
+	return pc.CC.ListServicePlanVisibilitiesByQuery(query)
+}
+
+func execAsync(wg *sync.WaitGroup, f func() error) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := f()
+		if err != nil {
+			log.D().WithError(err).Error("Could not exec async")
+			// TODO: cancel the context
+		}
+	}()
 }
 
 func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {

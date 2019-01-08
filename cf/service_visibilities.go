@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/Peripli/service-manager/pkg/log"
-
 	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/pkg/errors"
 
@@ -126,11 +125,15 @@ func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.Se
 	return result, nil
 }
 
-func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
-	values := strings.Join(catalogIDs, ",")
-	query := url.Values{
-		"q": []string{fmt.Sprintf("unique_id IN %s", values)},
+func createQuery(querySearchKey string, elements []string) map[string][]string {
+	searchParameters := strings.Join(elements, ",")
+	return url.Values{
+		"q": []string{fmt.Sprintf("%s IN %s", querySearchKey, searchParameters)},
 	}
+}
+
+func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
+	query := createQuery("unique_id", catalogIDs)
 	return pc.CC.ListServicePlansByQuery(query)
 }
 
@@ -188,10 +191,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 }
 
 func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
-	values := strings.Join(plansGUID, ",")
-	query := url.Values{
-		"q": []string{fmt.Sprintf("service_plan_guid IN %s", values)},
-	}
+	query := createQuery("service_plan_guid", plansGUID)
 	return pc.CC.ListServicePlanVisibilitiesByQuery(query)
 }
 
@@ -202,20 +202,14 @@ func execAsync(wg *sync.WaitGroup, f func() error) {
 		err := f()
 		if err != nil {
 			log.D().WithError(err).Error("Could not exec async")
-			// TODO: cancel the context
 		}
 	}()
 }
-
 func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
 	resultChunks := make([][]cfclient.ServicePlan, 0)
-	for {
-		count := len(plans)
+
+	for count := len(plans); count > 0; count = len(plans) {
 		sliceLength := min(count, maxSliceLength)
-		if sliceLength < maxSliceLength {
-			resultChunks = append(resultChunks, plans)
-			break
-		}
 		resultChunks = append(resultChunks, plans[:sliceLength])
 		plans = plans[sliceLength:]
 	}
@@ -224,13 +218,9 @@ func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServiceP
 
 func splitSMPlansIntoChuncks(plans []*types.ServicePlan) [][]*types.ServicePlan {
 	resultChunks := make([][]*types.ServicePlan, 0)
-	for {
-		count := len(plans)
+
+	for count := len(plans); count > 0; count = len(plans) {
 		sliceLength := min(count, maxSliceLength)
-		if sliceLength < maxSliceLength {
-			resultChunks = append(resultChunks, plans)
-			break
-		}
 		resultChunks = append(resultChunks, plans[:sliceLength])
 		plans = plans[sliceLength:]
 	}

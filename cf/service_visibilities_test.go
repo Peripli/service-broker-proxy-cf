@@ -2,11 +2,13 @@ package cf_test
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/types"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
@@ -15,163 +17,192 @@ import (
 )
 
 var _ = Describe("Client Service Plan Visibilities", func() {
+
+	const orgGUID = "testorgguid"
+
 	var (
-		ccServer *ghttp.Server
-		client   *cf.PlatformClient
-
-		smPlans []*types.ServicePlan
-
-		routes []*mockRoute
-
-		plan1GUID              string
-		catalogPlanID1         string
-		visibilityForPlan1GUID string
-
-		publicPlan1GUID      string
-		catalogPublicPlanID1 string
-
-		servicePlan1                cfclient.ServicePlan
-		servicePublicPlan1          cfclient.ServicePlan
-		servicePlanResponse         cfclient.ServicePlansResponse
-		getVisibilitiesPlanResponse cfclient.ServicePlanVisibilitiesResponse
-		visibilityForPlan1          cfclient.ServicePlanVisibilityResource
-
-		ctx context.Context
+		ccServer                *ghttp.Server
+		client                  *cf.PlatformClient
+		ctx                     context.Context
+		generatedCFPlans        map[string]*cfclient.ServicePlan
+		generatedCFVisibilities map[string]*cfclient.ServicePlanVisibility
+		publicPlansCount        int
 	)
 
-	BeforeEach(func() {
-		ctx = context.TODO()
-
-		ccServer = fakeCCServer(true)
-
-		_, client = ccClient(ccServer.URL())
-
-		catalogPlanID1 = "catalogPlanID1"
-		catalogPublicPlanID1 = "catalogPublicPlanID1"
-
-		smPlans = []*types.ServicePlan{
-			&types.ServicePlan{
-				ID:        "planID1",
-				CatalogID: catalogPlanID1,
-			},
-			&types.ServicePlan{
-				ID:        "publicPlanID1",
-				CatalogID: catalogPublicPlanID1,
-			},
+	generateCFPlans := func(plansToGenerate, publicPlansToGenerate int) map[string]*cfclient.ServicePlan {
+		plans := make(map[string]*cfclient.ServicePlan)
+		for i := 0; i < plansToGenerate; i++ {
+			indexStr := strconv.Itoa(i)
+			planGuid := "plan" + indexStr
+			plans[planGuid] = &cfclient.ServicePlan{
+				Guid:     planGuid,
+				UniqueId: "planCatalogGuid" + indexStr,
+			}
 		}
+		for i := 0; i < publicPlansToGenerate; i++ {
+			indexStr := strconv.Itoa(i)
+			planGuid := "publicPlan" + indexStr
 
-		plan1GUID = "servicePlanGUID1"
-		publicPlan1GUID = "servicePublicPlanGUID1"
+			plans[planGuid] = &cfclient.ServicePlan{
+				Guid:     planGuid,
+				UniqueId: "publicPlanCatalogGuid" + indexStr,
+				Public:   true,
+			}
+		}
+		return plans
+	}
 
-		servicePlan1 = cfclient.ServicePlan{
-			Guid:     plan1GUID,
-			Name:     "servicePlanName1",
-			Public:   false,
-			UniqueId: catalogPlanID1,
+	generateCFVisibilities := func(plans map[string]*cfclient.ServicePlan) map[string]*cfclient.ServicePlanVisibility {
+		visibilities := make(map[string]*cfclient.ServicePlanVisibility)
+		for planGuid, plan := range plans {
+			if !plan.Public {
+				visibilityGuid := "cfVisibilityForPlan_" + planGuid
+				visibilities[visibilityGuid] = &cfclient.ServicePlanVisibility{
+					ServicePlanGuid:  plan.Guid,
+					ServicePlanUrl:   "http://example.com",
+					Guid:             visibilityGuid,
+					OrganizationGuid: orgGUID,
+				}
+			}
 		}
-		servicePublicPlan1 = cfclient.ServicePlan{
-			Guid:     publicPlan1GUID,
-			Name:     "servicePublicPlanName1",
-			Public:   true,
-			UniqueId: catalogPublicPlanID1,
-		}
+		return visibilities
+	}
 
-		servicePlanResponse = cfclient.ServicePlansResponse{
-			Count: 2,
-			Pages: 1,
-			Resources: []cfclient.ServicePlanResource{
-				cfclient.ServicePlanResource{
-					Meta: cfclient.Meta{
-						Guid: plan1GUID,
-						Url:  "http://example.com",
-					},
-					Entity: servicePlan1,
-				},
-				cfclient.ServicePlanResource{
-					Meta: cfclient.Meta{
-						Guid: publicPlan1GUID,
-						Url:  "http://example2.com",
-					},
-					Entity: servicePublicPlan1,
-				},
-			},
-		}
+	parseServicePlanQuery := func(plansQuery, queryKey string) map[string]bool {
+		Expect(plansQuery).ToNot(BeEmpty())
 
-		visibilityForPlan1 = cfclient.ServicePlanVisibilityResource{
-			Meta: cfclient.Meta{
-				Guid: visibilityForPlan1GUID,
-				Url:  "http://example.com",
-			},
-			Entity: cfclient.ServicePlanVisibility{
-				ServicePlanGuid: plan1GUID,
-				ServicePlanUrl:  "http://example.com",
-			},
-		}
+		prefix := queryKey + " IN "
+		Expect(plansQuery).To(HavePrefix(prefix))
 
-		getVisibilitiesPlanResponse = cfclient.ServicePlanVisibilitiesResponse{
-			Count: 1,
-			Pages: 1,
-			Resources: []cfclient.ServicePlanVisibilityResource{
-				visibilityForPlan1,
-			},
+		plansQuery = strings.TrimPrefix(plansQuery, prefix)
+		plans := strings.Split(plansQuery, ",")
+		Expect(plans).ToNot(BeEmpty())
+
+		result := make(map[string]bool)
+		for _, plan := range plans {
+			result[plan] = true
 		}
-	})
+		return result
+	}
+
+	writeJSONResponse := func(respStruct interface{}, rw http.ResponseWriter) {
+		jsonResponse, err := json.Marshal(respStruct)
+		Expect(err).ToNot(HaveOccurred())
+
+		rw.WriteHeader(http.StatusOK)
+		rw.Write(jsonResponse)
+	}
+
+	getSMPlans := func(cfPlans map[string]*cfclient.ServicePlan) []*types.ServicePlan {
+		plansCount := len(cfPlans)
+		smPlans := make([]*types.ServicePlan, 0, plansCount)
+		for cfPlanGuid, cfPlan := range cfPlans {
+			smPlans = append(smPlans, &types.ServicePlan{
+				ID:        "smPlan_" + cfPlanGuid,
+				CatalogID: cfPlan.UniqueId,
+			})
+		}
+		return smPlans
+	}
+
+	createCCServer := func(cfPlans map[string]*cfclient.ServicePlan, cfVisibilities map[string]*cfclient.ServicePlanVisibility) *ghttp.Server {
+		server := fakeCCServer(false)
+
+		server.RouteToHandler(http.MethodGet, "/v2/service_plans", func(rw http.ResponseWriter, req *http.Request) {
+			reqPlans := parseServicePlanQuery(req.URL.Query().Get("q"), "unique_id")
+			planResources := make([]cfclient.ServicePlanResource, 0, len(reqPlans))
+			for planGuid, plan := range cfPlans {
+				if _, found := reqPlans[plan.UniqueId]; found {
+					planResources = append(planResources, cfclient.ServicePlanResource{
+						Entity: *plan,
+						Meta: cfclient.Meta{
+							Guid: planGuid,
+						},
+					})
+				}
+			}
+			servicePlanResponse := cfclient.ServicePlansResponse{
+				Count:     len(planResources),
+				Pages:     1,
+				Resources: planResources,
+			}
+			writeJSONResponse(servicePlanResponse, rw)
+
+		})
+
+		server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", func(rw http.ResponseWriter, req *http.Request) {
+			reqPlans := parseServicePlanQuery(req.URL.Query().Get("q"), "service_plan_guid")
+			visibilityResources := make([]cfclient.ServicePlanVisibilityResource, 0, len(reqPlans))
+			for visibilityGuid, visibility := range cfVisibilities {
+				if _, found := reqPlans[visibility.ServicePlanGuid]; found {
+					visibilityResources = append(visibilityResources, cfclient.ServicePlanVisibilityResource{
+						Entity: *visibility,
+						Meta: cfclient.Meta{
+							Guid: visibilityGuid,
+						},
+					})
+				}
+			}
+			servicePlanResponse := cfclient.ServicePlanVisibilitiesResponse{
+				Count:     len(visibilityResources),
+				Pages:     1,
+				Resources: visibilityResources,
+			}
+			writeJSONResponse(servicePlanResponse, rw)
+		})
+
+		return server
+	}
 
 	AfterEach(func() {
-		ccServer.Close()
-	})
-
-	JustBeforeEach(func() {
-		appendRoutes(ccServer, routes...)
+		if ccServer != nil {
+			ccServer.Close()
+			ccServer = nil
+		}
 	})
 
 	Describe("Get visibilities", func() {
-		prepareGetVisibilities := func(plansGUID []string, visibilities cfclient.ServicePlanVisibilitiesResponse) mockRoute {
-			query := fmt.Sprintf("service_plan_guid IN %s", strings.Join(plansGUID, ","))
-			route := mockRoute{
-				requestChecks: expectedRequest{
-					Method:   http.MethodGet,
-					Path:     "/v2/service_plan_visibilities",
-					RawQuery: encodeQuery(query),
-				},
-				reaction: reactionResponse{
-					Code: http.StatusOK,
-					Body: visibilities,
-				},
-			}
 
-			return route
-		}
+		BeforeEach(func() {
+			ctx = context.TODO()
 
-		prepareGetPlans := func() mockRoute {
-			route := mockRoute{
-				requestChecks: expectedRequest{
-					Method: http.MethodGet,
-					Path:   "/v2/service_plans",
-				},
-				reaction: reactionResponse{
-					Code: http.StatusOK,
-					Body: servicePlanResponse,
-				},
-			}
+			publicPlansCount = 100
+			const nonPublicPlans = 200
+			generatedCFPlans = generateCFPlans(nonPublicPlans, publicPlansCount)
+			generatedCFVisibilities = generateCFVisibilities(generatedCFPlans)
 
-			return route
-		}
+			ccServer = createCCServer(generatedCFPlans, generatedCFVisibilities)
+			_, client = ccClient(ccServer.URL())
+		})
 
-		Context("when visibilities are available", func() {
-			BeforeEach(func() {
-				getVisibilitiesRoute := prepareGetVisibilities([]string{plan1GUID, publicPlan1GUID}, getVisibilitiesPlanResponse)
-				getPlansRoute := prepareGetPlans()
-
-				routes = append(routes, &getPlansRoute, &getVisibilitiesRoute)
-			})
-
-			It("should return all visibilities", func() {
-				platformVisibilities, err := client.GetVisibilitiesByPlans(ctx, smPlans)
+		Context("when visibilities are available for all plans", func() {
+			It("should return all visibilities, including ones for public plans", func() {
+				platformVisibilities, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(generatedCFPlans))
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(platformVisibilities).To(HaveLen(2))
-				Expect(platformVisibilities[0].CatalogPlanID).To(Equal(catalogPlanID1))
-				Expect(platformVisibilities[1].CatalogPlanID).To(Equal(catalogPublicPlanID1))
+				Expect(platformVisibilities).Should(HaveLen(len(generatedCFVisibilities) + publicPlansCount))
+			})
+		})
+
+		Context("when visibilities are available but only some are relevent to SM", func() {
+			It("should return those visibility", func() {
+				var randomNonPublicCFPlan *cfclient.ServicePlan
+				for _, randomNonPublicCFPlan = range generatedCFPlans {
+					if !randomNonPublicCFPlan.Public {
+						break
+					}
+				}
+				platformVisibilities, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(map[string]*cfclient.ServicePlan{
+					randomNonPublicCFPlan.Guid: randomNonPublicCFPlan,
+				}))
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(platformVisibilities).Should(HaveLen(1))
+				Expect(platformVisibilities[0]).Should(Equal(&platform.ServiceVisibilityEntity{
+					Public:        false,
+					CatalogPlanID: randomNonPublicCFPlan.UniqueId,
+					Labels: map[string]string{
+						client.VisibilityScopeLabelKey(): orgGUID,
+					},
+				}))
 			})
 		})
 

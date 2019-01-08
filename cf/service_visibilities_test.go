@@ -107,49 +107,60 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	createCCServer := func(cfPlans map[string]*cfclient.ServicePlan, cfVisibilities map[string]*cfclient.ServicePlanVisibility) *ghttp.Server {
 		server := fakeCCServer(false)
-
-		server.RouteToHandler(http.MethodGet, "/v2/service_plans", func(rw http.ResponseWriter, req *http.Request) {
-			reqPlans := parseServicePlanQuery(req.URL.Query().Get("q"), "unique_id")
-			planResources := make([]cfclient.ServicePlanResource, 0, len(reqPlans))
-			for planGuid, plan := range cfPlans {
-				if _, found := reqPlans[plan.UniqueId]; found {
-					planResources = append(planResources, cfclient.ServicePlanResource{
-						Entity: *plan,
-						Meta: cfclient.Meta{
-							Guid: planGuid,
-						},
-					})
+		badRequestHandler := func(rw http.ResponseWriter, req *http.Request) {
+			rw.WriteHeader(http.StatusInternalServerError)
+			rw.Write([]byte(`{"error": "Expected"}`))
+		}
+		if cfPlans == nil {
+			server.RouteToHandler(http.MethodGet, "/v2/service_plans", badRequestHandler)
+		} else {
+			server.RouteToHandler(http.MethodGet, "/v2/service_plans", func(rw http.ResponseWriter, req *http.Request) {
+				reqPlans := parseServicePlanQuery(req.URL.Query().Get("q"), "unique_id")
+				planResources := make([]cfclient.ServicePlanResource, 0, len(reqPlans))
+				for planGuid, plan := range cfPlans {
+					if _, found := reqPlans[plan.UniqueId]; found {
+						planResources = append(planResources, cfclient.ServicePlanResource{
+							Entity: *plan,
+							Meta: cfclient.Meta{
+								Guid: planGuid,
+							},
+						})
+					}
 				}
-			}
-			servicePlanResponse := cfclient.ServicePlansResponse{
-				Count:     len(planResources),
-				Pages:     1,
-				Resources: planResources,
-			}
-			writeJSONResponse(servicePlanResponse, rw)
-
-		})
-
-		server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", func(rw http.ResponseWriter, req *http.Request) {
-			reqPlans := parseServicePlanQuery(req.URL.Query().Get("q"), "service_plan_guid")
-			visibilityResources := make([]cfclient.ServicePlanVisibilityResource, 0, len(reqPlans))
-			for visibilityGuid, visibility := range cfVisibilities {
-				if _, found := reqPlans[visibility.ServicePlanGuid]; found {
-					visibilityResources = append(visibilityResources, cfclient.ServicePlanVisibilityResource{
-						Entity: *visibility,
-						Meta: cfclient.Meta{
-							Guid: visibilityGuid,
-						},
-					})
+				servicePlanResponse := cfclient.ServicePlansResponse{
+					Count:     len(planResources),
+					Pages:     1,
+					Resources: planResources,
 				}
-			}
-			servicePlanResponse := cfclient.ServicePlanVisibilitiesResponse{
-				Count:     len(visibilityResources),
-				Pages:     1,
-				Resources: visibilityResources,
-			}
-			writeJSONResponse(servicePlanResponse, rw)
-		})
+				writeJSONResponse(servicePlanResponse, rw)
+
+			})
+		}
+
+		if cfVisibilities == nil {
+			server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", badRequestHandler)
+		} else {
+			server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", func(rw http.ResponseWriter, req *http.Request) {
+				reqPlans := parseServicePlanQuery(req.URL.Query().Get("q"), "service_plan_guid")
+				visibilityResources := make([]cfclient.ServicePlanVisibilityResource, 0, len(reqPlans))
+				for visibilityGuid, visibility := range cfVisibilities {
+					if _, found := reqPlans[visibility.ServicePlanGuid]; found {
+						visibilityResources = append(visibilityResources, cfclient.ServicePlanVisibilityResource{
+							Entity: *visibility,
+							Meta: cfclient.Meta{
+								Guid: visibilityGuid,
+							},
+						})
+					}
+				}
+				servicePlanResponse := cfclient.ServicePlanVisibilitiesResponse{
+					Count:     len(visibilityResources),
+					Pages:     1,
+					Resources: visibilityResources,
+				}
+				writeJSONResponse(servicePlanResponse, rw)
+			})
+		}
 
 		return server
 	}
@@ -161,21 +172,23 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}
 	})
 
-	Describe("Get visibilities", func() {
+	BeforeEach(func() {
+		ctx = context.TODO()
+
+		const nonPublicPlans = 200
+		publicPlansCount = 100
+		generatedCFPlans = generateCFPlans(nonPublicPlans, publicPlansCount)
+		generatedCFVisibilities = generateCFVisibilities(generatedCFPlans)
+	})
+
+	Describe("Get visibilities when visibilities are available", func() {
 
 		BeforeEach(func() {
-			ctx = context.TODO()
-
-			publicPlansCount = 100
-			const nonPublicPlans = 200
-			generatedCFPlans = generateCFPlans(nonPublicPlans, publicPlansCount)
-			generatedCFVisibilities = generateCFVisibilities(generatedCFPlans)
-
 			ccServer = createCCServer(generatedCFPlans, generatedCFVisibilities)
 			_, client = ccClient(ccServer.URL())
 		})
 
-		Context("when visibilities are available for all plans", func() {
+		Context("for all plans", func() {
 			It("should return all visibilities, including ones for public plans", func() {
 				platformVisibilities, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(generatedCFPlans))
 				Expect(err).ShouldNot(HaveOccurred())
@@ -183,7 +196,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 		})
 
-		Context("when visibilities are available but only some are relevent to SM", func() {
+		Context("but only some are relevent to SM", func() {
 			It("should return those visibility", func() {
 				var randomNonPublicCFPlan *cfclient.ServicePlan
 				for _, randomNonPublicCFPlan = range generatedCFPlans {
@@ -203,6 +216,36 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 						client.VisibilityScopeLabelKey(): orgGUID,
 					},
 				}))
+			})
+		})
+
+	})
+
+	Describe("Get visibilities when cloud controller is not working", func() {
+
+		Context("for getting visibilities", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFPlans, nil)
+				_, client = ccClient(ccServer.URL())
+			})
+
+			It("should return all visibilities, including ones for public plans", func() {
+				_, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(generatedCFPlans))
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("could not get visibilities from platform: Error requesting service plan visibilities"))
+			})
+		})
+
+		Context("for getting plans", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(nil, generatedCFVisibilities)
+				_, client = ccClient(ccServer.URL())
+			})
+
+			It("should return all visibilities, including ones for public plans", func() {
+				_, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(generatedCFPlans))
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).Should(ContainSubstring("could not get service plans from platform: Error requesting service plans"))
 			})
 		})
 

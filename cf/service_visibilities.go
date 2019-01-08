@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/pkg/errors"
 
@@ -73,55 +72,38 @@ func (pc *PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*t
 }
 
 func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
-	result := make([]cfclient.ServicePlan, 0, len(plans))
-	cc := make(chan cfclient.ServicePlan, 2)
-	chunks := splitSMPlansIntoChuncks(plans)
-	errs := make([]error, len(chunks))
-
+	var errorOccured error
+	var mutex sync.Mutex
 	var wg sync.WaitGroup
 
-	for chunkNumber, chunk := range chunks {
-		execAsync(&wg, func(from int, chunk []*types.ServicePlan) func() error {
-			return func() error {
-				catalogIDs := make([]string, 0, len(chunk))
-				for _, p := range chunk {
-					catalogIDs = append(catalogIDs, p.CatalogID)
-				}
+	result := make([]cfclient.ServicePlan, 0, len(plans))
+	chunks := splitSMPlansIntoChuncks(plans)
 
-				platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
-				if err != nil {
-					errs[from] = err
-					return err
-				}
-
-				for _, p := range platformPlans {
-					cc <- p
-				}
-
-				return nil
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(chunk []*types.ServicePlan) {
+			defer wg.Done()
+			catalogIDs := make([]string, 0, len(chunk))
+			for _, p := range chunk {
+				catalogIDs = append(catalogIDs, p.CatalogID)
 			}
-		}(chunkNumber*maxSliceLength, chunk))
+			platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			if err != nil {
+				if errorOccured == nil {
+					errorOccured = err
+				}
+			} else if errorOccured == nil {
+				result = append(result, platformPlans...)
+			}
+		}(chunk)
 	}
-
-	done := make(chan bool)
-	go func() {
-		for e := range cc {
-			result = append(result, e)
-		}
-		done <- true
-	}()
-
 	wg.Wait()
-	close(cc)
-
-	for _, err := range errs {
-		if err != nil {
-			return nil, err
-		}
+	if errorOccured != nil {
+		return nil, errorOccured
 	}
-
-	<-done
-
 	return result, nil
 }
 
@@ -138,55 +120,40 @@ func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cf
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
-	result := make([]cfclient.ServicePlanVisibility, 0, len(plans))
-	cc := make(chan cfclient.ServicePlanVisibility, 2)
+	var result []cfclient.ServicePlanVisibility
+	var errorOccured error
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
 
 	chunks := splitCFPlansIntoChuncks(plans)
-	errs := make([]error, len(chunks))
 
-	var wg sync.WaitGroup
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(chunk []cfclient.ServicePlan) {
+			defer wg.Done()
 
-	for chunkNumber, chunk := range chunks {
-		execAsync(&wg, func(from int, chunk []cfclient.ServicePlan) func() error {
-			return func() error {
-				plansGUID := make([]string, 0, len(chunk))
-				for _, p := range chunk {
-					plansGUID = append(plansGUID, p.Guid)
-				}
-
-				visibilities, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
-				if err != nil {
-					errs[from] = err
-					return err
-				}
-				for _, v := range visibilities {
-					cc <- v
-				}
-
-				return nil
+			plansGUID := make([]string, 0, len(chunk))
+			for _, p := range chunk {
+				plansGUID = append(plansGUID, p.Guid)
 			}
-		}(chunkNumber, chunk))
+			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
+
+			mutex.Lock()
+			defer mutex.Unlock()
+
+			if err != nil {
+				if errorOccured == nil {
+					errorOccured = err
+				}
+			} else if errorOccured == nil {
+				result = append(result, visibilities...)
+			}
+		}(chunk)
 	}
-
-	done := make(chan bool)
-	go func() {
-		for e := range cc {
-			result = append(result, e)
-		}
-		done <- true
-	}()
-
 	wg.Wait()
-	close(cc)
-
-	for _, err := range errs {
-		if err != nil {
-			return nil, err
-		}
+	if errorOccured != nil {
+		return nil, errorOccured
 	}
-
-	<-done
-
 	return result, nil
 }
 
@@ -195,16 +162,6 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]c
 	return pc.CC.ListServicePlanVisibilitiesByQuery(query)
 }
 
-func execAsync(wg *sync.WaitGroup, f func() error) {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := f()
-		if err != nil {
-			log.D().WithError(err).Error("Could not exec async")
-		}
-	}()
-}
 func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
 	resultChunks := make([][]cfclient.ServicePlan, 0)
 

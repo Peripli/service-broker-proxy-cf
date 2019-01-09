@@ -2,9 +2,6 @@ package cf
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
@@ -16,27 +13,10 @@ import (
 // CloudFoundryErr type represents a CF error with improved error message
 type CloudFoundryErr cfclient.CloudFoundryError
 
-// CCPlatformClient should be implemented by cf cc clients
-//go:generate counterfeiter . CCPlatformClient
-type CCPlatformClient interface {
-	ListServicePlansByQuery(query url.Values) ([]cfclient.ServicePlan, error)
-	CreateServicePlanVisibility(servicePlanGUID string, organizationGUID string) (cfclient.ServicePlanVisibility, error)
-	ListServicePlanVisibilitiesByQuery(query url.Values) ([]cfclient.ServicePlanVisibility, error)
-	DeleteServicePlanVisibility(guid string, async bool) error
-
-	NewRequestWithBody(method, path string, body io.Reader) *cfclient.Request
-	DoRequest(r *cfclient.Request) (*http.Response, error)
-
-	ListServiceBrokers() ([]cfclient.ServiceBroker, error)
-	CreateServiceBroker(csb cfclient.CreateServiceBrokerRequest) (cfclient.ServiceBroker, error)
-	DeleteServiceBroker(guid string) error
-	UpdateServiceBroker(guid string, usb cfclient.UpdateServiceBrokerRequest) (cfclient.ServiceBroker, error)
-}
-
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
-	CC  CCPlatformClient
+	*cfclient.Client
 	reg *reconcile.Settings
 }
 
@@ -66,8 +46,8 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	}
 
 	return &PlatformClient{
-		CC:  cfClient,
-		reg: config.Reg,
+		Client: cfClient,
+		reg:    config.Reg,
 	}, nil
 }
 

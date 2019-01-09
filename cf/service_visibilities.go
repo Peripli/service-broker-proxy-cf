@@ -116,7 +116,7 @@ func createQuery(querySearchKey string, elements []string) map[string][]string {
 
 func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
 	query := createQuery("unique_id", catalogIDs)
-	return pc.CC.ListServicePlansByQuery(query)
+	return pc.ListServicePlansByQuery(query)
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
@@ -159,7 +159,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 
 func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
 	query := createQuery("service_plan_guid", plansGUID)
-	return pc.CC.ListServicePlanVisibilitiesByQuery(query)
+	return pc.ListServicePlanVisibilitiesByQuery(query)
 }
 
 func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {

@@ -10,7 +10,7 @@ import (
 )
 
 var _ = Describe("CF Env", func() {
-	const VCAP_APPLICATION = `{"instance_id":"fe98dc76ba549876543210abcd1234",
+	const vcapApplication = `{"instance_id":"fe98dc76ba549876543210abcd1234",
    "instance_index":0,
    "host":"0.0.0.0",
    "port":8080,
@@ -43,7 +43,7 @@ var _ = Describe("CF Env", func() {
 	)
 
 	BeforeEach(func() {
-		Expect(os.Setenv("VCAP_APPLICATION", VCAP_APPLICATION)).ShouldNot(HaveOccurred())
+		Expect(os.Setenv("VCAP_APPLICATION", vcapApplication)).ShouldNot(HaveOccurred())
 		Expect(os.Setenv("VCAP_SERVICES", "{}")).ShouldNot(HaveOccurred())
 
 		environment, err = env.New(pflag.CommandLine)

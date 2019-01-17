@@ -2,9 +2,11 @@ package cf
 
 import (
 	"fmt"
+
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
-	"github.com/cloudfoundry-community/go-cfclient"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
+
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +20,20 @@ type PlatformClient struct {
 	reg *reconcile.Settings
 }
 
-var _ platform.Client = &PlatformClient{}
+// Broker returns platform client which can perform platform broker operations
+func (c *PlatformClient) Broker() platform.BrokerClient {
+	return c
+}
+
+// Visibility returns platform client which can perform visibility operations
+func (c *PlatformClient) Visibility() platform.VisibilityClient {
+	return c
+}
+
+// CatalogFetcher returns platform client which can perform refetching of service broker catalogs
+func (c *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
+	return c
+}
 
 // NewClient creates a new CF cf client from the specified configuration.
 func NewClient(config *Settings) (*PlatformClient, error) {
@@ -29,6 +44,7 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &PlatformClient{
 		Client: cfClient,
 		reg:    config.Reg,

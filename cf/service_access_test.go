@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/cloudfoundry-community/go-cfclient"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"net/http"
 )
 
 var _ = Describe("Client Service Plan Access", func() {
@@ -23,6 +24,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		updatePlanRequest        *cf.ServicePlanRequest
 		updatePlanResponse       *cfclient.ServicePlanResource
 	}
+
 	const (
 		orgGUID                      = "orgGUID"
 		serviceGUID                  = "serviceGUID"
@@ -43,10 +45,6 @@ var _ = Describe("Client Service Plan Access", func() {
 
 		ccResponseErrBody cf.CloudFoundryErr
 		ccResponseErrCode int
-
-		noServicesGetServicesResponse       cfclient.ServicesResponse
-		multipleServicesGetServicesResponse cfclient.ServicesResponse
-		singleServicesGetServicesResponse   cfclient.ServicesResponse
 
 		publicPlan  cfclient.ServicePlanResource
 		privatePlan cfclient.ServicePlanResource
@@ -76,7 +74,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		planGUID string
 		orgData  json.RawMessage
 
-		getServicesRoute      mockRoute
 		getPlansRoute         mockRoute
 		getVisibilitiesRoute  mockRoute
 		createVisibilityRoute mockRoute
@@ -106,62 +103,6 @@ var _ = Describe("Client Service Plan Access", func() {
 			OrgGUID: "",
 		})
 		Expect(err).ShouldNot(HaveOccurred())
-
-		noServicesGetServicesResponse = cfclient.ServicesResponse{
-			Count:     0,
-			Pages:     0,
-			NextUrl:   "",
-			Resources: []cfclient.ServicesResource{},
-		}
-
-		multipleServicesGetServicesResponse = cfclient.ServicesResponse{
-			Count:   2,
-			Pages:   1,
-			NextUrl: "",
-			Resources: []cfclient.ServicesResource{
-				{
-					Meta: cfclient.Meta{
-						Guid: serviceGUID,
-						Url:  "http://example.com",
-					},
-					Entity: cfclient.Service{
-						Guid:              serviceGUID,
-						Description:       "test",
-						Active:            true,
-						Bindable:          true,
-						ServiceBrokerGuid: "test",
-					},
-				},
-				{
-					Meta: cfclient.Meta{
-						Guid: serviceGUID,
-						Url:  "http://example.com",
-					},
-					Entity: cfclient.Service{
-						Guid:              serviceGUID,
-						Description:       "test",
-						Active:            true,
-						Bindable:          true,
-						ServiceBrokerGuid: "test",
-					},
-				},
-			},
-		}
-
-		singleServicesGetServicesResponse = cfclient.ServicesResponse{
-			Count:   1,
-			Pages:   1,
-			NextUrl: "",
-			Resources: []cfclient.ServicesResource{
-				{
-					Meta: cfclient.Meta{
-						Guid: serviceGUID,
-						Url:  "http://example.com",
-					},
-					Entity: cfclient.Service{},
-				},
-			},
-		}
 
 		publicPlan = cfclient.ServicePlanResource{
 			Meta: cfclient.Meta{
@@ -341,28 +282,12 @@ var _ = Describe("Client Service Plan Access", func() {
 
 		routes = make([]*mockRoute, 0)
 
-		getServicesRoute = mockRoute{}
 		getPlansRoute = mockRoute{}
 		getVisibilitiesRoute = mockRoute{}
 		createVisibilityRoute = mockRoute{}
 		deleteVisibilityRoute = mockRoute{}
 		updatePlanRoute = mockRoute{}
 	})
-
-	prepareGetServicesRoute := func() mockRoute {
-		route := mockRoute{
-			requestChecks: expectedRequest{
-				Method:   http.MethodGet,
-				Path:     "/v2/services",
-				RawQuery: encodeQuery(fmt.Sprintf("unique_id:%s", serviceGUID)),
-			},
-			reaction: reactionResponse{
-				Code: http.StatusOK,
-				Body: singleServicesGetServicesResponse,
-			},
-		}
-		return route
-	}
 
 	prepareGetPlansRoute := func(planGUIDs ...string) mockRoute {
 		response := cfclient.ServicePlansResponse{}
@@ -399,7 +324,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		if len(planGUIDs) > 1 {
 			route.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("service_guid:%s", serviceGUID))
 		} else if len(planGUIDs) == 1 {
-			route.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id:%s", planGUID))
+			route.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id IN %s", planGUID))
 		}
 
 		return route
@@ -505,7 +430,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when more than one plan is found", func() {
 				BeforeEach(func() {
 					getPlansRoute = prepareGetPlansRoute(publicPlanGUID, privatePlanGUID, limitedPlanGUID)
-					getPlansRoute.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id:%s", planGUID))
+					getPlansRoute.requestChecks.RawQuery = encodeQuery(fmt.Sprintf("unique_id IN %s", planGUID))
 				})
 
 				It("returns an error", assertFunc(&orgData, &planGUID, fmt.Errorf("more than one plan")))
@@ -955,465 +880,6 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("returns no error", assertEnableAccessForPlanReturnsNoErr(&orgData, &planGUID))
-			})
-		})
-	})
-
-	Describe("Update Access For Service", func() {
-		BeforeEach(func() {
-			getServicesRoute = prepareGetServicesRoute()
-			getPlansRoute = prepareGetPlansRoute(privatePlanGUID, limitedPlanGUID, publicPlanGUID)
-
-			routes = append(routes, &getServicesRoute, &getPlansRoute)
-		})
-
-		Context("when metadata is invalid", func() {
-			It("returns an error", func() {
-				err = client.EnableAccessForService(ctx, invalidOrgData, serviceGUID)
-
-				Expect(err).Should(HaveOccurred())
-			})
-
-		})
-
-		Context("when obtaining service for catalog service GUID fails", func() {
-			AfterEach(func() {
-				verifyRouteHits(ccServer, 1, &getServicesRoute)
-			})
-
-			Context("when listing services for catalog service GUID fails", func() {
-				BeforeEach(func() {
-					getServicesRoute.reaction.Error = ccResponseErrBody
-					getServicesRoute.reaction.Code = ccResponseErrCode
-				})
-
-				It("returns an error", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-					assertErrIsCFError(err, ccResponseErrBody)
-				})
-			})
-
-			Context("when no services are found", func() {
-				BeforeEach(func() {
-					getServicesRoute.reaction.Body = noServicesGetServicesResponse
-					getServicesRoute.reaction.Code = http.StatusOK
-				})
-
-				It("returns an error", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).Should(HaveOccurred())
-					Expect(err.Error()).Should(ContainSubstring("zero services"))
-				})
-			})
-
-			Context("when more than one service is found", func() {
-				BeforeEach(func() {
-					getServicesRoute.reaction.Body = multipleServicesGetServicesResponse
-					getServicesRoute.reaction.Code = http.StatusOK
-				})
-
-				It("returns an error", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).Should(HaveOccurred())
-					Expect(err.Error()).Should(ContainSubstring("more than one service"))
-				})
-			})
-		})
-
-		Context("when updating service access for all plans for a specific org", func() {
-			Context("when enabling access", func() {
-				var (
-					postVisibilitiesRoutePerPlan map[string]*mockRoute
-				)
-
-				BeforeEach(func() {
-					postVisibilitiesRoutePerPlan = make(map[string]*mockRoute)
-					for _, plan := range getPlansRoute.reaction.Body.(cfclient.ServicePlansResponse).Resources {
-						if plan.Entity.Public {
-							continue
-						}
-						route := &mockRoute{
-							requestChecks: expectedRequest{
-								Method: http.MethodPost,
-								Path:   "/v2/service_plan_visibilities",
-								Body:   planDetails[plan.Meta.Guid].createVisibilityRequest,
-							},
-							reaction: reactionResponse{
-								Code: http.StatusCreated,
-								Body: planDetails[plan.Meta.Guid].createVisibilityResponse,
-							},
-						}
-						postVisibilitiesRoutePerPlan[plan.Meta.Guid] = route
-						routes = append(routes, route)
-					}
-				})
-
-				AfterEach(func() {
-					verifyRouteHits(ccServer, 1, &getServicesRoute)
-					verifyRouteHits(ccServer, 1, &getPlansRoute)
-				})
-
-				It("does not try to create new visibilities for public plans", func() {
-					client.EnableAccessForService(ctx, validOrgData, serviceGUID)
-
-					verifyReqReceived(ccServer, 0, http.MethodPost, fmt.Sprintf("/v2/service_plan_visibilities/%s", publicPlanGUID))
-				})
-
-				Context("when CreateServicePlanVisibility for any of the plans fails", func() {
-					BeforeEach(func() {
-						postVisibilitiesRoutePerPlan[privatePlanGUID].reaction.Error = ccResponseErrBody
-						postVisibilitiesRoutePerPlan[privatePlanGUID].reaction.Code = ccResponseErrCode
-					})
-
-					It("returns an error", func() {
-						err = client.EnableAccessForService(ctx, validOrgData, serviceGUID)
-
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring(ccResponseErrBody.Error()))
-
-						verifyRouteHits(ccServer, 1, postVisibilitiesRoutePerPlan[privatePlanGUID])
-					})
-				})
-
-				Context("when CreateServicePlanVisibility for all of the plans succeeds", func() {
-					It("creates a visibility for each non public plan", func() {
-						client.EnableAccessForService(ctx, validOrgData, serviceGUID)
-
-						verifyReqReceived(ccServer, 2, http.MethodPost, "/v2/service_plan_visibilities")
-
-					})
-
-					It("returns no error", func() {
-						err = client.EnableAccessForService(ctx, validOrgData, serviceGUID)
-
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-
-				})
-			})
-
-			Context("when disabling access", func() {
-				type routesPerPlan struct {
-					listVisibilities mockRoute
-					deleteVisibility mockRoute
-				}
-
-				var (
-					details map[string]*routesPerPlan
-				)
-
-				BeforeEach(func() {
-					details = make(map[string]*routesPerPlan)
-					for _, plan := range getPlansRoute.reaction.Body.(cfclient.ServicePlansResponse).Resources {
-						planGUID := plan.Meta.Guid
-						details[planGUID] = &routesPerPlan{}
-
-						if plan.Entity.Public {
-							continue
-						}
-
-						getVisibilitiesRoute := mockRoute{
-							requestChecks: expectedRequest{
-								Method:   http.MethodGet,
-								Path:     "/v2/service_plan_visibilities",
-								RawQuery: encodeQuery(fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", planGUID, orgGUID)),
-							},
-							reaction: reactionResponse{
-								Code: http.StatusOK,
-								Body: planDetails[planGUID].getVisibilitiesResponse,
-							},
-						}
-						details[planGUID].listVisibilities = getVisibilitiesRoute
-						routes = append(routes, &details[planGUID].listVisibilities)
-
-						if plan.Meta.Guid == privatePlanGUID {
-							continue
-						}
-
-						deleteVisibilityRoute := mockRoute{
-							requestChecks: expectedRequest{
-								Method:   http.MethodDelete,
-								Path:     fmt.Sprintf("/v2/service_plan_visibilities/%s", planDetails[planGUID].visibilityResource.Meta.Guid),
-								RawQuery: "async=false",
-							},
-							reaction: reactionResponse{
-								Code: http.StatusNoContent,
-							},
-						}
-						details[planGUID].deleteVisibility = deleteVisibilityRoute
-						routes = append(routes, &details[planGUID].deleteVisibility)
-					}
-				})
-
-				AfterEach(func() {
-					verifyRouteHits(ccServer, 1, &getServicesRoute)
-					verifyRouteHits(ccServer, 1, &getPlansRoute)
-				})
-
-				It("does not try to delete visibilities for public plans", func() {
-					client.DisableAccessForService(ctx, validOrgData, serviceGUID)
-
-					verifyReqReceived(ccServer, 0, http.MethodDelete, fmt.Sprintf("/v2/service_plan_visibilities/%s", planDetails[publicPlanGUID].visibilityResource.Meta.Guid))
-				})
-
-				Context("when DeleteServicePlanVisibilityByPlanAndOrg for any of the plans fails", func() {
-					Context("when listing service plan visibilities by plan GUID and org GUID fails", func() {
-						BeforeEach(func() {
-							details[privatePlanGUID].listVisibilities.reaction.Error = ccResponseErrBody
-							details[privatePlanGUID].listVisibilities.reaction.Code = ccResponseErrCode
-						})
-
-						It("returns an error", func() {
-							err = client.DisableAccessForService(ctx, validOrgData, serviceGUID)
-
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring(ccResponseErrBody.Error()))
-
-							verifyRouteHits(ccServer, 1, &details[privatePlanGUID].listVisibilities)
-							verifyRouteHits(ccServer, 0, &details[privatePlanGUID].deleteVisibility)
-
-						})
-					})
-
-					Context("when deleting service plan visibility fails", func() {
-						BeforeEach(func() {
-							details[limitedPlanGUID].deleteVisibility.reaction.Error = ccResponseErrBody
-							details[limitedPlanGUID].deleteVisibility.reaction.Code = ccResponseErrCode
-						})
-
-						It("returns an error", func() {
-							err = client.DisableAccessForService(ctx, validOrgData, serviceGUID)
-
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring(ccResponseErrBody.Error()))
-
-							verifyRouteHits(ccServer, 1, &details[limitedPlanGUID].listVisibilities)
-							verifyRouteHits(ccServer, 1, &details[limitedPlanGUID].deleteVisibility)
-						})
-					})
-				})
-
-				Context("when deleteAccessVisibilities for all of the plans succeeds", func() {
-					It("deletes any visibilities for limited plans if present", func() {
-						client.DisableAccessForService(ctx, validOrgData, serviceGUID)
-
-						verifyReqReceived(ccServer, 1, http.MethodDelete, fmt.Sprintf("/v2/service_plan_visibilities/%s", planDetails[limitedPlanGUID].visibilityResource.Meta.Guid))
-						verifyReqReceived(ccServer, 1, http.MethodDelete, fmt.Sprintf("/v2/service_plan_visibilities/%s", planDetails[privatePlanGUID].visibilityResource.Meta.Guid))
-
-					})
-
-					It("returns no error", func() {
-						err = client.DisableAccessForService(ctx, validOrgData, serviceGUID)
-
-						Expect(err).ShouldNot(HaveOccurred())
-					})
-				})
-			})
-		})
-
-		Context("when updating service access for all plans for all orgs", func() {
-			type routesPerPlan struct {
-				listVisibilities mockRoute
-				deleteVisibility mockRoute
-				updatePlan       mockRoute
-			}
-
-			var (
-				details map[string]*routesPerPlan
-			)
-
-			BeforeEach(func() {
-				details = make(map[string]*routesPerPlan)
-
-				for _, plan := range getPlansRoute.reaction.Body.(cfclient.ServicePlansResponse).Resources {
-					guid := plan.Meta.Guid
-					details[guid] = &routesPerPlan{}
-
-					getVisibilitiesRoute := mockRoute{
-						requestChecks: expectedRequest{
-							Method:   http.MethodGet,
-							Path:     "/v2/service_plan_visibilities",
-							RawQuery: encodeQuery(fmt.Sprintf("service_plan_guid:%s", guid)),
-						},
-						reaction: reactionResponse{
-							Code: http.StatusOK,
-							Body: planDetails[guid].getVisibilitiesResponse,
-						},
-					}
-					details[guid].listVisibilities = getVisibilitiesRoute
-					routes = append(routes, &details[guid].listVisibilities)
-
-					deleteVisibilityRoute := mockRoute{
-						requestChecks: expectedRequest{
-							Method:   http.MethodDelete,
-							Path:     fmt.Sprintf("/v2/service_plan_visibilities/%s", planDetails[guid].visibilityResource.Meta.Guid),
-							RawQuery: "async=false",
-						},
-						reaction: reactionResponse{
-							Code: http.StatusNoContent,
-						},
-					}
-					details[guid].deleteVisibility = deleteVisibilityRoute
-					routes = append(routes, &details[guid].deleteVisibility)
-
-					updatePlanRoute := mockRoute{
-						requestChecks: expectedRequest{
-							Method: http.MethodPut,
-							Path:   fmt.Sprintf("/v2/service_plans/%s", plan.Meta.Guid),
-							Body:   planDetails[guid].updatePlanRequest,
-						},
-						reaction: reactionResponse{
-							Code: http.StatusCreated,
-							Body: planDetails[guid].updatePlanResponse,
-						},
-					}
-					details[guid].updatePlan = updatePlanRoute
-					routes = append(routes, &details[guid].updatePlan)
-				}
-			})
-
-			AfterEach(func() {
-				verifyRouteHits(ccServer, 1, &getServicesRoute)
-				verifyRouteHits(ccServer, 1, &getPlansRoute)
-			})
-
-			Context("when cleaning up access visibilities for any of the plans fails", func() {
-				Context("when listing service plan visibilities by plan GUID fails", func() {
-					BeforeEach(func() {
-						details[publicPlanGUID].listVisibilities.reaction.Error = ccResponseErrBody
-						details[publicPlanGUID].listVisibilities.reaction.Code = ccResponseErrCode
-						details[privatePlanGUID].deleteVisibility = mockRoute{}
-
-					})
-
-					It("returns an error", func() {
-						err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring(ccResponseErrBody.Error()))
-
-						verifyRouteHits(ccServer, 1, &details[publicPlanGUID].listVisibilities)
-						verifyRouteHits(ccServer, 0, &details[publicPlanGUID].deleteVisibility)
-
-					})
-				})
-
-				Context("when deleting service plan visibility fails", func() {
-					BeforeEach(func() {
-						details[publicPlanGUID].deleteVisibility.reaction.Error = ccResponseErrBody
-						details[publicPlanGUID].deleteVisibility.reaction.Code = ccResponseErrCode
-						details[privatePlanGUID].deleteVisibility = mockRoute{}
-
-					})
-
-					It("returns an error", func() {
-						err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring(ccResponseErrBody.Error()))
-
-						verifyRouteHits(ccServer, 1, &details[publicPlanGUID].listVisibilities)
-						verifyRouteHits(ccServer, 1, &details[publicPlanGUID].deleteVisibility)
-					})
-				})
-			})
-
-			Context("when updateServicePlan for any of the plans fails", func() {
-				BeforeEach(func() {
-					details[publicPlanGUID].updatePlan = mockRoute{}
-					details[privatePlanGUID].deleteVisibility = mockRoute{}
-
-					details[privatePlanGUID].updatePlan.reaction.Error = ccResponseErrBody
-					details[privatePlanGUID].updatePlan.reaction.Code = ccResponseErrCode
-				})
-
-				It("returns an error", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring(ccResponseErrBody.Error()))
-
-					verifyRouteHits(ccServer, 1, &details[privatePlanGUID].updatePlan)
-				})
-			})
-
-			Context("when enabling service access", func() {
-				BeforeEach(func() {
-					details[publicPlanGUID].updatePlan = mockRoute{}
-					details[privatePlanGUID].deleteVisibility = mockRoute{}
-				})
-
-				It("cleans up all access visibilities for the plans", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).ShouldNot(HaveOccurred())
-
-					for _, callsForPlan := range details {
-						verifyRouteHits(ccServer, 1, &callsForPlan.listVisibilities)
-						if len(callsForPlan.listVisibilities.reaction.Body.(cfclient.ServicePlanVisibilitiesResponse).Resources) != 0 {
-							verifyRouteHits(ccServer, 1, &callsForPlan.deleteVisibility)
-						}
-					}
-				})
-
-				It("does not attempt to upgrade plans that are already public", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).ShouldNot(HaveOccurred())
-
-					verifyReqReceived(ccServer, 0, http.MethodPut, fmt.Sprintf("/v2/service_plans/%s", publicPlanGUID))
-
-				})
-
-				It("updates all non-public service plans to public", func() {
-					err = client.EnableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).ShouldNot(HaveOccurred())
-
-					verifyRouteHits(ccServer, 1, &details[limitedPlanGUID].updatePlan)
-					verifyRouteHits(ccServer, 1, &details[privatePlanGUID].updatePlan)
-
-				})
-			})
-
-			Context("when disabling service access", func() {
-				BeforeEach(func() {
-					details[privatePlanGUID].updatePlan = mockRoute{}
-					details[limitedPlanGUID].updatePlan = mockRoute{}
-					details[privatePlanGUID].deleteVisibility = mockRoute{}
-				})
-
-				It("cleans up all access visibilities for the plans", func() {
-					err = client.DisableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).ShouldNot(HaveOccurred())
-
-					for _, callsForPlan := range details {
-						verifyRouteHits(ccServer, 1, &callsForPlan.listVisibilities)
-						if len(callsForPlan.listVisibilities.reaction.Body.(cfclient.ServicePlanVisibilitiesResponse).Resources) != 0 {
-							verifyRouteHits(ccServer, 1, &callsForPlan.deleteVisibility)
-						}
-					}
-				})
-
-				It("does not attempt to update plans that are already private", func() {
-					err = client.DisableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).ShouldNot(HaveOccurred())
-
-					verifyReqReceived(ccServer, 0, http.MethodPut, fmt.Sprintf("/v2/service_plans/%s", privatePlanGUID))
-					verifyReqReceived(ccServer, 0, http.MethodPut, fmt.Sprintf("/v2/service_plans/%s", limitedPlanGUID))
-				})
-
-				It("updates all public plans to private", func() {
-					err = client.DisableAccessForService(ctx, emptyOrgData, serviceGUID)
-
-					Expect(err).ShouldNot(HaveOccurred())
-
-					verifyRouteHits(ccServer, 1, &details[publicPlanGUID].updatePlan)
-				})
 			})
 		})
 	})

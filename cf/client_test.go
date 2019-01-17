@@ -2,17 +2,18 @@ package cf_test
 
 import (
 	"fmt"
-	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
-	"github.com/cloudfoundry-community/go-cfclient"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
-	"github.com/pkg/errors"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
+
+	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
+	"github.com/pkg/errors"
 )
 
 const InvalidJSON = `{invalidjson`

@@ -2,14 +2,15 @@ package cf
 
 import (
 	"context"
+
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
 
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered at the cf.
-func (pc PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBroker, error) {
-	brokers, err := pc.Client.ListServiceBrokers()
+func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBroker, error) {
+	brokers, err := pc.ListServiceBrokers()
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
@@ -29,7 +30,7 @@ func (pc PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBrok
 
 // CreateBroker implements service-broker-proxy/pkg/cf/Client.CreateBroker and provides logic for
 // registering a new broker at the cf.
-func (pc PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
+func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.CreateServiceBrokerRequest{
 		Username:  pc.reg.Username,
@@ -38,7 +39,7 @@ func (pc PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSer
 		BrokerURL: r.BrokerURL,
 	}
 
-	broker, err := pc.Client.CreateServiceBroker(request)
+	broker, err := pc.CreateServiceBroker(request)
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
@@ -54,9 +55,9 @@ func (pc PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSer
 
 // DeleteBroker implements service-broker-proxy/pkg/cf/Client.DeleteBroker and provides logic for
 // registering a new broker at the cf.
-func (pc PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
+func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
 
-	if err := pc.Client.DeleteServiceBroker(r.GUID); err != nil {
+	if err := pc.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
 	}
 
@@ -65,7 +66,7 @@ func (pc PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSer
 
 // UpdateBroker implements service-broker-proxy/pkg/cf/Client.UpdateBroker and provides logic for
 // updating a broker registration at the cf.
-func (pc PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
+func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.UpdateServiceBrokerRequest{
 		Username:  pc.reg.Username,
@@ -74,7 +75,7 @@ func (pc PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSer
 		BrokerURL: r.BrokerURL,
 	}
 
-	broker, err := pc.Client.UpdateServiceBroker(r.GUID, request)
+	broker, err := pc.UpdateServiceBroker(r.GUID, request)
 	if err != nil {
 		return nil, wrapCFError(err)
 	}

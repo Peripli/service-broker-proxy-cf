@@ -77,7 +77,7 @@ func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.Se
 	var wg sync.WaitGroup
 
 	result := make([]cfclient.ServicePlan, 0, len(plans))
-	chunks := splitSMPlansIntoChuncks(plans)
+	chunks := splitSMPlansIntoChunks(plans)
 
 	for _, chunk := range chunks {
 		wg.Add(1)
@@ -125,7 +125,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	chunks := splitCFPlansIntoChuncks(plans)
+	chunks := splitCFPlansIntoChunks(plans)
 
 	for _, chunk := range chunks {
 		wg.Add(1)
@@ -162,7 +162,7 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]c
 	return pc.ListServicePlanVisibilitiesByQuery(query)
 }
 
-func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
+func splitCFPlansIntoChunks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
 	resultChunks := make([][]cfclient.ServicePlan, 0)
 
 	for count := len(plans); count > 0; count = len(plans) {
@@ -173,7 +173,7 @@ func splitCFPlansIntoChuncks(plans []cfclient.ServicePlan) [][]cfclient.ServiceP
 	return resultChunks
 }
 
-func splitSMPlansIntoChuncks(plans []*types.ServicePlan) [][]*types.ServicePlan {
+func splitSMPlansIntoChunks(plans []*types.ServicePlan) [][]*types.ServicePlan {
 	resultChunks := make([][]*types.ServicePlan, 0)
 
 	for count := len(plans); count > 0; count = len(plans) {

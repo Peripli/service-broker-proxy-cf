@@ -229,10 +229,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				_, client = ccClient(ccServer.URL())
 			})
 
-			It("should return all visibilities, including ones for public plans", func() {
+			It("should return error", func() {
 				_, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(generatedCFPlans))
 				Expect(err).Should(HaveOccurred())
-				Expect(err.Error()).Should(ContainSubstring("could not get visibilities from platform: Error requesting service plan visibilities"))
+				Expect(err.Error()).Should(ContainSubstring("could not get visibilities from platform"))
 			})
 		})
 
@@ -242,10 +242,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				_, client = ccClient(ccServer.URL())
 			})
 
-			It("should return all visibilities, including ones for public plans", func() {
+			It("should return error", func() {
 				_, err := client.GetVisibilitiesByPlans(ctx, getSMPlans(generatedCFPlans))
 				Expect(err).Should(HaveOccurred())
-				Expect(err.Error()).Should(ContainSubstring("could not get service plans from platform: Error requesting service plans"))
+				Expect(err.Error()).Should(ContainSubstring("could not get service plans from platform"))
 			})
 		})
 

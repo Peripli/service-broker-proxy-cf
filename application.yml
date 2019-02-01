@@ -1,8 +1,10 @@
 # Any of the below config properties can be provided via Environment Variables
 app:
-  url: http://10.0.2.2
+  url: http://10.0.2.2:8081
   username: admin
   password: admin
+  visibility_cache: true
+  cache_expiration: 1h
 server:
   port: 8081
   request_timeout: 4000ms
@@ -11,18 +13,19 @@ log:
   level: debug
   format: text
 sm:
-  user: admin
-  password: admin
-  url: http://localhost:8080
+  user: RIE1KHQjBbIFHYwUv+PgcnYaqfFnS5CazkwHXdWYnKE=
+  password: JoHj88Yto0q57gR+ZQB5QAfdqDRp2qCJX80t3xFRs1I=
+  url: https://service-manager.local.pcfdev.io
+  # url: http://localhost:8080
   osb_api_path: /v1/osb
   request_timeout: 6000ms
-  skip_ssl_validation: false
-  resync_period: 30s
+  skip_ssl_validation: true
+  resync_period: 10s
 cf:
   client:
-    apiAddress: http://api.local.pcfdev.io
+    apiAddress: https://api.local.pcfdev.io
     username: admin
     password: admin
-    skipSslValidation: false
+    skipSslValidation: true
     httpClient:
       timeout: 6000ms

@@ -35,7 +35,7 @@
 
 [[constraint]]
   name = "github.com/Peripli/service-broker-proxy"
-  version = "=0.2.0"
+  branch = "visibilities-brokers"
 
 [[constraint]]
   name = "github.com/cloudfoundry-community/go-cfenv"

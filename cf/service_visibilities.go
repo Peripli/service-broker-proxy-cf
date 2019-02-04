@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Peripli/service-manager/pkg/log"
+
 	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/pkg/errors"
 
@@ -16,7 +18,7 @@ import (
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
 
-const maxSliceLength = 50
+const maxChunkLength = 50
 
 // OrgLabelKey label key for CF organization visibilities
 const OrgLabelKey = "organization_guid"
@@ -24,52 +26,6 @@ const OrgLabelKey = "organization_guid"
 // VisibilityScopeLabelKey returns key to be used when scoping visibilities
 func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 	return OrgLabelKey
-}
-
-// GetVisibilitiesByPlans returns []*platform.ServiceVisibilityEntity based on given SM plans.
-// The visibilities are taken from CF cloud controller.
-// For public plans, visibilities are created so that sync with sm visibilities is possible
-func (pc *PlatformClient) GetVisibilitiesByPlans(ctx context.Context, plans []*types.ServicePlan) ([]*platform.ServiceVisibilityEntity, error) {
-	platformPlans, err := pc.getServicePlans(ctx, plans)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get service plans from platform")
-	}
-
-	visibilities, err := pc.getPlansVisibilities(ctx, platformPlans)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get visibilities from platform")
-	}
-
-	uuidToCatalogID := make(map[string]string)
-	publicPlans := make([]*cfclient.ServicePlan, 0)
-
-	for _, plan := range platformPlans {
-		uuidToCatalogID[plan.Guid] = plan.UniqueId
-		if plan.Public {
-			publicPlans = append(publicPlans, &plan)
-		}
-	}
-
-	resources := make([]*platform.ServiceVisibilityEntity, 0, len(visibilities)+len(publicPlans))
-	for _, visibility := range visibilities {
-		labels := make(map[string]string)
-		labels[OrgLabelKey] = visibility.OrganizationGuid
-		resources = append(resources, &platform.ServiceVisibilityEntity{
-			Public:        false,
-			CatalogPlanID: uuidToCatalogID[visibility.ServicePlanGuid],
-			Labels:        labels,
-		})
-	}
-
-	for _, plan := range publicPlans {
-		resources = append(resources, &platform.ServiceVisibilityEntity{
-			Public:        true,
-			CatalogPlanID: plan.UniqueId,
-			Labels:        map[string]string{},
-		})
-	}
-
-	return resources, nil
 }
 
 // GetVisibilitiesByBrokers returns platform visibilities grouped by brokers based on given SM brokers.
@@ -89,7 +45,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 		return nil, err
 	}
 
-	plans, err := pc.getPlansByServices(services)
+	plans, err := pc.getPlansByBrokers(platformBrokers)
 	if err != nil {
 		// TODO: Wrap err
 		return nil, err
@@ -200,50 +156,200 @@ func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.Se
 	return result, nil
 }
 
-func createQuery(querySearchKey string, elements []string) map[string][]string {
+type queryBuilder struct {
+	filters map[string]string
+}
+
+func (q *queryBuilder) set(key string, elements []string) *queryBuilder {
+	if q.filters == nil {
+		q.filters = make(map[string]string)
+	}
 	searchParameters := strings.Join(elements, ",")
+	q.filters[key] = searchParameters
+	return q
+}
+
+func (q *queryBuilder) build() map[string][]string {
+	queryComponents := make([]string, 0)
+	for key, params := range q.filters {
+		component := fmt.Sprintf("%s IN %s", key, params)
+		queryComponents = append(queryComponents, component)
+	}
+	query := strings.Join(queryComponents, ";")
+	log.D().Debugf("CF filter query built: %s", query)
 	return url.Values{
-		"q": []string{fmt.Sprintf("%s IN %s", querySearchKey, searchParameters)},
+		"q": []string{query},
 	}
 }
 
 func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
-	query := createQuery("unique_id", catalogIDs)
-	return pc.ListServicePlansByQuery(query)
+	query := queryBuilder{}
+	query.set("unique_id", catalogIDs)
+	return pc.ListServicePlansByQuery(query.build())
 }
 
 func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBroker, error) {
-	// TODO: Split by chunks
-	query := createQuery("name", names)
-	return pc.ListServiceBrokersByQuery(query)
+	var errorOccured error
+	var mutex sync.Mutex
+	var wg sync.WaitGroup
+
+	result := make([]cfclient.ServiceBroker, 0, len(names))
+	chunks := splitStringsIntoChunks(names)
+
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(chunk []string) {
+			defer wg.Done()
+			brokerNames := make([]string, 0, len(chunk))
+			for _, name := range chunk {
+				brokerNames = append(brokerNames, name)
+			}
+			query := queryBuilder{}
+			query.set("name", names)
+			brokers, err := pc.ListServiceBrokersByQuery(query.build())
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			if err != nil {
+				if errorOccured == nil {
+					errorOccured = err
+				}
+			} else if errorOccured == nil {
+				result = append(result, brokers...)
+			}
+		}(chunk)
+	}
+	wg.Wait()
+	if errorOccured != nil {
+		return nil, errorOccured
+	}
+	return result, nil
 }
 
 func (pc *PlatformClient) getServicesByBrokers(brokers []cfclient.ServiceBroker) ([]cfclient.Service, error) {
-	// TODO: Split by chunks
-	brokerGUIDs := make([]string, 0, len(brokers))
-	for _, broker := range brokers {
-		brokerGUIDs = append(brokerGUIDs, broker.Guid)
+	var errorOccured error
+	var mutex sync.Mutex
+	var wg sync.WaitGroup
+
+	result := make([]cfclient.Service, 0, len(brokers))
+	chunks := splitBrokersIntoChunks(brokers)
+
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(chunk []cfclient.ServiceBroker) {
+			defer wg.Done()
+			brokerGUIDs := make([]string, 0, len(chunk))
+			for _, broker := range chunk {
+				brokerGUIDs = append(brokerGUIDs, broker.Guid)
+			}
+			brokers, err := pc.getServicesByBrokerGUIDs(brokerGUIDs)
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			if err != nil {
+				if errorOccured == nil {
+					errorOccured = err
+				}
+			} else if errorOccured == nil {
+				result = append(result, brokers...)
+			}
+		}(chunk)
 	}
-	return pc.getServicesByBrokerGUIDs(brokerGUIDs)
+	wg.Wait()
+	if errorOccured != nil {
+		return nil, errorOccured
+	}
+	return result, nil
 }
 
 func (pc *PlatformClient) getServicesByBrokerGUIDs(brokerGUIDs []string) ([]cfclient.Service, error) {
-	query := createQuery("service_broker_guid", brokerGUIDs)
-	return pc.ListServicesByQuery(query)
+	query := queryBuilder{}
+	query.set("service_broker_guid", brokerGUIDs)
+	return pc.ListServicesByQuery(query.build())
+}
+
+func (pc *PlatformClient) getPlansByBrokers(brokers []cfclient.ServiceBroker) ([]cfclient.ServicePlan, error) {
+	var errorOccured error
+	var mutex sync.Mutex
+	var wg sync.WaitGroup
+
+	result := make([]cfclient.ServicePlan, 0, len(brokers))
+	chunks := splitBrokersIntoChunks(brokers)
+
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(chunk []cfclient.ServiceBroker) {
+			defer wg.Done()
+			brokerGUIDs := make([]string, 0, len(chunk))
+			for _, broker := range chunk {
+				brokerGUIDs = append(brokerGUIDs, broker.Guid)
+			}
+			plans, err := pc.getPlansByBrokerGUIDs(brokerGUIDs)
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			if err != nil {
+				if errorOccured == nil {
+					errorOccured = err
+				}
+			} else if errorOccured == nil {
+				result = append(result, plans...)
+			}
+		}(chunk)
+	}
+	wg.Wait()
+	if errorOccured != nil {
+		return nil, errorOccured
+	}
+	return result, nil
 }
 
 func (pc *PlatformClient) getPlansByServices(services []cfclient.Service) ([]cfclient.ServicePlan, error) {
-	// TODO: Split by chunks
-	serviceGUIDs := make([]string, 0, len(services))
-	for _, service := range services {
-		serviceGUIDs = append(serviceGUIDs, service.Guid)
+	var errorOccured error
+	var mutex sync.Mutex
+	var wg sync.WaitGroup
+
+	result := make([]cfclient.ServicePlan, 0, len(services))
+	chunks := splitServicesIntoChunks(services)
+
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(chunk []cfclient.Service) {
+			defer wg.Done()
+			serviceGUIDs := make([]string, 0, len(chunk))
+			for _, service := range chunk {
+				serviceGUIDs = append(serviceGUIDs, service.Guid)
+			}
+			plans, err := pc.getPlansByServiceGUIDs(serviceGUIDs)
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			if err != nil {
+				if errorOccured == nil {
+					errorOccured = err
+				}
+			} else if errorOccured == nil {
+				result = append(result, plans...)
+			}
+		}(chunk)
 	}
-	return pc.getPlansByServiceGUIDs(serviceGUIDs)
+	wg.Wait()
+	if errorOccured != nil {
+		return nil, errorOccured
+	}
+	return result, nil
 }
 
 func (pc *PlatformClient) getPlansByServiceGUIDs(serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
-	query := createQuery("service_guid", serviceGUIDs)
-	return pc.ListServicePlansByQuery(query)
+	query := queryBuilder{}
+	query.set("service_guid", serviceGUIDs)
+	return pc.ListServicePlansByQuery(query.build())
+}
+
+func (pc *PlatformClient) getPlansByBrokerGUIDs(brokerGUIDs []string) ([]cfclient.ServicePlan, error) {
+	query := queryBuilder{}
+	query.set("service_broker_guid", brokerGUIDs)
+	return pc.ListServicePlansByQuery(query.build())
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
@@ -285,15 +391,16 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 }
 
 func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
-	query := createQuery("service_plan_guid", plansGUID)
-	return pc.ListServicePlanVisibilitiesByQuery(query)
+	query := queryBuilder{}
+	query.set("service_plan_guid", plansGUID)
+	return pc.ListServicePlanVisibilitiesByQuery(query.build())
 }
 
 func splitCFPlansIntoChunks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
 	resultChunks := make([][]cfclient.ServicePlan, 0)
 
 	for count := len(plans); count > 0; count = len(plans) {
-		sliceLength := min(count, maxSliceLength)
+		sliceLength := min(count, maxChunkLength)
 		resultChunks = append(resultChunks, plans[:sliceLength])
 		plans = plans[sliceLength:]
 	}
@@ -304,9 +411,42 @@ func splitSMPlansIntoChunks(plans []*types.ServicePlan) [][]*types.ServicePlan {
 	resultChunks := make([][]*types.ServicePlan, 0)
 
 	for count := len(plans); count > 0; count = len(plans) {
-		sliceLength := min(count, maxSliceLength)
+		sliceLength := min(count, maxChunkLength)
 		resultChunks = append(resultChunks, plans[:sliceLength])
 		plans = plans[sliceLength:]
+	}
+	return resultChunks
+}
+
+func splitStringsIntoChunks(names []string) [][]string {
+	resultChunks := make([][]string, 0)
+
+	for count := len(names); count > 0; count = len(names) {
+		sliceLength := min(count, maxChunkLength)
+		resultChunks = append(resultChunks, names[:sliceLength])
+		names = names[sliceLength:]
+	}
+	return resultChunks
+}
+
+func splitBrokersIntoChunks(brokers []cfclient.ServiceBroker) [][]cfclient.ServiceBroker {
+	resultChunks := make([][]cfclient.ServiceBroker, 0)
+
+	for count := len(brokers); count > 0; count = len(brokers) {
+		sliceLength := min(count, maxChunkLength)
+		resultChunks = append(resultChunks, brokers[:sliceLength])
+		brokers = brokers[sliceLength:]
+	}
+	return resultChunks
+}
+
+func splitServicesIntoChunks(services []cfclient.Service) [][]cfclient.Service {
+	resultChunks := make([][]cfclient.Service, 0)
+
+	for count := len(services); count > 0; count = len(services) {
+		sliceLength := min(count, maxChunkLength)
+		resultChunks = append(resultChunks, services[:sliceLength])
+		services = services[sliceLength:]
 	}
 	return resultChunks
 }

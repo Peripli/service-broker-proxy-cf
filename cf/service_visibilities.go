@@ -9,7 +9,6 @@ import (
 
 	"github.com/Peripli/service-manager/pkg/log"
 
-	"github.com/Peripli/service-manager/pkg/types"
 	"github.com/pkg/errors"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
@@ -118,74 +117,6 @@ func brokerNames(brokers []platform.ServiceBroker) []string {
 		names = append(names, reconcile.ProxyBrokerPrefix+broker.GUID)
 	}
 	return names
-}
-
-func (pc *PlatformClient) getServicePlans(ctx context.Context, plans []*types.ServicePlan) ([]cfclient.ServicePlan, error) {
-	var errorOccured error
-	var mutex sync.Mutex
-	var wg sync.WaitGroup
-
-	result := make([]cfclient.ServicePlan, 0, len(plans))
-	chunks := splitSMPlansIntoChunks(plans)
-
-	for _, chunk := range chunks {
-		wg.Add(1)
-		go func(chunk []*types.ServicePlan) {
-			defer wg.Done()
-			catalogIDs := make([]string, 0, len(chunk))
-			for _, p := range chunk {
-				catalogIDs = append(catalogIDs, p.CatalogID)
-			}
-			platformPlans, err := pc.getServicePlansByCatalogIDs(catalogIDs)
-
-			mutex.Lock()
-			defer mutex.Unlock()
-			if err != nil {
-				if errorOccured == nil {
-					errorOccured = err
-				}
-			} else if errorOccured == nil {
-				result = append(result, platformPlans...)
-			}
-		}(chunk)
-	}
-	wg.Wait()
-	if errorOccured != nil {
-		return nil, errorOccured
-	}
-	return result, nil
-}
-
-type queryBuilder struct {
-	filters map[string]string
-}
-
-func (q *queryBuilder) set(key string, elements []string) *queryBuilder {
-	if q.filters == nil {
-		q.filters = make(map[string]string)
-	}
-	searchParameters := strings.Join(elements, ",")
-	q.filters[key] = searchParameters
-	return q
-}
-
-func (q *queryBuilder) build() map[string][]string {
-	queryComponents := make([]string, 0)
-	for key, params := range q.filters {
-		component := fmt.Sprintf("%s IN %s", key, params)
-		queryComponents = append(queryComponents, component)
-	}
-	query := strings.Join(queryComponents, ";")
-	log.D().Debugf("CF filter query built: %s", query)
-	return url.Values{
-		"q": []string{query},
-	}
-}
-
-func (pc *PlatformClient) getServicePlansByCatalogIDs(catalogIDs []string) ([]cfclient.ServicePlan, error) {
-	query := queryBuilder{}
-	query.set("unique_id", catalogIDs)
-	return pc.ListServicePlansByQuery(query.build())
 }
 
 func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBroker, error) {
@@ -396,19 +327,34 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]c
 	return pc.ListServicePlanVisibilitiesByQuery(query.build())
 }
 
-func splitCFPlansIntoChunks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
-	resultChunks := make([][]cfclient.ServicePlan, 0)
-
-	for count := len(plans); count > 0; count = len(plans) {
-		sliceLength := min(count, maxChunkLength)
-		resultChunks = append(resultChunks, plans[:sliceLength])
-		plans = plans[sliceLength:]
-	}
-	return resultChunks
+type queryBuilder struct {
+	filters map[string]string
 }
 
-func splitSMPlansIntoChunks(plans []*types.ServicePlan) [][]*types.ServicePlan {
-	resultChunks := make([][]*types.ServicePlan, 0)
+func (q *queryBuilder) set(key string, elements []string) *queryBuilder {
+	if q.filters == nil {
+		q.filters = make(map[string]string)
+	}
+	searchParameters := strings.Join(elements, ",")
+	q.filters[key] = searchParameters
+	return q
+}
+
+func (q *queryBuilder) build() map[string][]string {
+	queryComponents := make([]string, 0)
+	for key, params := range q.filters {
+		component := fmt.Sprintf("%s IN %s", key, params)
+		queryComponents = append(queryComponents, component)
+	}
+	query := strings.Join(queryComponents, ";")
+	log.D().Debugf("CF filter query built: %s", query)
+	return url.Values{
+		"q": []string{query},
+	}
+}
+
+func splitCFPlansIntoChunks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
+	resultChunks := make([][]cfclient.ServicePlan, 0)
 
 	for count := len(plans); count > 0; count = len(plans) {
 		sliceLength := min(count, maxChunkLength)

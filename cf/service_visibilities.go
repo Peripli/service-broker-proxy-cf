@@ -34,20 +34,17 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 	proxyBrokerNames := brokerNames(brokers)
 	platformBrokers, err := pc.getBrokersByName(proxyBrokerNames)
 	if err != nil {
-		// TODO: Wrap err
-		return nil, err
+		return nil, errors.Wrap(err, "could not get brokers from platform")
 	}
 
 	services, err := pc.getServicesByBrokers(platformBrokers)
 	if err != nil {
-		// TODO: Wrap err
-		return nil, err
+		return nil, errors.Wrap(err, "could not get services from platform")
 	}
 
 	plans, err := pc.getPlansByBrokers(platformBrokers)
 	if err != nil {
-		// TODO: Wrap err
-		return nil, err
+		return nil, errors.Wrap(err, "could not get plans from platform")
 	}
 
 	visibilities, err := pc.getPlansVisibilities(ctx, plans)
@@ -136,7 +133,7 @@ func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBr
 				brokerNames = append(brokerNames, name)
 			}
 			query := queryBuilder{}
-			query.set("name", names)
+			query.set("name", brokerNames)
 			brokers, err := pc.ListServiceBrokersByQuery(query.build())
 
 			mutex.Lock()

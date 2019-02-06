@@ -43,7 +43,8 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.
 		return err
 	}
 
-	plan, err := pc.getPlanForCatalogPlanIDAndBroker(ctx, catalogPlanID, brokerGUID)
+	brokerName := reconcile.ProxyBrokerPrefix + brokerGUID
+	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, catalogPlanID, brokerName)
 	if err != nil {
 		return err
 	}
@@ -140,17 +141,16 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 	return servicePlan, nil
 }
 
-func (pc *PlatformClient) getPlanForCatalogPlanIDAndBroker(ctx context.Context, catalogPlanGUID, brokerGUID string) (cfclient.ServicePlan, error) {
-	proxyBrokerName := reconcile.ProxyBrokerPrefix + brokerGUID
-	brokers, err := pc.getBrokersByName([]string{proxyBrokerName})
+func (pc *PlatformClient) getPlanForCatalogPlanIDAndBrokerName(ctx context.Context, catalogPlanGUID, brokerName string) (cfclient.ServicePlan, error) {
+	brokers, err := pc.getBrokersByName([]string{brokerName})
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}
 	if len(brokers) == 0 {
-		return cfclient.ServicePlan{}, errors.Errorf("no brokers found for broker name %s", proxyBrokerName)
+		return cfclient.ServicePlan{}, errors.Errorf("no brokers found for broker name %s", brokerName)
 	}
 	if len(brokers) > 1 {
-		return cfclient.ServicePlan{}, errors.Errorf("more than 1 (%d) brokers found for broker name %s", len(brokers), proxyBrokerName)
+		return cfclient.ServicePlan{}, errors.Errorf("more than 1 (%d) brokers found for broker name %s", len(brokers), brokerName)
 	}
 
 	services, err := pc.getServicesByBrokers(brokers)
@@ -168,5 +168,5 @@ func (pc *PlatformClient) getPlanForCatalogPlanIDAndBroker(ctx context.Context, 
 		}
 	}
 
-	return cfclient.ServicePlan{}, errors.Errorf("no plans for broker with name %s and catalog plan ID = %s found", proxyBrokerName, catalogPlanGUID)
+	return cfclient.ServicePlan{}, errors.Errorf("no plans for broker with name %s and catalog plan ID = %s found", brokerName, catalogPlanGUID)
 }

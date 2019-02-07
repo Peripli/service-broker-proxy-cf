@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:ef4eaf0b9b15b3f5e5afaf6a52303c39d46a9c3b6d13d0d81e4b785002606692"
+  name = "code.cloudfoundry.org/gofileutils"
+  packages = ["fileutils"]
+  pruneopts = "UT"
+  revision = "4d0c80011a0f37da1711c184028bc40137cd45af"
+
+[[projects]]
   digest = "1:55388fd080150b9a072912f97b1f5891eb0b50df43401f8b75fb4273d3fec9fc"
   name = "github.com/Masterminds/semver"
   packages = ["."]
@@ -11,7 +19,7 @@
 
 [[projects]]
   branch = "visibilities-brokers"
-  digest = "1:b37ab64175ea96d13dcfc92b2b07fe4a236eeb7a166a152f869a7633b5c4c3fb"
+  digest = "1:7be3e7c3c299132da578e5875b3900dae03b1f0b5f941e2326c4eb7e51f2ace8"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -23,10 +31,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "9fc9d0ba87fbe3dfe37f68fc5bb982113dd10bf1"
+  revision = "e95672a79b267a303720d6765006a24537e74e76"
 
 [[projects]]
-  digest = "1:0493219071f1feac0194af5520a88e0f3ebf633676ac38041455ca46f074c4d8"
+  branch = "master"
+  digest = "1:5e3832c54cffb50961a262180684f1fdbcbb71921a2d48371ef3462a601b29c1"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -58,16 +67,15 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "f11633863979b692795e1ec8ec1aa9771dcfdca3"
-  version = "v0.1.8"
+  revision = "c1cf3fe04125abee0416066212a4bce588a29db7"
 
 [[projects]]
   branch = "master"
-  digest = "1:a01ce9b7dbca7c0210434fcb001880971d4fde87a52a3af0e077319dae045e3d"
+  digest = "1:a965e93173d9b30de4cc01c4a2aaaaa0478ece976f56dabb6e662800abf21011"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "22d02065b53fafff0657b4f53471f640c59e3164"
+  revision = "f136f9222381e2fea5099f62e4b751dcb660ff82"
 
 [[projects]]
   digest = "1:d689318918dac8435731a16f090349f48f3758a3dbe5f967e913185bf264abaf"
@@ -76,14 +84,6 @@
   pruneopts = "UT"
   revision = "f920e9562d5f951cbf11785728f67258c38a10d0"
   version = "v1.17.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:ef4eaf0b9b15b3f5e5afaf6a52303c39d46a9c3b6d13d0d81e4b785002606692"
-  name = "github.com/cloudfoundry/gofileutils"
-  packages = ["fileutils"]
-  pruneopts = "UT"
-  revision = "4d0c80011a0f37da1711c184028bc40137cd45af"
 
 [[projects]]
   digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
@@ -422,7 +422,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
+  revision = "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
 
 [[projects]]
   branch = "master"
@@ -438,14 +438,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7941e2f16c0833b438cbef7fccfe4f8346f9f7876b42b29717a75d7e8c4800cb"
+  digest = "1:a1914323eabb0da3b4392fb0d34b1ae5b6b531323daf4eeddc355d8000982052"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "2970a3744de33489e46eba373c73655bc2377116"
+  revision = "41f3e6584952bb034a481797859f6ab34b6803bd"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"
@@ -539,7 +539,6 @@
     "github.com/Peripli/service-manager/pkg/env",
     "github.com/Peripli/service-manager/pkg/env/envfakes",
     "github.com/Peripli/service-manager/pkg/log",
-    "github.com/Peripli/service-manager/pkg/types",
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-community/go-cfenv",
     "github.com/onsi/ginkgo",

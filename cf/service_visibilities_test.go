@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
@@ -19,7 +17,10 @@ import (
 
 var _ = Describe("Client Service Plan Visibilities", func() {
 
-	const orgGUID = "testorgguid"
+	const (
+		brokerPrefix = "sm-proxy-"
+		orgGUID      = "testorgguid"
+	)
 
 	var (
 		ccServer                *ghttp.Server
@@ -39,7 +40,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			brokerGuid := "broker" + indexStr
 			brokers[brokerGuid] = &cfclient.ServiceBroker{
 				Guid: brokerGuid,
-				Name: reconcile.ProxyBrokerPrefix + brokerGuid,
+				Name: brokerPrefix + brokerGuid,
 			}
 		}
 		return brokers

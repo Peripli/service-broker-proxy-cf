@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/Peripli/service-manager/pkg/log"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
@@ -43,7 +42,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.
 		return err
 	}
 
-	brokerName := reconcile.ProxyBrokerPrefix + brokerGUID
+	brokerName := pc.reg.BrokerPrefix + brokerGUID
 	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, catalogPlanID, brokerName)
 	if err != nil {
 		return err

@@ -130,9 +130,10 @@ func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
 		ApiAddress: URL,
 	}
 	regDetails := &reconcile.Settings{
-		URL:      "http://10.0.2.2",
-		Username: "user",
-		Password: "password",
+		URL:          "http://10.0.2.2",
+		Username:     "user",
+		Password:     "password",
+		BrokerPrefix: "sm-proxy-",
 	}
 	config := &cf.ClientConfiguration{
 		Config:             cfConfig,

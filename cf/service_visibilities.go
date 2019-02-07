@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
@@ -31,7 +30,7 @@ func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 // The visibilities are taken from CF cloud controller.
 // For public plans, visibilities are created so that sync with sm visibilities is possible
 func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers []platform.ServiceBroker) ([]*platform.ServiceVisibilityEntity, error) {
-	proxyBrokerNames := brokerNames(brokers)
+	proxyBrokerNames := brokerNames(pc.reg.BrokerPrefix, brokers)
 	platformBrokers, err := pc.getBrokersByName(proxyBrokerNames)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get brokers from platform")
@@ -64,7 +63,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 
 	for _, broker := range platformBrokers {
 		// Extract SM broker ID from platform broker name
-		brokerGUIDToBrokerSMID[broker.Guid] = broker.Name[len(reconcile.ProxyBrokerPrefix):]
+		brokerGUIDToBrokerSMID[broker.Guid] = broker.Name[len(pc.reg.BrokerPrefix):]
 	}
 
 	for _, plan := range plans {
@@ -108,10 +107,10 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 	return result, nil
 }
 
-func brokerNames(brokers []platform.ServiceBroker) []string {
+func brokerNames(brokerPrefix string, brokers []platform.ServiceBroker) []string {
 	names := make([]string, 0, len(brokers))
 	for _, broker := range brokers {
-		names = append(names, reconcile.ProxyBrokerPrefix+broker.GUID)
+		names = append(names, brokerPrefix+broker.GUID)
 	}
 	return names
 }

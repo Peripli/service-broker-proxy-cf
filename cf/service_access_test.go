@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
@@ -28,6 +26,8 @@ var _ = Describe("Client Service Plan Access", func() {
 	}
 
 	const (
+		brokerPrefix = "sm-proxy-"
+
 		orgGUID                      = "orgGUID"
 		serviceGUID                  = "serviceGUID"
 		brokerGUIDForPublicPlan      = "publicBrokerGUID"
@@ -472,7 +472,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				brokerGUID = brokerGUIDForPublicPlan
 				orgData = validOrgData
 
-				getBrokersRoute = prepareGetBrokersRoute(reconcile.ProxyBrokerPrefix + brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute(brokerPrefix + brokerGUID)
 				getServicesRoute = prepareGetServicesRoute()
 
 				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute)
@@ -617,7 +617,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = validOrgData
-				getBrokersRoute = prepareGetBrokersRoute(reconcile.ProxyBrokerPrefix + brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute(brokerPrefix + brokerGUID)
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, orgGUID)
@@ -687,7 +687,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = emptyOrgData
-				getBrokersRoute = prepareGetBrokersRoute(reconcile.ProxyBrokerPrefix + brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute(brokerPrefix + brokerGUID)
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
@@ -809,7 +809,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = validOrgData
-				getBrokersRoute = prepareGetBrokersRoute(reconcile.ProxyBrokerPrefix + brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute(brokerPrefix + brokerGUID)
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				createVisibilityRoute = prepareCreateVisibilityRoute(planGUID)
@@ -873,7 +873,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = emptyOrgData
-				getBrokersRoute = prepareGetBrokersRoute(reconcile.ProxyBrokerPrefix + brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute(brokerPrefix + brokerGUID)
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")

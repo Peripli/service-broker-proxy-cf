@@ -18,8 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "visibilities-brokers"
-  digest = "1:7be3e7c3c299132da578e5875b3900dae03b1f0b5f941e2326c4eb7e51f2ace8"
+  branch = "configurable-broker-name"
+  digest = "1:7e5c52e2187b8adc1b8168b32f6a515b89513c643f1a6d13092a137cba2841d1"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,11 +31,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "e95672a79b267a303720d6765006a24537e74e76"
+  revision = "1c3350aae20fbb1b74c25987238b312283f682bd"
 
 [[projects]]
   branch = "master"
-  digest = "1:5e3832c54cffb50961a262180684f1fdbcbb71921a2d48371ef3462a601b29c1"
+  digest = "1:96e27795a08e49cd656be27a804a376da8a09b603058feeb41a13e21b49f8a5a"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -67,7 +67,7 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "c1cf3fe04125abee0416066212a4bce588a29db7"
+  revision = "ec0f246d59c446e9b978fed3b3e15a6edba5a33a"
 
 [[projects]]
   branch = "master"

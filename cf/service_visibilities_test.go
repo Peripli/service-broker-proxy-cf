@@ -141,15 +141,12 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		rw.Write(jsonResponse)
 	}
 
-	getBrokers := func(cfBrokers map[string]*cfclient.ServiceBroker) []platform.ServiceBroker {
-		count := len(cfBrokers)
-		brokers := make([]platform.ServiceBroker, 0, count)
+	getBrokerNames := func(cfBrokers map[string]*cfclient.ServiceBroker) []string {
+		names := make([]string, 0, len(cfBrokers))
 		for _, cfBroker := range cfBrokers {
-			brokers = append(brokers, platform.ServiceBroker{
-				GUID: cfBroker.Guid,
-			})
+			names = append(names, cfBroker.Name)
 		}
-		return brokers
+		return names
 	}
 
 	badRequestHandler := func(rw http.ResponseWriter, req *http.Request) {
@@ -299,7 +296,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 		Context("for all plans", func() {
 			It("should return all visibilities, including ones for public plans", func() {
-				platformVisibilities, err := client.GetVisibilitiesByBrokers(ctx, getBrokers(generatedCFBrokers))
+				platformVisibilities, err := client.GetVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(platformVisibilities).Should(HaveLen(len(generatedCFVisibilities) + plansCount))
 			})
@@ -323,10 +320,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				}
 				Expect(brokerGuid).ToNot(BeEmpty())
 
-				platformVisibilities, err := client.GetVisibilitiesByBrokers(ctx, []platform.ServiceBroker{
-					platform.ServiceBroker{
-						GUID: brokerGuid,
-					},
+				platformVisibilities, err := client.GetVisibilitiesByBrokers(ctx, []string{
+					generatedCFBrokers[brokerGuid].Name,
 				})
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -337,7 +332,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					Labels: map[string]string{
 						client.VisibilityScopeLabelKey(): orgGUID,
 					},
-					BrokerID: brokerGuid,
+					PlatformBrokerName: generatedCFBrokers[brokerGuid].Name,
 				}))
 			})
 		})
@@ -352,7 +347,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 
 			It("should return error", func() {
-				_, err := client.GetVisibilitiesByBrokers(ctx, getBrokers(generatedCFBrokers))
+				_, err := client.GetVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("could not get services from platform"))
 			})
@@ -365,7 +360,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 
 			It("should return error", func() {
-				_, err := client.GetVisibilitiesByBrokers(ctx, getBrokers(generatedCFBrokers))
+				_, err := client.GetVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("could not get plans from platform"))
 			})
@@ -378,7 +373,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 
 			It("should return error", func() {
-				_, err := client.GetVisibilitiesByBrokers(ctx, getBrokers(generatedCFBrokers))
+				_, err := client.GetVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).Should(ContainSubstring("could not get visibilities from platform"))
 			})

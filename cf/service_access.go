@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/Peripli/service-manager/pkg/log"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
@@ -27,24 +26,23 @@ type ServicePlanRequest struct {
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
-func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, brokerGUID string) error {
-	return pc.updateAccessForPlan(ctx, context, catalogPlanID, brokerGUID, true)
+func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string) error {
+	return pc.updateAccessForPlan(ctx, context, catalogPlanID, platformBrokerName, true)
 }
 
 // DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.DisableAccessForPlan
 // and provides logic for disabling the service access for a specified plan by the plan's catalog GUID.
-func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, brokerGUID string) error {
-	return pc.updateAccessForPlan(ctx, context, catalogPlanID, brokerGUID, false)
+func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string) error {
+	return pc.updateAccessForPlan(ctx, context, catalogPlanID, platformBrokerName, false)
 }
 
-func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, brokerGUID string, isEnabled bool) error {
+func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string, isEnabled bool) error {
 	metadata := &Metadata{}
 	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
 	}
 
-	brokerName := reconcile.ProxyBrokerPrefix + brokerGUID
-	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, catalogPlanID, brokerName)
+	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, catalogPlanID, platformBrokerName)
 	if err != nil {
 		return err
 	}

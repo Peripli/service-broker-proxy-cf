@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
@@ -30,9 +29,8 @@ func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 // GetVisibilitiesByBrokers returns platform visibilities grouped by brokers based on given SM brokers.
 // The visibilities are taken from CF cloud controller.
 // For public plans, visibilities are created so that sync with sm visibilities is possible
-func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers []platform.ServiceBroker) ([]*platform.ServiceVisibilityEntity, error) {
-	proxyBrokerNames := brokerNames(brokers)
-	platformBrokers, err := pc.getBrokersByName(proxyBrokerNames)
+func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNames []string) ([]*platform.ServiceVisibilityEntity, error) {
+	platformBrokers, err := pc.getBrokersByName(brokerNames)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get brokers from platform")
 	}
@@ -53,18 +51,18 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 	}
 
 	type planBrokerIDs struct {
-		PlanCatalogID string
-		SMBrokerID    string
+		PlanCatalogID      string
+		PlatformBrokerName string
 	}
 
 	planUUIDToMapping := make(map[string]planBrokerIDs)
-	brokerGUIDToBrokerSMID := make(map[string]string)
+	platformBrokerGUIDToBrokerName := make(map[string]string)
 
 	publicPlans := make([]*cfclient.ServicePlan, 0)
 
 	for _, broker := range platformBrokers {
 		// Extract SM broker ID from platform broker name
-		brokerGUIDToBrokerSMID[broker.Guid] = broker.Name[len(reconcile.ProxyBrokerPrefix):]
+		platformBrokerGUIDToBrokerName[broker.Guid] = broker.Name
 	}
 
 	for _, plan := range plans {
@@ -74,8 +72,8 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 		for _, service := range services {
 			if plan.ServiceGuid == service.Guid {
 				planUUIDToMapping[plan.Guid] = planBrokerIDs{
-					SMBrokerID:    brokerGUIDToBrokerSMID[service.ServiceBrokerGuid],
-					PlanCatalogID: plan.UniqueId,
+					PlatformBrokerName: platformBrokerGUIDToBrokerName[service.ServiceBrokerGuid],
+					PlanCatalogID:      plan.UniqueId,
 				}
 			}
 		}
@@ -89,31 +87,23 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokers 
 		planMapping := planUUIDToMapping[visibility.ServicePlanGuid]
 
 		result = append(result, &platform.ServiceVisibilityEntity{
-			Public:        false,
-			CatalogPlanID: planMapping.PlanCatalogID,
-			BrokerID:      planMapping.SMBrokerID,
-			Labels:        labels,
+			Public:             false,
+			CatalogPlanID:      planMapping.PlanCatalogID,
+			PlatformBrokerName: planMapping.PlatformBrokerName,
+			Labels:             labels,
 		})
 	}
 
 	for _, plan := range publicPlans {
 		result = append(result, &platform.ServiceVisibilityEntity{
-			Public:        true,
-			CatalogPlanID: plan.UniqueId,
-			BrokerID:      planUUIDToMapping[plan.Guid].SMBrokerID,
-			Labels:        map[string]string{},
+			Public:             true,
+			CatalogPlanID:      plan.UniqueId,
+			PlatformBrokerName: planUUIDToMapping[plan.Guid].PlatformBrokerName,
+			Labels:             map[string]string{},
 		})
 	}
 
 	return result, nil
-}
-
-func brokerNames(brokers []platform.ServiceBroker) []string {
-	names := make([]string, 0, len(brokers))
-	for _, broker := range brokers {
-		names = append(names, reconcile.ProxyBrokerPrefix+broker.GUID)
-	}
-	return names
 }
 
 func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBroker, error) {

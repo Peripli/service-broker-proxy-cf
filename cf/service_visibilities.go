@@ -29,6 +29,7 @@ func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 // GetVisibilitiesByBrokers returns platform visibilities grouped by brokers based on given SM brokers.
 // The visibilities are taken from CF cloud controller.
 // For public plans, visibilities are created so that sync with sm visibilities is possible
+// nolint: gocyclo
 func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNames []string) ([]*platform.ServiceVisibilityEntity, error) {
 	logger := log.C(ctx)
 	logger.Debugf("Gettings brokers from platform for names: %s", brokerNames)

@@ -30,20 +30,25 @@ func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 // The visibilities are taken from CF cloud controller.
 // For public plans, visibilities are created so that sync with sm visibilities is possible
 func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNames []string) ([]*platform.ServiceVisibilityEntity, error) {
+	logger := log.C(ctx)
+	logger.Debugf("Gettings brokers from platform for names: %s", brokerNames)
 	platformBrokers, err := pc.getBrokersByName(brokerNames)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get brokers from platform")
 	}
+	logger.Debugf("%d platform brokers found", len(platformBrokers))
 
 	services, err := pc.getServicesByBrokers(platformBrokers)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get services from platform")
 	}
+	logger.Debugf("%d platform services found", len(services))
 
-	plans, err := pc.getPlansByBrokers(platformBrokers)
+	plans, err := pc.getPlansByServices(services)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get plans from platform")
 	}
+	logger.Debugf("%d platform plans found", len(plans))
 
 	visibilities, err := pc.getPlansVisibilities(ctx, plans)
 	if err != nil {
@@ -186,42 +191,6 @@ func (pc *PlatformClient) getServicesByBrokerGUIDs(brokerGUIDs []string) ([]cfcl
 	return pc.ListServicesByQuery(query.build())
 }
 
-func (pc *PlatformClient) getPlansByBrokers(brokers []cfclient.ServiceBroker) ([]cfclient.ServicePlan, error) {
-	var errorOccured error
-	var mutex sync.Mutex
-	var wg sync.WaitGroup
-
-	result := make([]cfclient.ServicePlan, 0, len(brokers))
-	chunks := splitBrokersIntoChunks(brokers)
-
-	for _, chunk := range chunks {
-		wg.Add(1)
-		go func(chunk []cfclient.ServiceBroker) {
-			defer wg.Done()
-			brokerGUIDs := make([]string, 0, len(chunk))
-			for _, broker := range chunk {
-				brokerGUIDs = append(brokerGUIDs, broker.Guid)
-			}
-			plans, err := pc.getPlansByBrokerGUIDs(brokerGUIDs)
-
-			mutex.Lock()
-			defer mutex.Unlock()
-			if err != nil {
-				if errorOccured == nil {
-					errorOccured = err
-				}
-			} else if errorOccured == nil {
-				result = append(result, plans...)
-			}
-		}(chunk)
-	}
-	wg.Wait()
-	if errorOccured != nil {
-		return nil, errorOccured
-	}
-	return result, nil
-}
-
 func (pc *PlatformClient) getPlansByServices(services []cfclient.Service) ([]cfclient.ServicePlan, error) {
 	var errorOccured error
 	var mutex sync.Mutex
@@ -261,12 +230,6 @@ func (pc *PlatformClient) getPlansByServices(services []cfclient.Service) ([]cfc
 func (pc *PlatformClient) getPlansByServiceGUIDs(serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
 	query := queryBuilder{}
 	query.set("service_guid", serviceGUIDs)
-	return pc.ListServicePlansByQuery(query.build())
-}
-
-func (pc *PlatformClient) getPlansByBrokerGUIDs(brokerGUIDs []string) ([]cfclient.ServicePlan, error) {
-	query := queryBuilder{}
-	query.set("service_broker_guid", brokerGUIDs)
 	return pc.ListServicePlansByQuery(query.build())
 }
 

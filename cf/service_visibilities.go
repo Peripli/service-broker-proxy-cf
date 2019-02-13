@@ -125,9 +125,7 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 		go func(chunk []string) {
 			defer wg.Done()
 			brokerNames := make([]string, 0, len(chunk))
-			for _, name := range chunk {
-				brokerNames = append(brokerNames, name)
-			}
+			brokerNames = append(brokerNames, chunk...)
 			query := queryBuilder{}
 			query.set("name", brokerNames)
 			brokers, err := pc.ListServiceBrokersByQuery(query.build(ctx))

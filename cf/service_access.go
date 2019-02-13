@@ -140,7 +140,7 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 }
 
 func (pc *PlatformClient) getPlanForCatalogPlanIDAndBrokerName(ctx context.Context, catalogPlanGUID, brokerName string) (cfclient.ServicePlan, error) {
-	brokers, err := pc.getBrokersByName([]string{brokerName})
+	brokers, err := pc.getBrokersByName(ctx, []string{brokerName})
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}
@@ -151,12 +151,12 @@ func (pc *PlatformClient) getPlanForCatalogPlanIDAndBrokerName(ctx context.Conte
 		return cfclient.ServicePlan{}, errors.Errorf("more than 1 (%d) brokers found for broker name %s", len(brokers), brokerName)
 	}
 
-	services, err := pc.getServicesByBrokers(brokers)
+	services, err := pc.getServicesByBrokers(ctx, brokers)
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}
 
-	plans, err := pc.getPlansByServices(services)
+	plans, err := pc.getPlansByServices(ctx, services)
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}

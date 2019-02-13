@@ -33,19 +33,19 @@ func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNames []string) ([]*platform.ServiceVisibilityEntity, error) {
 	logger := log.C(ctx)
 	logger.Debugf("Gettings brokers from platform for names: %s", brokerNames)
-	platformBrokers, err := pc.getBrokersByName(brokerNames)
+	platformBrokers, err := pc.getBrokersByName(ctx, brokerNames)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get brokers from platform")
 	}
 	logger.Debugf("%d platform brokers found", len(platformBrokers))
 
-	services, err := pc.getServicesByBrokers(platformBrokers)
+	services, err := pc.getServicesByBrokers(ctx, platformBrokers)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get services from platform")
 	}
 	logger.Debugf("%d platform services found", len(services))
 
-	plans, err := pc.getPlansByServices(services)
+	plans, err := pc.getPlansByServices(ctx, services)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get plans from platform")
 	}
@@ -112,7 +112,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	return result, nil
 }
 
-func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBroker, error) {
+func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) ([]cfclient.ServiceBroker, error) {
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
@@ -130,7 +130,7 @@ func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBr
 			}
 			query := queryBuilder{}
 			query.set("name", brokerNames)
-			brokers, err := pc.ListServiceBrokersByQuery(query.build())
+			brokers, err := pc.ListServiceBrokersByQuery(query.build(ctx))
 
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -150,7 +150,7 @@ func (pc *PlatformClient) getBrokersByName(names []string) ([]cfclient.ServiceBr
 	return result, nil
 }
 
-func (pc *PlatformClient) getServicesByBrokers(brokers []cfclient.ServiceBroker) ([]cfclient.Service, error) {
+func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cfclient.ServiceBroker) ([]cfclient.Service, error) {
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
@@ -166,7 +166,7 @@ func (pc *PlatformClient) getServicesByBrokers(brokers []cfclient.ServiceBroker)
 			for _, broker := range chunk {
 				brokerGUIDs = append(brokerGUIDs, broker.Guid)
 			}
-			brokers, err := pc.getServicesByBrokerGUIDs(brokerGUIDs)
+			brokers, err := pc.getServicesByBrokerGUIDs(ctx, brokerGUIDs)
 
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -186,13 +186,13 @@ func (pc *PlatformClient) getServicesByBrokers(brokers []cfclient.ServiceBroker)
 	return result, nil
 }
 
-func (pc *PlatformClient) getServicesByBrokerGUIDs(brokerGUIDs []string) ([]cfclient.Service, error) {
+func (pc *PlatformClient) getServicesByBrokerGUIDs(ctx context.Context, brokerGUIDs []string) ([]cfclient.Service, error) {
 	query := queryBuilder{}
 	query.set("service_broker_guid", brokerGUIDs)
-	return pc.ListServicesByQuery(query.build())
+	return pc.ListServicesByQuery(query.build(ctx))
 }
 
-func (pc *PlatformClient) getPlansByServices(services []cfclient.Service) ([]cfclient.ServicePlan, error) {
+func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfclient.Service) ([]cfclient.ServicePlan, error) {
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
@@ -208,7 +208,7 @@ func (pc *PlatformClient) getPlansByServices(services []cfclient.Service) ([]cfc
 			for _, service := range chunk {
 				serviceGUIDs = append(serviceGUIDs, service.Guid)
 			}
-			plans, err := pc.getPlansByServiceGUIDs(serviceGUIDs)
+			plans, err := pc.getPlansByServiceGUIDs(ctx, serviceGUIDs)
 
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -228,10 +228,10 @@ func (pc *PlatformClient) getPlansByServices(services []cfclient.Service) ([]cfc
 	return result, nil
 }
 
-func (pc *PlatformClient) getPlansByServiceGUIDs(serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
+func (pc *PlatformClient) getPlansByServiceGUIDs(ctx context.Context, serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
 	query := queryBuilder{}
 	query.set("service_guid", serviceGUIDs)
-	return pc.ListServicePlansByQuery(query.build())
+	return pc.ListServicePlansByQuery(query.build(ctx))
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
@@ -251,7 +251,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 			for _, p := range chunk {
 				plansGUID = append(plansGUID, p.Guid)
 			}
-			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(plansGUID)
+			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, plansGUID)
 
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -272,10 +272,10 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 	return result, nil
 }
 
-func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(ctx context.Context, plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
 	query := queryBuilder{}
 	query.set("service_plan_guid", plansGUID)
-	return pc.ListServicePlanVisibilitiesByQuery(query.build())
+	return pc.ListServicePlanVisibilitiesByQuery(query.build(ctx))
 }
 
 type queryBuilder struct {
@@ -291,14 +291,14 @@ func (q *queryBuilder) set(key string, elements []string) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) build() map[string][]string {
+func (q *queryBuilder) build(ctx context.Context) map[string][]string {
 	queryComponents := make([]string, 0)
 	for key, params := range q.filters {
 		component := fmt.Sprintf("%s IN %s", key, params)
 		queryComponents = append(queryComponents, component)
 	}
 	query := strings.Join(queryComponents, ";")
-	log.D().Debugf("CF filter query built: %s", query)
+	log.C(ctx).Debugf("CF filter query built: %s", query)
 	return url.Values{
 		"q": []string{query},
 	}

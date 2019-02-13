@@ -217,20 +217,16 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			server.RouteToHandler(http.MethodGet, "/v2/service_plans", badRequestHandler)
 		} else {
 			server.RouteToHandler(http.MethodGet, "/v2/service_plans", func(rw http.ResponseWriter, req *http.Request) {
-				filterQuery := parseFilterQuery(req.URL.Query().Get("q"), "service_broker_guid")
+				filterQuery := parseFilterQuery(req.URL.Query().Get("q"), "service_guid")
 				planResources := make([]cfclient.ServicePlanResource, 0, len(filterQuery))
 				for _, plan := range plans {
-					for _, s := range services {
-						if s.Guid == plan.ServiceGuid {
-							if _, found := filterQuery[s.ServiceBrokerGuid]; found {
-								planResources = append(planResources, cfclient.ServicePlanResource{
-									Entity: *plan,
-									Meta: cfclient.Meta{
-										Guid: plan.Guid,
-									},
-								})
-							}
-						}
+					if _, found := filterQuery[plan.ServiceGuid]; found {
+						planResources = append(planResources, cfclient.ServicePlanResource{
+							Entity: *plan,
+							Meta: cfclient.Meta{
+								Guid: plan.Guid,
+							},
+						})
 					}
 				}
 				servicePlanResponse := cfclient.ServicePlansResponse{

@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/Peripli/service-manager/pkg/log"
-	"github.com/Peripli/service-manager/pkg/types"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
@@ -27,23 +26,23 @@ type ServicePlanRequest struct {
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
-func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
-	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, true)
+func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string) error {
+	return pc.updateAccessForPlan(ctx, context, catalogPlanID, platformBrokerName, true)
 }
 
 // DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.DisableAccessForPlan
 // and provides logic for disabling the service access for a specified plan by the plan's catalog GUID.
-func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string) error {
-	return pc.updateAccessForPlan(ctx, context, catalogPlanGUID, false)
+func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string) error {
+	return pc.updateAccessForPlan(ctx, context, catalogPlanID, platformBrokerName, false)
 }
 
-func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanGUID string, isEnabled bool) error {
+func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string, isEnabled bool) error {
 	metadata := &Metadata{}
 	if err := json.Unmarshal(context, metadata); err != nil {
 		return err
 	}
 
-	plan, err := pc.getPlanForCatalogPlanGUID(ctx, catalogPlanGUID)
+	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, catalogPlanID, platformBrokerName)
 	if err != nil {
 		return err
 	}
@@ -140,21 +139,32 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 	return servicePlan, nil
 }
 
-func (pc *PlatformClient) getPlanForCatalogPlanGUID(ctx context.Context, catalogPlanGUID string) (cfclient.ServicePlan, error) {
-	plans, err := pc.getServicePlans(ctx, []*types.ServicePlan{&types.ServicePlan{
-		CatalogID: catalogPlanGUID,
-	}})
-
+func (pc *PlatformClient) getPlanForCatalogPlanIDAndBrokerName(ctx context.Context, catalogPlanGUID, brokerName string) (cfclient.ServicePlan, error) {
+	brokers, err := pc.getBrokersByName(ctx, []string{brokerName})
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}
-	if len(plans) == 0 {
-		return cfclient.ServicePlan{}, errors.Errorf("zero plans with catalog plan GUID = %s found", catalogPlanGUID)
+	if len(brokers) == 0 {
+		return cfclient.ServicePlan{}, errors.Errorf("no brokers found for broker name %s", brokerName)
 	}
-	if len(plans) > 1 {
-		return cfclient.ServicePlan{}, errors.Errorf("more than one plan with catalog plan GUID = %s found", catalogPlanGUID)
-
+	if len(brokers) > 1 {
+		return cfclient.ServicePlan{}, errors.Errorf("more than 1 (%d) brokers found for broker name %s", len(brokers), brokerName)
 	}
 
-	return plans[0], nil
+	services, err := pc.getServicesByBrokers(ctx, brokers)
+	if err != nil {
+		return cfclient.ServicePlan{}, wrapCFError(err)
+	}
+
+	plans, err := pc.getPlansByServices(ctx, services)
+	if err != nil {
+		return cfclient.ServicePlan{}, wrapCFError(err)
+	}
+	for _, plan := range plans {
+		if plan.UniqueId == catalogPlanGUID {
+			return plan, nil
+		}
+	}
+
+	return cfclient.ServicePlan{}, errors.Errorf("no plans for broker with name %s and catalog plan ID = %s found", brokerName, catalogPlanGUID)
 }

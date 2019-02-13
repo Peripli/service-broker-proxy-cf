@@ -18,7 +18,6 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "visibilities-brokers"
   digest = "1:166c15c250f8ca810fc3bf04a6f2b48b034e88fbd55213e486bfff8d107cfe23"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -31,7 +30,8 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "d03ce1759f728126f908ba8c30251f319ef0eb31"
+  revision = "0ed3c5bf22bf4f2253f0a122ab41b896e7330eca"
+  version = "v0.3.0"
 
 [[projects]]
   digest = "1:96e27795a08e49cd656be27a804a376da8a09b603058feeb41a13e21b49f8a5a"
@@ -412,7 +412,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a5c995f005de751522557f2475e0b9270f3dc5fd3349bf3f10f5d426083758f7"
+  digest = "1:92fea33d6753ffdd404d102fe3177d3017744a94d070b3e710d1496f3f8d7b7a"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -422,11 +422,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
+  revision = "3a22650c66bd7f4fb6d1e8072ffd7b75c8a27898"
 
 [[projects]]
   branch = "master"
-  digest = "1:5d7e2a74eac34d558b64bb66772bc8f1a6e113aebf4fd4f5a972958e9e996e4d"
+  digest = "1:d970381c0f85a22bee92b4d585ba4ae3c8399cf6796a241449a20fd33762a16b"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -434,7 +434,7 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "5f6b76b7c9ddc07924f32b15de8f03ceec72d74b"
+  revision = "3e8b2be1363542a95c52ea0796d4a40dacfb5b95"
 
 [[projects]]
   branch = "master"

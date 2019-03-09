@@ -69,12 +69,6 @@ var _ = Describe("CF Env", func() {
 		})
 
 		Context("when VCAP_APPLICATION is present", func() {
-			It("sets app.url", func() {
-				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
-
-				Expect(environment.Get("app.url")).To(Equal("https://example.com"))
-			})
-
 			It("sets server.port", func() {
 				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
 

@@ -8,11 +8,6 @@ import (
 	"reflect"
 )
 
-type envPair struct {
-	key   string
-	value interface{}
-}
-
 // SetCFOverrides overrides some SM environment with values from CF's VCAP environment variables
 func SetCFOverrides(env env.Environment) error {
 	if _, exists := os.LookupEnv("VCAP_APPLICATION"); exists {
@@ -21,24 +16,25 @@ func SetCFOverrides(env env.Environment) error {
 			return fmt.Errorf("could not load VCAP environment: %s", err)
 		}
 
-		setMissingEnvironmentVariables(env,
-			envPair{key: "app.url", value: "https://" + cfEnv.ApplicationURIs[0]},
-			envPair{key: "server.port", value: cfEnv.Port},
-			envPair{key: "cf.client.apiAddress", value: cfEnv.CFAPI},
-		)
+		cfEnvMap := make(map[string]interface{})
+		cfEnvMap["app.url"] = "https://" + cfEnv.ApplicationURIs[0]
+		cfEnvMap["server.port"] = cfEnv.Port
+		cfEnvMap["cf.client.apiAddress"] = cfEnv.CFAPI
+
+		setMissingEnvironmentVariables(env, cfEnvMap)
 	}
 	return nil
 }
 
-func setMissingEnvironmentVariables(env env.Environment, envPairs ...envPair) {
-	for _, pair := range envPairs {
-		currVal := env.Get(pair.key)
-		if currVal == nil || isZeroOfUnderlyingType(currVal) {
-			env.Set(pair.key, pair.value)
+func setMissingEnvironmentVariables(env env.Environment, cfEnv map[string]interface{}) {
+	for key, value := range cfEnv {
+		currVal := env.Get(key)
+		if currVal == nil || isZeroValue(currVal) {
+			env.Set(key, value)
 		}
 	}
 }
 
-func isZeroOfUnderlyingType(v interface{}) bool {
+func isZeroValue(v interface{}) bool {
 	return reflect.DeepEqual(v, reflect.Zero(reflect.TypeOf(v)).Interface())
 }

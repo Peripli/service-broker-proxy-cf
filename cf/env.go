@@ -32,7 +32,8 @@ func SetCFOverrides(env env.Environment) error {
 
 func setMissingEnvironmentVariables(env env.Environment, envPairs ...envPair) {
 	for _, pair := range envPairs {
-		if isZeroOfUnderlyingType(env.Get(pair.key)) {
+		currVal := env.Get(pair.key)
+		if currVal == nil || isZeroOfUnderlyingType(currVal) {
 			env.Set(pair.key, pair.value)
 		}
 	}

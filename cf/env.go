@@ -2,11 +2,16 @@ package cf
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/Peripli/service-manager/pkg/env"
 	"github.com/cloudfoundry-community/go-cfenv"
+	"os"
+	"reflect"
 )
+
+type envPair struct {
+	key   string
+	value interface{}
+}
 
 // SetCFOverrides overrides some SM environment with values from CF's VCAP environment variables
 func SetCFOverrides(env env.Environment) error {
@@ -16,8 +21,23 @@ func SetCFOverrides(env env.Environment) error {
 			return fmt.Errorf("could not load VCAP environment: %s", err)
 		}
 
-		env.Set("server.port", cfEnv.Port)
-		env.Set("cf.client.apiAddress", cfEnv.CFAPI)
+		setMissingEnvironmentVariables(env,
+			envPair{key: "app.url", value: "https://" + cfEnv.ApplicationURIs[0]},
+			envPair{key: "server.port", value: cfEnv.Port},
+			envPair{key: "cf.client.apiAddress", value: cfEnv.CFAPI},
+		)
 	}
 	return nil
+}
+
+func setMissingEnvironmentVariables(env env.Environment, envPairs ...envPair) {
+	for _, pair := range envPairs {
+		if isZeroOfUnderlyingType(env.Get(pair.key)) {
+			env.Set(pair.key, pair.value)
+		}
+	}
+}
+
+func isZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }

@@ -69,16 +69,46 @@ var _ = Describe("CF Env", func() {
 		})
 
 		Context("when VCAP_APPLICATION is present", func() {
-			It("sets server.port", func() {
-				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+			Context("no env values already", func() {
+				It("sets app.url", func() {
+					Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
 
-				Expect(environment.Get("server.port")).To(Equal(8080))
+					Expect(environment.Get("app.url")).To(Equal("https://example.com"))
+				})
+
+				It("sets server.port", func() {
+					Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+					Expect(environment.Get("server.port")).To(Equal(8080))
+				})
+
+				It("sets cf.client.apiAddress", func() {
+					Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+					Expect(environment.Get("cf.client.apiAddress")).To(Equal("https://example.com"))
+				})
 			})
+			Context("default env values are set", func() {
+				It("overrides app.url", func() {
+					environment.Set("app.url", "")
+					Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
 
-			It("sets cf.client.apiAddress", func() {
-				Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+					Expect(environment.Get("app.url")).To(Equal("https://example.com"))
+				})
 
-				Expect(environment.Get("cf.client.apiAddress")).To(Equal("https://example.com"))
+				It("overrides server.port", func() {
+					environment.Set("server.port", 0)
+					Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+					Expect(environment.Get("server.port")).To(Equal(8080))
+				})
+
+				It("overrides cf.client.apiAddress", func() {
+					environment.Set("cf.client.apiAddress", "")
+					Expect(SetCFOverrides(environment)).ShouldNot(HaveOccurred())
+
+					Expect(environment.Get("cf.client.apiAddress")).To(Equal("https://example.com"))
+				})
 			})
 		})
 	})

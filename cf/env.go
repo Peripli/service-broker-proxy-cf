@@ -38,6 +38,6 @@ func setMissingEnvironmentVariables(env env.Environment, envPairs ...envPair) {
 	}
 }
 
-func isZeroOfUnderlyingType(x interface{}) bool {
-	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
+func isZeroOfUnderlyingType(v interface{}) bool {
+	return reflect.DeepEqual(v, reflect.Zero(reflect.TypeOf(v)).Interface())
 }

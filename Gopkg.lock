@@ -18,7 +18,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:166c15c250f8ca810fc3bf04a6f2b48b034e88fbd55213e486bfff8d107cfe23"
+  digest = "1:f8907c82a8ef3ecbe767e1095f43578be3a8995badf92c171306b9f1b4cab9e0"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -30,11 +30,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "eb4acad4445ed0d91a2771714b06ba13fd6cb9ee"
-  version = "v0.3.1"
+  revision = "2883281f35f349514c746ba07c9aff856fdf4db2"
+  version = "v0.3.2"
 
 [[projects]]
-  digest = "1:d8133a3806b4a247f760cdd794ac0b5ae81861c690da7724b2f5642fff2d3e76"
+  digest = "1:369e92b9f1b44bd11d26e8727598f8d4d81734272d875aa1b3d4dc0c1bf0353e"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -66,8 +66,8 @@
     "storage",
   ]
   pruneopts = "UT"
-  revision = "f9aebbdffa79e131ec7a365276abc9c4348dc518"
-  version = "v0.1.10"
+  revision = "a4dafb1b2c7855cd7c07fab4188469bddfab2992"
+  version = "v0.1.11"
 
 [[projects]]
   branch = "master"
@@ -78,12 +78,12 @@
   revision = "f136f9222381e2fea5099f62e4b751dcb660ff82"
 
 [[projects]]
-  digest = "1:d689318918dac8435731a16f090349f48f3758a3dbe5f967e913185bf264abaf"
+  digest = "1:00e6c96836e445755d954570d5b3c9cb2f281dee55be065016c64f105f9d6e96"
   name = "github.com/cloudfoundry-community/go-cfenv"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f920e9562d5f951cbf11785728f67258c38a10d0"
-  version = "v1.17.0"
+  revision = "20ea9de4dd5d3e052f2df72aab439453d7445f31"
+  version = "v1.18.0"
 
 [[projects]]
   digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
@@ -331,15 +331,15 @@
   version = "v1.0.4"
 
 [[projects]]
-  digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
+  digest = "1:bb495ec276ab82d3dd08504bbc0594a65de8c3b22c6f2aaa92d05b73fbf3a82e"
   name = "github.com/spf13/afero"
   packages = [
     ".",
     "mem",
   ]
   pruneopts = "UT"
-  revision = "f4711e4db9e9a1d3887343acb72b2bbfc2f686f5"
-  version = "v1.2.1"
+  revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
+  version = "v1.2.2"
 
 [[projects]]
   digest = "1:516e71bed754268937f57d4ecb190e01958452336fa73dbac880894164e91c1f"
@@ -391,11 +391,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:88611438dc87bda5862e2d12d8e901bac8ebfd4a9034a896d2f69835360439a7"
+  digest = "1:ddfe0a54e5f9b29536a6d7b2defa376f2cb2b6e4234d676d7ff214d5b097cb50"
   name = "github.com/tidwall/pretty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "65a9db5fad5105a89e17f38adcc9878685be6d78"
+  revision = "1166b9ac2b65e46a43d8618d30d1554f4652d49b"
 
 [[projects]]
   digest = "1:b70c951ba6fdeecfbd50dabe95aa5e1b973866ae9abbece46ad60348112214f2"
@@ -407,7 +407,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e33d5efebca6ca5a9bb293b80e8cbd26488e1f9c0fa965b5b0de4b65c2c55e87"
+  digest = "1:bac77e18329fa88ea880b9a7cfcb8fd25d8b835397dd9143f4b162a43e35bb60"
   name = "golang.org/x/crypto"
   packages = [
     "ed25519",
@@ -416,11 +416,11 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
+  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
 
 [[projects]]
   branch = "master"
-  digest = "1:92fea33d6753ffdd404d102fe3177d3017744a94d070b3e710d1496f3f8d7b7a"
+  digest = "1:6b7a62014403d1601045523a295961ba99befbb5994a916e53a1db2ac8fa1407"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -430,11 +430,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
+  revision = "63eda1eb0650888965ead1296efd04d0b2b61128"
 
 [[projects]]
   branch = "master"
-  digest = "1:13e1dd706312f7b3ae1ed16a9e251e7b56240a9e09db24de6a4f24bf57968676"
+  digest = "1:ea31c184eb8c9cfa35e072f99f28019f0947e41e976e171916d0bf6e145a59c4"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -442,18 +442,18 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "e64efc72b421e893cbf63f17ba2221e7d6d0b0f3"
+  revision = "c85d3e98c914e3a33234ad863dcbff5dbc425bb8"
 
 [[projects]]
   branch = "master"
-  digest = "1:944736317d4f2fb1c1015ef9ca05fd9313b4e19f1128901cc678f636435fa9b0"
+  digest = "1:6b3e6ddcebac95be1d690dbd53b5aa2e520715becb7e521bb526ccf3b4c53c15"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "fead79001313d15903fb4605b4a1b781532cd93e"
+  revision = "f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"
@@ -485,7 +485,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:6f3bd49ddf2e104e52062774d797714371fac1b8bddfd8e124ce78e6b2264a10"
+  digest = "1:6eb6e3b6d9fffb62958cf7f7d88dbbe1dd6839436b0802e194c590667a40412a"
   name = "google.golang.org/appengine"
   packages = [
     "internal",
@@ -497,8 +497,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
-  version = "v1.4.0"
+  revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -531,11 +531,11 @@
 
 [[projects]]
   branch = "v2"
-  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  digest = "1:2d56cd111a870bdf3ee37601877effe1fc79b8983645c147846f4769b6eb7051"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  revision = "7b8349ac747c6a24702b762d2c4fd9266cf4f1d6"
 
 [solve-meta]
   analyzer-name = "dep"

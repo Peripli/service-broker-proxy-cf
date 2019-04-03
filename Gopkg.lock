@@ -18,7 +18,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "configurable-broker-suffix"
+  branch = "master"
   digest = "1:4758a42a575c7218a99826cedcc9c894ce5d3a496254fbb6598928707672e3b4"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -31,7 +31,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "6b3b25aac6de344742f362424a71a0cc82ed3563"
+  revision = "6ef1ec6a4b88b0921b8e554f74dc5bda3613efd3"
 
 [[projects]]
   digest = "1:e2ed70e04f89f14b441bebd814c6a9e86deb475e6416477835e63bffa555ef56"

@@ -18,8 +18,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:4758a42a575c7218a99826cedcc9c894ce5d3a496254fbb6598928707672e3b4"
+  digest = "1:03cb487b7ff67e1f417009b2499dbf1b5b1ad1c0cc511e510f50e5ca246733cb"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,24 +30,20 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "6ef1ec6a4b88b0921b8e554f74dc5bda3613efd3"
+  revision = "233160215c8b0635cba2c86e86643da9b32e28e5"
+  version = "v0.3.4"
 
 [[projects]]
-  digest = "1:e2ed70e04f89f14b441bebd814c6a9e86deb475e6416477835e63bffa555ef56"
+  digest = "1:39c2c28f64ebe0d87e693e895806d929ff71359bb96142e31a49d4ded5be78fd"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
-    "api/broker",
     "api/filters",
     "api/filters/authn/basic",
     "api/filters/authn/oauth",
     "api/healthcheck",
     "api/info",
     "api/osb",
-    "api/platform",
-    "api/service_offering",
-    "api/service_plan",
-    "api/visibility",
     "pkg/env",
     "pkg/env/envfakes",
     "pkg/health",
@@ -57,6 +52,7 @@
     "pkg/security",
     "pkg/security/authenticators",
     "pkg/security/filters",
+    "pkg/security/http",
     "pkg/security/middlewares",
     "pkg/server",
     "pkg/types",
@@ -64,10 +60,11 @@
     "pkg/util/slice",
     "pkg/web",
     "storage",
+    "storage/catalog",
   ]
   pruneopts = "UT"
-  revision = "0d118c51d27d52c59d40b7af7f061bda3f195c17"
-  version = "v0.1.12"
+  revision = "33d6c67ae7a768e4a85c1f4f9664b6a1616e7cea"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"
@@ -132,14 +129,6 @@
   pruneopts = "UT"
   revision = "d41eeda0759468834c84365a32d1b1ec4264c75f"
   version = "v3.1.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
@@ -280,12 +269,12 @@
   version = "v2.1.0"
 
 [[projects]]
-  digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
+  digest = "1:e0f50a07c0def90588d69f77178712c6fdc67eb6576365f551cce98b44b501bf"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
-  version = "v1.2.0"
+  revision = "63909f0a90ab0f36909e8e044e46ace10cf13ba2"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -294,14 +283,6 @@
   pruneopts = "UT"
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
   version = "v0.8.1"
-
-[[projects]]
-  digest = "1:8658f775ba5edb37ede96d8ec9eaecdfe06bc4aef1776152070185e6513dc0cc"
-  name = "github.com/pmorie/go-open-service-broker-client"
-  packages = ["v2"]
-  pruneopts = "UT"
-  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
-  version = "0.0.10"
 
 [[projects]]
   branch = "master"
@@ -416,7 +397,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
+  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
 
 [[projects]]
   branch = "master"
@@ -430,7 +411,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "74de082e2cca95839e88aa0aeee5aadf6ce7710f"
+  revision = "eb5bcb51f2a31c7d5141d810b70815c05d9c9146"
 
 [[projects]]
   branch = "master"
@@ -442,18 +423,18 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "c85d3e98c914e3a33234ad863dcbff5dbc425bb8"
+  revision = "9f3314589c9a9136388751d9adae6b0ed400978a"
 
 [[projects]]
   branch = "master"
-  digest = "1:f6321364014431568a59b49b449d6ae60c017f3afa3f4ab787a5636853b16b1e"
+  digest = "1:503f66aac79cb9135d73679c7fa3e95a6fad82a3da399c505ea282b50ff03723"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "9eb1bfa1ce65ae8a6ff3114b0aaf9a41a6cf3560"
+  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"

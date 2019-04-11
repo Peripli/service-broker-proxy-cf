@@ -30,11 +30,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "233160215c8b0635cba2c86e86643da9b32e28e5"
-  version = "v0.3.4"
+  revision = "06247c5aebba908bbf27551d5acfbf6691cde239"
+  version = "v0.3.5"
 
 [[projects]]
-  digest = "1:39c2c28f64ebe0d87e693e895806d929ff71359bb96142e31a49d4ded5be78fd"
+  digest = "1:9d5386b79a56e4c03b74d4f1b683306445213aee48601a88b24b9caaaa0f942b"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -63,8 +63,8 @@
     "storage/catalog",
   ]
   pruneopts = "UT"
-  revision = "33d6c67ae7a768e4a85c1f4f9664b6a1616e7cea"
-  version = "v0.2.0"
+  revision = "b3f04f83fe60ebdf3af26d9fc814625142d41667"
+  version = "v0.2.1"
 
 [[projects]]
   branch = "master"
@@ -427,14 +427,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:503f66aac79cb9135d73679c7fa3e95a6fad82a3da399c505ea282b50ff03723"
+  digest = "1:c0b0b67bb6323f4f603950892199a243ee78bbb943605085b6f2dc72daa93bd1"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
+  revision = "0ad05ae3009d6413d3363aa09b350b2ec37daf09"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"
@@ -491,7 +491,7 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:c0c30f47f9c16f227ba82f0bdfd14fa968453c30b7677a07903b3b4f34b98d49"
+  digest = "1:8c05919580be8a5be668709d7e5a69d5cd19b8ee9f23d62ce5b10d3457bf6a13"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -499,8 +499,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "628223f44a71f715d2881ea69afc795a1e9c01be"
-  version = "v2.3.0"
+  revision = "730df5f748271903322feb182be83b43ebbbe27d"
+  version = "v2.3.1"
 
 [[projects]]
   branch = "v1"

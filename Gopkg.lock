@@ -18,8 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "fix-logging"
-  digest = "1:02d5474b88487b1478982cd619c47ba7019c83f371bed1c54eeb37251e183f62"
+  branch = "fix-reconciliation"
+  digest = "1:f98ce15660b5d8cb91c94b90a026f6b737b0fd836181c891bb4488d5837c6803"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,7 +31,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "2980b12c7f0ad3a1322298ad62992fab816175b0"
+  revision = "3a1a9cccdc1988b4a0b669c83e9a7b5acf397cb8"
 
 [[projects]]
   digest = "1:0d713a1598a657a97e66a6bcc598515ed2ea8156840c6e7e521201a035a48bc7"
@@ -434,7 +434,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "16da32be82c5df9a338c27758247c0b7b0bd8fea"
+  revision = "3fd5a3612ccd7907f26270fa92579a0f2f76f734"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"

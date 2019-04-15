@@ -35,7 +35,7 @@
 
 [[constraint]]
   name = "github.com/Peripli/service-broker-proxy"
-  branch = "fix-logging"
+  branch = "fix-reconciliation"
 
 [[constraint]]
   name = "github.com/cloudfoundry-community/go-cfenv"

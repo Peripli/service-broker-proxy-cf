@@ -30,7 +30,7 @@ func (pc *PlatformClient) VisibilityScopeLabelKey() string {
 // The visibilities are taken from CF cloud controller.
 // For public plans, visibilities are created so that sync with sm visibilities is possible
 // nolint: gocyclo
-func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNames []string) ([]platform.ServiceVisibilityEntity, error) {
+func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNames []string) ([]*platform.ServiceVisibilityEntity, error) {
 	logger := log.C(ctx)
 	logger.Debugf("Gettings brokers from platform for names: %s", brokerNames)
 	platformBrokers, err := pc.getBrokersByName(ctx, brokerNames)
@@ -85,14 +85,14 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 		}
 	}
 
-	result := make([]platform.ServiceVisibilityEntity, 0, len(visibilities)+len(publicPlans))
+	result := make([]*platform.ServiceVisibilityEntity, 0, len(visibilities)+len(publicPlans))
 
 	for _, visibility := range visibilities {
 		labels := make(map[string]string)
 		labels[OrgLabelKey] = visibility.OrganizationGuid
 		planMapping := planUUIDToMapping[visibility.ServicePlanGuid]
 
-		result = append(result, platform.ServiceVisibilityEntity{
+		result = append(result, &platform.ServiceVisibilityEntity{
 			Public:             false,
 			CatalogPlanID:      planMapping.PlanCatalogID,
 			PlatformBrokerName: planMapping.PlatformBrokerName,
@@ -101,7 +101,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	}
 
 	for _, plan := range publicPlans {
-		result = append(result, platform.ServiceVisibilityEntity{
+		result = append(result, &platform.ServiceVisibilityEntity{
 			Public:             true,
 			CatalogPlanID:      plan.UniqueId,
 			PlatformBrokerName: planUUIDToMapping[plan.Guid].PlatformBrokerName,

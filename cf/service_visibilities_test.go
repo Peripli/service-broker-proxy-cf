@@ -30,7 +30,9 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		generatedCFServices     map[string]*cfclient.Service
 		generatedCFBrokers      map[string]*cfclient.ServiceBroker
 		generatedCFVisibilities map[string]*cfclient.ServicePlanVisibility
-		plansCount              int
+		expectedCFVisibiltiies  []*platform.ServiceVisibilityEntity
+
+		plansCount int
 	)
 
 	generateCFBrokers := func(count int) map[string]*cfclient.ServiceBroker {
@@ -101,20 +103,46 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		return plans
 	}
 
-	generateCFVisibilities := func(plans map[string]*cfclient.ServicePlan) map[string]*cfclient.ServicePlanVisibility {
+	generateCFVisibilities := func(plans map[string]*cfclient.ServicePlan) (map[string]*cfclient.ServicePlanVisibility, []*platform.ServiceVisibilityEntity) {
 		visibilities := make(map[string]*cfclient.ServicePlanVisibility)
+		expectedVisibilities := make([]*platform.ServiceVisibilityEntity, 0)
 		for _, plan := range plans {
+			visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
+			var brokerGuid string
+			for _, service := range generatedCFServices {
+				if service.Guid == plan.ServiceGuid {
+					brokerGuid = service.ServiceBrokerGuid
+				}
+			}
+			Expect(brokerGuid).ToNot(BeEmpty())
 			if !plan.Public {
-				visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
+
 				visibilities[visibilityGuid] = &cfclient.ServicePlanVisibility{
 					ServicePlanGuid:  plan.Guid,
 					ServicePlanUrl:   "http://example.com",
 					Guid:             visibilityGuid,
 					OrganizationGuid: orgGUID,
 				}
+
+				expectedVisibilities = append(expectedVisibilities, &platform.ServiceVisibilityEntity{
+					Public:             false,
+					CatalogPlanID:      plan.UniqueId,
+					PlatformBrokerName: "sm-proxy-" + brokerGuid,
+					Labels: map[string]string{
+						client.VisibilityScopeLabelKey(): orgGUID,
+					},
+				})
+			} else {
+				expectedVisibilities = append(expectedVisibilities, &platform.ServiceVisibilityEntity{
+					Public:             true,
+					CatalogPlanID:      plan.UniqueId,
+					PlatformBrokerName: "sm-proxy-" + brokerGuid,
+					Labels:             make(map[string]string),
+				})
 			}
 		}
-		return visibilities
+
+		return visibilities, expectedVisibilities
 	}
 
 	parseFilterQuery := func(plansQuery, queryKey string) map[string]bool {
@@ -277,12 +305,12 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	BeforeEach(func() {
 		ctx = context.TODO()
 
-		plansCount = 200
+		plansCount = 10
 
-		generatedCFBrokers = generateCFBrokers(200)
+		generatedCFBrokers = generateCFBrokers(5)
 		generatedCFServices = generateCFServices(generatedCFBrokers)
 		generatedCFPlans = generateCFPlans(generatedCFServices, plansCount, plansCount)
-		generatedCFVisibilities = generateCFVisibilities(generatedCFPlans)
+		generatedCFVisibilities, expectedCFVisibiltiies = generateCFVisibilities(generatedCFPlans)
 	})
 
 	Describe("Get visibilities when visibilities are available", func() {
@@ -296,6 +324,9 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				platformVisibilities, err := client.GetVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(platformVisibilities).Should(HaveLen(len(generatedCFVisibilities) + plansCount))
+				for _, expectedCFVisibility := range expectedCFVisibiltiies {
+					Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
+				}
 			})
 		})
 

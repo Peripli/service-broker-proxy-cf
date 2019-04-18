@@ -64,7 +64,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	planUUIDToMapping := make(map[string]planBrokerIDs)
 	platformBrokerGUIDToBrokerName := make(map[string]string)
 
-	publicPlans := make([]*cfclient.ServicePlan, 0)
+	publicPlans := make([]cfclient.ServicePlan, 0)
 
 	for _, broker := range platformBrokers {
 		// Extract SM broker ID from platform broker name
@@ -73,7 +73,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 
 	for _, plan := range plans {
 		if plan.Public {
-			publicPlans = append(publicPlans, &plan)
+			publicPlans = append(publicPlans, plan)
 		}
 		for _, service := range services {
 			if plan.ServiceGuid == service.Guid {

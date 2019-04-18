@@ -18,7 +18,6 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
   digest = "1:c8039bddebda9a3c65b85d656230d6b07afa1a058f92f6614c8e96f323dafae6"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -31,10 +30,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "da0275d7daeea89b9bf1cd6f7f7f77cc7f12039d"
+  revision = "5bd716319bf02af70e73c9e2b37898f728810f57"
+  version = "v0.3.7"
 
 [[projects]]
-  digest = "1:0d713a1598a657a97e66a6bcc598515ed2ea8156840c6e7e521201a035a48bc7"
+  digest = "1:98e3fad12153b0568abff13940dcf97ab072d80d869fc7538f187639f0c145c0"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -63,8 +63,8 @@
     "storage/catalog",
   ]
   pruneopts = "UT"
-  revision = "d9dcfac9658b892715c9b85bbee6f1ed88bf6969"
-  version = "v0.2.2"
+  revision = "b00c515277cde8158eb7fe0b3ff3b706a1ac0940"
+  version = "v0.2.3"
 
 [[projects]]
   branch = "master"
@@ -397,7 +397,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "88737f569e3a9c7ab309cdc09a07fe7fc87233c3"
+  revision = "f416ebab96af27ca70b6e5c23d6a0747530da626"
 
 [[projects]]
   branch = "master"
@@ -530,6 +530,7 @@
     "github.com/Peripli/service-manager/pkg/log",
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-community/go-cfenv",
+    "github.com/gofrs/uuid",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/ghttp",

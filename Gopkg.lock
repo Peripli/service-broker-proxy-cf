@@ -18,7 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:1efaad8d617a8e9a3f25ee0f621c5a87cc7c76f66b1c24f2227c1cd1bca9ac21"
+  branch = "notifications-applying"
+  digest = "1:72d6bce7ddcf9e111ec5b3c8a5ad1249b4357e6323a03c20fe88bf18ed6c5809"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -26,15 +27,17 @@
     "pkg/osb",
     "pkg/platform",
     "pkg/sbproxy",
+    "pkg/sbproxy/notifications",
+    "pkg/sbproxy/notifications/handlers",
     "pkg/sbproxy/reconcile",
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "1752c94d4259fdb1d5dc0f6af3312819e0c809b7"
-  version = "v0.3.8"
+  revision = "be25a918992a75c0f955054023ef1a614fe57cfc"
 
 [[projects]]
-  digest = "1:98e3fad12153b0568abff13940dcf97ab072d80d869fc7538f187639f0c145c0"
+  branch = "notifications"
+  digest = "1:2455711bbf343559609f41b05e986962ef874cc473003bf33c6db769ea4dfa54"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -63,8 +66,7 @@
     "storage/catalog",
   ]
   pruneopts = "UT"
-  revision = "b00c515277cde8158eb7fe0b3ff3b706a1ac0940"
-  version = "v0.2.3"
+  revision = "d3ad698359304875688641af357eb6a11b0eef61"
 
 [[projects]]
   branch = "master"
@@ -397,7 +399,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "f416ebab96af27ca70b6e5c23d6a0747530da626"
+  revision = "df01cb2cc480549d72034218dd98bf97671450ac"
 
 [[projects]]
   branch = "master"
@@ -411,7 +413,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "1da14a5a36f220ea3f03470682b737b1dfd5de22"
+  revision = "afa5a82059c6356159f699d81beff22a81842231"
 
 [[projects]]
   branch = "master"
@@ -427,14 +429,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2c39c055e721c58e7d86ecbb2446b31b3aac5e8ba0c3e37c6252696ae14fce6b"
+  digest = "1:a29b488ff122fd8033d43c7cfcc5a0f5b2b1faf5256e8b3bd1568c451f8c6b64"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "d20716ef9d2f212c59fc1a9a976175a8e32691ed"
+  revision = "e8e3143a4f4a00f1fafef0dd82ba78223281b01b"
 
 [[projects]]
   digest = "1:4392fcf42d5cf0e3ff78c96b2acf8223d49e4fdc53eb77c99d2f8dfe4680e006"

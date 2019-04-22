@@ -28,6 +28,10 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBro
 	return clientBrokers, nil
 }
 
+func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*platform.ServiceBroker, error) {
+	return nil, nil
+}
+
 // CreateBroker implements service-broker-proxy/pkg/cf/Client.CreateBroker and provides logic for
 // registering a new broker at the cf.
 func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {

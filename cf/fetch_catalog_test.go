@@ -98,7 +98,7 @@ var _ = Describe("Client FetchCatalog", func() {
 			It("propagates the error", func() {
 				err = client.Fetch(ctx, testBroker)
 
-				assertErrIsCFError(err, ccResponseErr)
+				assertErrCauseIsCFError(err, ccResponseErr)
 			})
 		})
 	})

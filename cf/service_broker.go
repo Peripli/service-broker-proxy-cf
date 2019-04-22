@@ -8,7 +8,7 @@ import (
 )
 
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
-// obtaining the brokers that are already registered at the cf.
+// obtaining the brokers that are already registered in CF
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBroker, error) {
 	brokers, err := pc.ListServiceBrokers()
 	if err != nil {
@@ -28,12 +28,23 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]platform.ServiceBro
 	return clientBrokers, nil
 }
 
+// GetBrokerByName implements service-broker-proxy/pkg/cf/Client.GetBrokerByName and provides logic for getting a broker by name
+// that is already registered in CF
 func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*platform.ServiceBroker, error) {
-	return nil, nil
+	broker, err := pc.GetServiceBrokerByName(name)
+	if err != nil {
+		return nil, wrapCFError(err)
+	}
+
+	return &platform.ServiceBroker{
+		GUID:      broker.Guid,
+		Name:      broker.Name,
+		BrokerURL: broker.BrokerURL,
+	}, nil
 }
 
 // CreateBroker implements service-broker-proxy/pkg/cf/Client.CreateBroker and provides logic for
-// registering a new broker at the cf.
+// registering a new broker in CF
 func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.CreateServiceBrokerRequest{
@@ -58,7 +69,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 }
 
 // DeleteBroker implements service-broker-proxy/pkg/cf/Client.DeleteBroker and provides logic for
-// registering a new broker at the cf.
+// registering a new broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
 
 	if err := pc.DeleteServiceBroker(r.GUID); err != nil {
@@ -69,7 +80,7 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 }
 
 // UpdateBroker implements service-broker-proxy/pkg/cf/Client.UpdateBroker and provides logic for
-// updating a broker registration at the cf.
+// updating a broker registration in CF
 func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.UpdateServiceBrokerRequest{

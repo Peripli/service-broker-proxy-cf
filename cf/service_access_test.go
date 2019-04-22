@@ -1068,7 +1068,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			It("returns an error", func() {
 				_, err := client.UpdateServicePlan(planGUID, requestBody)
 
-				assertErrIsCFError(err, ccResponseErrBody)
+				assertErrCauseIsCFError(err, ccResponseErrBody)
 
 			})
 		})

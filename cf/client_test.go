@@ -120,7 +120,7 @@ func verifyReqReceived(server *ghttp.Server, times int, method, path string, raw
 	}
 }
 
-func assertErrIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
+func assertErrCauseIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
 	cause := errors.Cause(actualErr).(cf.CloudFoundryErr)
 	Expect(cause).To(MatchError(expectedErr))
 }

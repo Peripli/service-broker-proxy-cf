@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
@@ -35,11 +36,12 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 type compositeError []error
 
 func (ce compositeError) Error() string {
-	result := ""
+	errs := make([]string, 0, len(ce))
 	for _, e := range ce {
-		result += fmt.Sprintln(e.Error())
+		errs = append(errs, fmt.Sprintln(e.Error()))
 	}
-	return result
+
+	return strings.Join(errs, "")
 }
 
 func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, isEnabled bool) error {

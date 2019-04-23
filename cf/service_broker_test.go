@@ -139,7 +139,6 @@ var _ = Describe("Client ServiceBroker", func() {
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/v2/service_brokers"),
-					//ghttp.VerifyFormKV("q"),
 					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
 				),
 			)

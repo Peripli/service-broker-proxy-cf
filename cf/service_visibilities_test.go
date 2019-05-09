@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -39,11 +40,12 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		for i := 0; i < count; i++ {
 			UUID, err := uuid.NewV4()
 			Expect(err).ShouldNot(HaveOccurred())
-
+			indexStr := strconv.Itoa(i)
 			brokerGuid := "broker-" + UUID.String()
+			brokerName := "broker" + indexStr
 			brokers = append(brokers, &cfclient.ServiceBroker{
 				Guid: brokerGuid,
-				Name: brokerPrefix + brokerGuid,
+				Name: brokerPrefix + brokerName,
 			})
 		}
 		return brokers
@@ -103,10 +105,19 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			for _, plan := range plans {
 				visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
 				var brokerGuid string
+				var brokerName string
 				for _, services := range generatedCFServices {
 					for _, service := range services {
 						if service.Guid == plan.ServiceGuid {
 							brokerGuid = service.ServiceBrokerGuid
+							var localBrokerName string
+							for _, cfBroker := range generatedCFBrokers {
+								if cfBroker.Guid == brokerGuid {
+									localBrokerName = cfBroker.Name
+								}
+							}
+							Expect(localBrokerName).ToNot(BeEmpty())
+							brokerName = localBrokerName
 						}
 					}
 				}
@@ -123,7 +134,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
 						Public:             false,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: brokerName,
 						Labels: map[string]string{
 							client.VisibilityScopeLabelKey(): orgGUID,
 						},
@@ -132,7 +143,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
 						Public:             true,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: brokerName,
 						Labels:             make(map[string]string),
 					}
 				}

@@ -3,6 +3,7 @@ package cf_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -39,11 +40,11 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		for i := 0; i < count; i++ {
 			UUID, err := uuid.NewV4()
 			Expect(err).ShouldNot(HaveOccurred())
-
 			brokerGuid := "broker-" + UUID.String()
+			brokerName := fmt.Sprintf("broker%d", i)
 			brokers = append(brokers, &cfclient.ServiceBroker{
 				Guid: brokerGuid,
-				Name: brokerPrefix + brokerGuid,
+				Name: brokerPrefix + brokerName,
 			})
 		}
 		return brokers
@@ -102,15 +103,20 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		for _, plans := range plansMap {
 			for _, plan := range plans {
 				visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
-				var brokerGuid string
+				var brokerName string
 				for _, services := range generatedCFServices {
 					for _, service := range services {
 						if service.Guid == plan.ServiceGuid {
-							brokerGuid = service.ServiceBrokerGuid
+							brokerName = ""
+							for _, cfBroker := range generatedCFBrokers {
+								if cfBroker.Guid == service.ServiceBrokerGuid {
+									brokerName = cfBroker.Name
+								}
+							}
 						}
 					}
 				}
-				Expect(brokerGuid).ToNot(BeEmpty())
+				Expect(brokerName).ToNot(BeEmpty())
 
 				if !plan.Public {
 					visibilities[plan.Guid] = &cfclient.ServicePlanVisibility{
@@ -123,7 +129,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
 						Public:             false,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: brokerName,
 						Labels: map[string]string{
 							client.VisibilityScopeLabelKey(): orgGUID,
 						},
@@ -132,12 +138,11 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
 						Public:             true,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: brokerName,
 						Labels:             make(map[string]string),
 					}
 				}
 			}
-
 		}
 
 		return visibilities, expectedVisibilities

@@ -3,8 +3,8 @@ package cf_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -40,9 +40,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		for i := 0; i < count; i++ {
 			UUID, err := uuid.NewV4()
 			Expect(err).ShouldNot(HaveOccurred())
-			indexStr := strconv.Itoa(i)
 			brokerGuid := "broker-" + UUID.String()
-			brokerName := "broker" + indexStr
+			brokerName := fmt.Sprintf("broker%d", i)
 			brokers = append(brokers, &cfclient.ServiceBroker{
 				Guid: brokerGuid,
 				Name: brokerPrefix + brokerName,
@@ -104,24 +103,20 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		for _, plans := range plansMap {
 			for _, plan := range plans {
 				visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
-				var brokerGuid string
 				var brokerName string
 				for _, services := range generatedCFServices {
 					for _, service := range services {
 						if service.Guid == plan.ServiceGuid {
-							brokerGuid = service.ServiceBrokerGuid
-							var localBrokerName string
+							brokerName = ""
 							for _, cfBroker := range generatedCFBrokers {
-								if cfBroker.Guid == brokerGuid {
-									localBrokerName = cfBroker.Name
+								if cfBroker.Guid == service.ServiceBrokerGuid {
+									brokerName = cfBroker.Name
 								}
 							}
-							Expect(localBrokerName).ToNot(BeEmpty())
-							brokerName = localBrokerName
 						}
 					}
 				}
-				Expect(brokerGuid).ToNot(BeEmpty())
+				Expect(brokerName).ToNot(BeEmpty())
 
 				if !plan.Public {
 					visibilities[plan.Guid] = &cfclient.ServicePlanVisibility{
@@ -148,7 +143,6 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					}
 				}
 			}
-
 		}
 
 		return visibilities, expectedVisibilities

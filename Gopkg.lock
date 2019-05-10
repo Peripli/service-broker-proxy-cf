@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "notifications"
-  digest = "1:e5d5b8c3f7c17f460999d7c1b29e1d4b99255bd624505be88455b9f976ac5310"
+  digest = "1:879879eaada2b32a75fc45fcecfbc6e13db6e61931cb278f6d832e8a38730d92"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -33,7 +33,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "2560711670a09bfe5abe5edc28d080f5580651d6"
+  revision = "198cef0ccf27c832a078a37a017a54f74eef3085"
 
 [[projects]]
   branch = "notifications"

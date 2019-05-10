@@ -19,8 +19,7 @@ import (
 var _ = Describe("Client Service Plan Visibilities", func() {
 
 	const (
-		brokerPrefix = "sm-proxy-"
-		orgGUID      = "testorgguid"
+		orgGUID = "testorgguid"
 	)
 
 	var (
@@ -123,7 +122,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
 						Public:             false,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: brokerPrefix + brokerGuid,
 						Labels: map[string]string{
 							client.VisibilityScopeLabelKey(): orgGUID,
 						},
@@ -132,7 +131,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
 						Public:             true,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: brokerPrefix + brokerGuid,
 						Labels:             make(map[string]string),
 					}
 				}

@@ -133,7 +133,7 @@ func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
 		URL:          "http://10.0.2.2",
 		Username:     "user",
 		Password:     "password",
-		BrokerPrefix: "sm-proxy-",
+		BrokerPrefix: brokerPrefix,
 	}
 	config := &cf.ClientConfiguration{
 		Config:             cfConfig,

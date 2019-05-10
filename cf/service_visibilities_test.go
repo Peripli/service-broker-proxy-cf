@@ -3,6 +3,7 @@ package cf_test
 import (
 	"context"
 	"encoding/json"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"net/http"
 	"strings"
 
@@ -18,10 +19,7 @@ import (
 
 var _ = Describe("Client Service Plan Visibilities", func() {
 
-	const (
-		brokerPrefix = "sm-proxy-"
-		orgGUID      = "testorgguid"
-	)
+	const orgGUID = "testorgguid"
 
 	var (
 		ccServer                *ghttp.Server
@@ -43,7 +41,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			brokerGuid := "broker-" + UUID.String()
 			brokers = append(brokers, &cfclient.ServiceBroker{
 				Guid: brokerGuid,
-				Name: brokerPrefix + brokerGuid,
+				Name: reconcile.DefaultProxyBrokerPrefix + brokerGuid,
 			})
 		}
 		return brokers
@@ -123,7 +121,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.Visibility{
 						Public:             false,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: reconcile.DefaultProxyBrokerPrefix + brokerGuid,
 						Labels: map[string]string{
 							client.VisibilityScopeLabelKey(): orgGUID,
 						},
@@ -132,7 +130,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					expectedVisibilities[plan.Guid] = &platform.Visibility{
 						Public:             true,
 						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: "sm-proxy-" + brokerGuid,
+						PlatformBrokerName: reconcile.DefaultProxyBrokerPrefix + brokerGuid,
 						Labels:             make(map[string]string),
 					}
 				}

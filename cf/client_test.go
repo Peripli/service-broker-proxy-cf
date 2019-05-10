@@ -120,7 +120,7 @@ func verifyReqReceived(server *ghttp.Server, times int, method, path string, raw
 	}
 }
 
-func assertErrIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
+func assertErrCauseIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
 	cause := errors.Cause(actualErr).(cf.CloudFoundryErr)
 	Expect(cause).To(MatchError(expectedErr))
 }
@@ -133,7 +133,7 @@ func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
 		URL:          "http://10.0.2.2",
 		Username:     "user",
 		Password:     "password",
-		BrokerPrefix: "sm-proxy-",
+		BrokerPrefix: reconcile.DefaultProxyBrokerPrefix,
 	}
 	config := &cf.ClientConfiguration{
 		Config:             cfConfig,

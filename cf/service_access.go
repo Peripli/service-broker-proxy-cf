@@ -7,17 +7,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
+
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
 	"github.com/Peripli/service-manager/pkg/log"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
-
-// Metadata represents CF specific metadata that the proxy is concerned with.
-// It is currently used to provide context details for enabling and disabling of service access.
-type Metadata struct {
-	OrgGUID string `json:"organization_guid"`
-}
 
 // ServicePlanRequest represents a service plan request
 type ServicePlanRequest struct {
@@ -26,30 +23,47 @@ type ServicePlanRequest struct {
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
-func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string) error {
-	return pc.updateAccessForPlan(ctx, context, catalogPlanID, platformBrokerName, true)
+func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest) error {
+	return pc.updateAccessForPlan(ctx, request, true)
 }
 
 // DisableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.DisableAccessForPlan
 // and provides logic for disabling the service access for a specified plan by the plan's catalog GUID.
-func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string) error {
-	return pc.updateAccessForPlan(ctx, context, catalogPlanID, platformBrokerName, false)
+func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest) error {
+	return pc.updateAccessForPlan(ctx, request, false)
 }
 
-func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, context json.RawMessage, catalogPlanID, platformBrokerName string, isEnabled bool) error {
-	metadata := &Metadata{}
-	if err := json.Unmarshal(context, metadata); err != nil {
-		return err
+type compositeError []error
+
+func (ce compositeError) Error() string {
+	errs := make([]string, 0, len(ce))
+	for _, e := range ce {
+		errs = append(errs, fmt.Sprintln(e.Error()))
 	}
 
-	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, catalogPlanID, platformBrokerName)
+	return strings.Join(errs, "")
+}
+
+func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, isEnabled bool) error {
+	var compositeErr compositeError
+
+	if request == nil {
+		return errors.Errorf("modify plan access request cannot be nil")
+	}
+
+	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, request.CatalogPlanID, request.BrokerName)
 	if err != nil {
 		return err
 	}
 
-	if metadata.OrgGUID != "" {
-		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, metadata.OrgGUID); err != nil {
-			return err
+	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
+		for _, orgGUID := range orgGUIDs {
+			if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
+				compositeErr = append(compositeErr, err)
+			}
+		}
+		if compositeErr != nil {
+			return errors.Wrapf(compositeErr, "error while updating access for catalog plan with id %s; %d errors occurred: %s", request.CatalogPlanID, len(compositeErr), compositeErr)
 		}
 	} else {
 		if err := pc.updatePlan(plan, isEnabled); err != nil {

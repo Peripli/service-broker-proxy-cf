@@ -2,13 +2,14 @@ package cf_test
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"net/http"
 )
 
 var _ = Describe("Client ServiceBroker", func() {
@@ -75,7 +76,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.GetBrokers(ctx)
 
-				assertErrIsCFError(err, ccResponseErr)
+				assertErrCauseIsCFError(err, ccResponseErr)
 			})
 
 		})
@@ -129,6 +130,87 @@ var _ = Describe("Client ServiceBroker", func() {
 		})
 	})
 
+	Describe("GetBrokerByName", func() {
+		var brokerName string
+
+		BeforeEach(func() {
+			brokerName = testBroker.Name
+
+			ccServer.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/v2/service_brokers"),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
+				),
+			)
+		})
+
+		Context("when an error status code is returned by CC", func() {
+			BeforeEach(func() {
+				ccResponseErr = cf.CloudFoundryErr{
+					Code:        1009,
+					ErrorCode:   "err",
+					Description: "test err",
+				}
+				ccResponse = ccResponseErr
+
+				ccResponseCode = http.StatusInternalServerError
+			})
+
+			It("returns an error", func() {
+				_, err := client.GetBrokerByName(ctx, brokerName)
+
+				assertErrCauseIsCFError(err, ccResponseErr)
+			})
+		})
+
+		Context("when a broker with the specified name does not exist in CC", func() {
+			BeforeEach(func() {
+				ccResponse = cfclient.ServiceBrokerResponse{
+					Count:     0,
+					Pages:     1,
+					Resources: []cfclient.ServiceBrokerResource{},
+				}
+				ccResponseCode = http.StatusOK
+			})
+
+			It("returns an err", func() {
+				_, err := client.GetBrokerByName(ctx, brokerName)
+
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+
+		Context("when a broker with the specified name exists in CC", func() {
+			BeforeEach(func() {
+				ccResponse = cfclient.ServiceBrokerResponse{
+					Count: 1,
+					Pages: 1,
+					Resources: []cfclient.ServiceBrokerResource{
+						{
+							Meta: cfclient.Meta{
+								Guid: testBroker.GUID,
+							},
+							Entity: cfclient.ServiceBroker{
+								Name:      brokerName,
+								BrokerURL: testBroker.BrokerURL,
+								Username:  settings.Reg.Username,
+							},
+						},
+					},
+				}
+				ccResponseCode = http.StatusOK
+			})
+
+			It("returns the broker", func() {
+				broker, err := client.GetBrokerByName(ctx, brokerName)
+
+				Expect(err).ShouldNot(HaveOccurred())
+				assertBrokersFoundMatchTestBroker(1, *broker)
+			})
+		})
+
+	})
+
 	Describe("CreateBroker", func() {
 		var actualRequest *platform.CreateServiceBrokerRequest
 
@@ -169,7 +251,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.CreateBroker(ctx, actualRequest)
 
-				assertErrIsCFError(err, ccResponseErr)
+				assertErrCauseIsCFError(err, ccResponseErr)
 			})
 		})
 
@@ -229,7 +311,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				err := client.DeleteBroker(ctx, actualRequest)
 
-				assertErrIsCFError(err, ccResponseErr)
+				assertErrCauseIsCFError(err, ccResponseErr)
 			})
 		})
 
@@ -289,7 +371,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.UpdateBroker(ctx, actualRequest)
 
-				assertErrIsCFError(err, ccResponseErr)
+				assertErrCauseIsCFError(err, ccResponseErr)
 			})
 		})
 

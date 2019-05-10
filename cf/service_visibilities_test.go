@@ -3,6 +3,7 @@ package cf_test
 import (
 	"context"
 	"encoding/json"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,10 +20,7 @@ import (
 
 var _ = Describe("Client Service Plan Visibilities", func() {
 
-	const (
-		brokerPrefix = "sm-proxy-"
-		orgGUID      = "testorgguid"
-	)
+	const orgGUID = "testorgguid"
 
 	var (
 		ccServer                *ghttp.Server
@@ -32,7 +30,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		generatedCFServices     map[string][]*cfclient.Service
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
 		generatedCFVisibilities map[string]*cfclient.ServicePlanVisibility
-		expectedCFVisibiltiies  map[string]*platform.ServiceVisibilityEntity
+		expectedCFVisibiltiies  map[string]*platform.Visibility
 	)
 
 	generateCFBrokers := func(count int) []*cfclient.ServiceBroker {
@@ -44,7 +42,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			brokerName := fmt.Sprintf("broker%d", i)
 			brokers = append(brokers, &cfclient.ServiceBroker{
 				Guid: brokerGuid,
-				Name: brokerPrefix + brokerName,
+				Name: reconcile.DefaultProxyBrokerPrefix + brokerName,
 			})
 		}
 		return brokers
@@ -97,9 +95,9 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		return plans
 	}
 
-	generateCFVisibilities := func(plansMap map[string][]*cfclient.ServicePlan) (map[string]*cfclient.ServicePlanVisibility, map[string]*platform.ServiceVisibilityEntity) {
+	generateCFVisibilities := func(plansMap map[string][]*cfclient.ServicePlan) (map[string]*cfclient.ServicePlanVisibility, map[string]*platform.Visibility) {
 		visibilities := make(map[string]*cfclient.ServicePlanVisibility)
-		expectedVisibilities := make(map[string]*platform.ServiceVisibilityEntity, 0)
+		expectedVisibilities := make(map[string]*platform.Visibility, 0)
 		for _, plans := range plansMap {
 			for _, plan := range plans {
 				visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
@@ -126,7 +124,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 						OrganizationGuid: orgGUID,
 					}
 
-					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
+					expectedVisibilities[plan.Guid] = &platform.Visibility{
 						Public:             false,
 						CatalogPlanID:      plan.UniqueId,
 						PlatformBrokerName: brokerName,
@@ -135,7 +133,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 						},
 					}
 				} else {
-					expectedVisibilities[plan.Guid] = &platform.ServiceVisibilityEntity{
+					expectedVisibilities[plan.Guid] = &platform.Visibility{
 						Public:             true,
 						CatalogPlanID:      plan.UniqueId,
 						PlatformBrokerName: brokerName,

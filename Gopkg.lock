@@ -18,7 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:ab806d58ede2d88dd906d15674fd512c63678557f42874cc3d706d2af892007a"
+  branch = "master"
+  digest = "1:e4945923f4f259b4b19e8423b04025948573e04c1f920192e61e6927b885863d"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -32,8 +33,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "4c38556e7525d0100049a6516276970b65fc2384"
-  version = "v0.4.0"
+  revision = "6aa4ce293298de1313f83a3a329ca0eddba835c2"
 
 [[projects]]
   digest = "1:cbb0c4976e7ef6f68d6baec6c90777f7a04d8d4af595d1b69032b684c9ba9f94"
@@ -217,12 +217,12 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
+  digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"
   name = "github.com/magiconair/properties"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c2353362d570a7bfa228149c62842019201cfb71"
-  version = "v1.8.0"
+  revision = "de8848e004dd33dc07a2947b3d76f618a7fc7ef1"
+  version = "v1.8.1"
 
 [[projects]]
   digest = "1:53bc4cd4914cd7cd52139990d5170d6dc99067ae31c56530621b18b35fc30318"

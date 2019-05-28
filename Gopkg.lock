@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:32278c579b147e9ac9a485894d19dda82ef88cedfa58e63e5ba7a0ba98494300"
+  digest = "1:2f9f3af3064feaeda180e52ef3257b8bb8807874d905ed5fe9c70a1da09b7530"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -33,10 +33,10 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "1bd708217f86bf8fc045ddac5a37ac4bf24ad241"
+  revision = "6a29dc258cda3f0e69ad9a15965942dc46b12729"
 
 [[projects]]
-  digest = "1:bca3ffcf4134e39b71f9117d9fcdfbe24e7293c73f49e8e73623e7421b174e9a"
+  digest = "1:5f155c38247565c12823ad46b05951ab31636760818563c8d866838178d0a8c2"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -68,8 +68,8 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "0e392b47a0479c8bf36372d927c213098829b5d9"
-  version = "v0.3.1"
+  revision = "8001819b022eb2879b1865c58435828951ba0b5c"
+  version = "v0.3.2"
 
 [[projects]]
   branch = "master"
@@ -290,14 +290,6 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:808cdddf087fb64baeae67b8dfaee2069034d9704923a3cb8bd96a995421a625"
-  name = "github.com/patrickmn/go-cache"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0"
-  version = "v2.1.0"
-
-[[projects]]
   digest = "1:93131d8002d7025da13582877c32d1fc302486775a1b06f62241741006428c5e"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
@@ -439,11 +431,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "3ec19112720433827bbce8be9342797f5a6aaaf9"
+  revision = "f3200d17e092c607f615320ecaad13d87ad9a2b3"
 
 [[projects]]
   branch = "master"
-  digest = "1:ea31c184eb8c9cfa35e072f99f28019f0947e41e976e171916d0bf6e145a59c4"
+  digest = "1:457f9784b7d0402c051d4af2aa29b9ac602129801b0e4a643006d294f40775ec"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -451,15 +443,15 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "9f3314589c9a9136388751d9adae6b0ed400978a"
+  revision = "aaccbc9213b0974828f81aaac109d194880e3014"
 
 [[projects]]
   branch = "master"
-  digest = "1:4fc43e824f7e546353de724c00507b1d9c0bab56344b10c2330a97f166a0fba7"
+  digest = "1:668e8c66b8895d69391429b0f64a72c35603c94f364c94d4e5fab5053d57a0b6"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "24a5b2278f68f71a1d68a0a37deeb715f5b14cb2"
+  revision = "adf421d2caf4ffcf74142ff5fb9ee323b21a819e"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

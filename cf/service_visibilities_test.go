@@ -3,8 +3,8 @@ package cf_test
 import (
 	"context"
 	"encoding/json"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"fmt"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"net/http"
 	"strings"
 
@@ -42,7 +42,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			brokerName := fmt.Sprintf("broker%d", i)
 			brokers = append(brokers, &cfclient.ServiceBroker{
 				Guid: brokerGuid,
-				Name: reconcile.DefaultProxyBrokerPrefix + brokerName,
+				Name: reconcile.DefaultProxyBrokerPrefix + brokerName + "-" + brokerGuid,
 			})
 		}
 		return brokers

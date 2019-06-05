@@ -13,9 +13,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	env := sbproxy.DefaultEnv(func(set *pflag.FlagSet) {
+	env, err := sbproxy.DefaultEnv(func(set *pflag.FlagSet) {
 		cf.CreatePFlagsForCFClient(set)
 	})
+	if err != nil {
+		panic(fmt.Errorf("error creating environment: %s", err))
+	}
 
 	if err := cf.SetCFOverrides(env); err != nil {
 		panic(fmt.Errorf("error setting CF environment values: %s", err))
@@ -30,9 +33,13 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("error creating CF client: %s", err))
 	}
-
-	proxyBuilder := sbproxy.New(ctx, cancel, env, platformClient)
-	proxy := proxyBuilder.Build()
-
-	proxy.Run()
+	settings, err := sbproxy.NewSettings(env)
+	if err != nil {
+		panic(fmt.Errorf("error creating settings from environment: %s", err))
+	}
+	proxyBuilder, err := sbproxy.New(ctx, cancel, settings, platformClient)
+	if err != nil {
+		panic(fmt.Errorf("error creating sbproxy: %s", err))
+	}
+	proxyBuilder.Build().Run()
 }

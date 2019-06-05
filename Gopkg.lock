@@ -19,12 +19,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2f9f3af3064feaeda180e52ef3257b8bb8807874d905ed5fe9c70a1da09b7530"
+  digest = "1:a52ec122222a862364c8f8b8594eb7453c87a60425aa2d76f8f1729cd5cd7e94"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
     "pkg/logging",
-    "pkg/osb",
     "pkg/platform",
     "pkg/sbproxy",
     "pkg/sbproxy/notifications",
@@ -33,16 +32,15 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "6a29dc258cda3f0e69ad9a15965942dc46b12729"
+  revision = "12c0eeb7be7439ae3d3bb43040592940ad4e6b46"
 
 [[projects]]
-  digest = "1:5f155c38247565c12823ad46b05951ab31636760818563c8d866838178d0a8c2"
+  branch = "master"
+  digest = "1:93abcc6bcc5fa23fb78880897e4d50863e9158f055c67618e9d339de5a7d79c0"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
     "api/filters",
-    "api/filters/authn/basic",
-    "api/filters/authn/oauth",
     "api/healthcheck",
     "api/info",
     "api/notifications",
@@ -55,8 +53,8 @@
     "pkg/security",
     "pkg/security/authenticators",
     "pkg/security/filters",
+    "pkg/security/filters/middlewares",
     "pkg/security/http",
-    "pkg/security/middlewares",
     "pkg/server",
     "pkg/types",
     "pkg/util",
@@ -64,12 +62,10 @@
     "pkg/web",
     "pkg/ws",
     "storage",
-    "storage/catalog",
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "8001819b022eb2879b1865c58435828951ba0b5c"
-  version = "v0.3.2"
+  revision = "134e58730f665ce051b4b7d0b22e78a7762ac81d"
 
 [[projects]]
   branch = "master"
@@ -80,12 +76,11 @@
   revision = "f136f9222381e2fea5099f62e4b751dcb660ff82"
 
 [[projects]]
-  digest = "1:00e6c96836e445755d954570d5b3c9cb2f281dee55be065016c64f105f9d6e96"
+  digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
   name = "github.com/cloudfoundry-community/go-cfenv"
   packages = ["."]
   pruneopts = "UT"
-  revision = "20ea9de4dd5d3e052f2df72aab439453d7445f31"
-  version = "v1.18.0"
+  revision = "e84b5c116637ef174eb8c7d68a28bc7269b3b9cb"
 
 [[projects]]
   digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
@@ -134,14 +129,6 @@
   pruneopts = "UT"
   revision = "d41eeda0759468834c84365a32d1b1ec4264c75f"
   version = "v3.1.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
@@ -306,14 +293,6 @@
   version = "v0.8.1"
 
 [[projects]]
-  digest = "1:8658f775ba5edb37ede96d8ec9eaecdfe06bc4aef1776152070185e6513dc0cc"
-  name = "github.com/pmorie/go-open-service-broker-client"
-  packages = ["v2"]
-  pruneopts = "UT"
-  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
-  version = "0.0.10"
-
-[[projects]]
   branch = "master"
   digest = "1:bd9efe4e0b0f768302a1e2f0c22458149278de533e521206e5ddc71848c269a0"
   name = "github.com/pquerna/cachecontrol"
@@ -417,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+  revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
 
 [[projects]]
   branch = "master"
@@ -431,7 +410,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "f3200d17e092c607f615320ecaad13d87ad9a2b3"
+  revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
 
 [[projects]]
   branch = "master"
@@ -443,15 +422,15 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "aaccbc9213b0974828f81aaac109d194880e3014"
+  revision = "0f29369cfe4552d0e4bcddc57cc75f4d7e672a33"
 
 [[projects]]
   branch = "master"
-  digest = "1:668e8c66b8895d69391429b0f64a72c35603c94f364c94d4e5fab5053d57a0b6"
+  digest = "1:8f5108406bc43c7669b0d67d282e40d05c9f268615fcaf8c1f0f76965aa3f09f"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "adf421d2caf4ffcf74142ff5fb9ee323b21a819e"
+  revision = "4c4f7f33c9ed00de01c4c741d2177abfcfe19307"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

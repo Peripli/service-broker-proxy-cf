@@ -18,7 +18,6 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
   digest = "1:a52ec122222a862364c8f8b8594eb7453c87a60425aa2d76f8f1729cd5cd7e94"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -32,11 +31,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "12c0eeb7be7439ae3d3bb43040592940ad4e6b46"
+  revision = "eb5242e85fa97b81f3122b3e73a4f070599869aa"
+  version = "v0.4.4"
 
 [[projects]]
-  branch = "master"
-  digest = "1:93abcc6bcc5fa23fb78880897e4d50863e9158f055c67618e9d339de5a7d79c0"
+  digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -65,7 +64,8 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "134e58730f665ce051b4b7d0b22e78a7762ac81d"
+  revision = "f8777da7502b76e51ac5a5ba288eeba345050bd3"
+  version = "v0.3.3"
 
 [[projects]]
   branch = "master"
@@ -371,12 +371,12 @@
   version = "v1.0.1"
 
 [[projects]]
-  branch = "master"
   digest = "1:ddfe0a54e5f9b29536a6d7b2defa376f2cb2b6e4234d676d7ff214d5b097cb50"
   name = "github.com/tidwall/pretty"
   packages = ["."]
   pruneopts = "UT"
   revision = "1166b9ac2b65e46a43d8618d30d1554f4652d49b"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:b70c951ba6fdeecfbd50dabe95aa5e1b973866ae9abbece46ad60348112214f2"
@@ -396,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
+  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
 
 [[projects]]
   branch = "master"

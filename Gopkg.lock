@@ -18,7 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:2d37ad2923c553766b46bec5cdc8cd9ca7c81b1cd39420e1258c859d1bae7811"
+  branch = "master"
+  digest = "1:5de1859f1846f0d09a68846f5fa1be8ec4401e411fb397699d870b778f33932e"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,8 +32,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "5a2ba8aa62d96dc256854c2e3342aa2717966c05"
-  version = "v0.4.5"
+  revision = "6c4c24e19c9c3feefd2a4f82a3ee73a4017d3030"
 
 [[projects]]
   digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"
@@ -69,11 +69,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a965e93173d9b30de4cc01c4a2aaaaa0478ece976f56dabb6e662800abf21011"
+  digest = "1:8597ea40ac83a647f7f67db149d1f0921d7baf873d2fd14ee3e475adeecae0ae"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f136f9222381e2fea5099f62e4b751dcb660ff82"
+  revision = "16c98753d3152f9d80d3c121523536858095a3da"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
@@ -396,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
+  revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
 
 [[projects]]
   branch = "master"
@@ -410,7 +410,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "1492cefac77f61bc789c00f41ead8f8d7307cd21"
+  revision = "3f473d35a33aa6fdd203e306dc439b797820e3f1"
 
 [[projects]]
   branch = "master"
@@ -426,11 +426,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8f5108406bc43c7669b0d67d282e40d05c9f268615fcaf8c1f0f76965aa3f09f"
+  digest = "1:010311506e3917b54487c35a4277e2709678a40c1587d82492c40b78b6a0a01d"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "7fc4e5ec1444df20dd195ae7c3bbfcd7114d3faa"
+  revision = "93c9922d18aeb82498a065f07aec7ad7fa60dfb7"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

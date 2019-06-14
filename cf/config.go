@@ -3,6 +3,7 @@ package cf
 
 import (
 	"fmt"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"time"
 
@@ -73,12 +74,15 @@ func (c *ClientConfiguration) Validate() error {
 }
 
 // NewConfig creates ClientConfiguration from the provided environment
-func NewConfig(env env.Environment) (*Settings, error) {
+func NewConfig(env env.Environment, settings *sbproxy.Settings) (*Settings, error) {
 	cfSettings := &Settings{Cf: DefaultClientConfiguration(), Reg: &reconcile.Settings{}}
 
 	if err := env.Unmarshal(cfSettings); err != nil {
 		return nil, err
 	}
+
+	cfSettings.Reg.Username = settings.Sm.User
+	cfSettings.Reg.Password = settings.Sm.Password
 
 	return cfSettings, nil
 }

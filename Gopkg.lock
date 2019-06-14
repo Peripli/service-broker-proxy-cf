@@ -18,8 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:5de1859f1846f0d09a68846f5fa1be8ec4401e411fb397699d870b778f33932e"
+  branch = "migrate-url"
+  digest = "1:e7e92714f67c2789a76ef9ebdb3c92fd3e27510e3bc5a30a1f3a3dcc5c089204"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -32,7 +32,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "6c4c24e19c9c3feefd2a4f82a3ee73a4017d3030"
+  revision = "53deeb7c4318a2849dfff52eae72c3f8bc64a088"
 
 [[projects]]
   digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"
@@ -410,7 +410,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "3f473d35a33aa6fdd203e306dc439b797820e3f1"
+  revision = "d28f0bde5980168871434b95cfc858db9f2a7a99"
 
 [[projects]]
   branch = "master"
@@ -430,7 +430,7 @@
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "93c9922d18aeb82498a065f07aec7ad7fa60dfb7"
+  revision = "d442b75600c5d6484576502b3c53a55c54311be9"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

@@ -18,7 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:a52ec122222a862364c8f8b8594eb7453c87a60425aa2d76f8f1729cd5cd7e94"
+  branch = "fix-proxy"
+  digest = "1:0248009c3419fcbe93e5b6dbacad55efe2ffe7e61362798305572a0784fae424"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,8 +32,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "eb5242e85fa97b81f3122b3e73a4f070599869aa"
-  version = "v0.4.4"
+  revision = "152070c265543f3d1f5eb4578b31c3922dc7c3b6"
 
 [[projects]]
   digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"
@@ -69,11 +69,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a965e93173d9b30de4cc01c4a2aaaaa0478ece976f56dabb6e662800abf21011"
+  digest = "1:8597ea40ac83a647f7f67db149d1f0921d7baf873d2fd14ee3e475adeecae0ae"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f136f9222381e2fea5099f62e4b751dcb660ff82"
+  revision = "16c98753d3152f9d80d3c121523536858095a3da"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
@@ -396,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
+  revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
 
 [[projects]]
   branch = "master"
@@ -410,7 +410,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
+  revision = "d28f0bde5980168871434b95cfc858db9f2a7a99"
 
 [[projects]]
   branch = "master"
@@ -426,11 +426,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8f5108406bc43c7669b0d67d282e40d05c9f268615fcaf8c1f0f76965aa3f09f"
+  digest = "1:010311506e3917b54487c35a4277e2709678a40c1587d82492c40b78b6a0a01d"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4c4f7f33c9ed00de01c4c741d2177abfcfe19307"
+  revision = "d442b75600c5d6484576502b3c53a55c54311be9"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -476,8 +476,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "4c25cacc810c02874000e4f7071286a8e96b2515"
-  version = "v1.6.0"
+  revision = "b2f4a3cf3c67576a2ee09e1fe62656a5086ce880"
+  version = "v1.6.1"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"

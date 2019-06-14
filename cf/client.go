@@ -17,7 +17,9 @@ type CloudFoundryErr cfclient.CloudFoundryError
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
 	*cfclient.Client
-	reg *reconcile.Settings
+
+	reg                 *reconcile.Settings
+	maxParallelRequests int
 }
 
 // Broker returns platform client which can perform platform broker operations
@@ -46,8 +48,9 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	}
 
 	return &PlatformClient{
-		Client: cfClient,
-		reg:    config.Reg,
+		Client:              cfClient,
+		reg:                 config.Reg,
+		maxParallelRequests: config.Reconcile.MaxParallelRequests,
 	}, nil
 }
 

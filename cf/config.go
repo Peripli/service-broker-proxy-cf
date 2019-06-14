@@ -3,8 +3,10 @@ package cf
 
 import (
 	"fmt"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"time"
+
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 
 	"errors"
 
@@ -21,6 +23,8 @@ type ClientConfiguration struct {
 
 // Settings type wraps the CF client configuration
 type Settings struct {
+	sbproxy.Settings `mapstructure:",squash"`
+
 	Cf  *ClientConfiguration
 	Reg *reconcile.Settings `mapstructure:"app"`
 }
@@ -74,7 +78,11 @@ func (c *ClientConfiguration) Validate() error {
 
 // NewConfig creates ClientConfiguration from the provided environment
 func NewConfig(env env.Environment) (*Settings, error) {
-	cfSettings := &Settings{Cf: DefaultClientConfiguration(), Reg: &reconcile.Settings{}}
+	cfSettings := &Settings{
+		Settings: *sbproxy.DefaultSettings(),
+		Cf:       DefaultClientConfiguration(),
+		Reg:      &reconcile.Settings{},
+	}
 
 	if err := env.Unmarshal(cfSettings); err != nil {
 		return nil, err

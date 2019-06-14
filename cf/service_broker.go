@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-community/go-cfclient"
 )
 
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for

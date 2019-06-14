@@ -13,7 +13,7 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-community/go-cfclient"
 )
 
 const maxChunkLength = 50
@@ -116,14 +116,24 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
+	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
 
 	result := make([]cfclient.ServiceBroker, 0, len(names))
 	chunks := splitStringsIntoChunks(names)
 
 	for _, chunk := range chunks {
+		select {
+		case <-ctx.Done():
+			return nil, errors.WithStack(ctx.Err())
+		case wgLimitChannel <- struct{}{}:
+			break
+		}
 		wg.Add(1)
 		go func(chunk []string) {
-			defer wg.Done()
+			defer func() {
+				<-wgLimitChannel
+				wg.Done()
+			}()
 			brokerNames := make([]string, 0, len(chunk))
 			brokerNames = append(brokerNames, chunk...)
 			query := queryBuilder{}
@@ -152,14 +162,24 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
+	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
 
 	result := make([]cfclient.Service, 0, len(brokers))
 	chunks := splitBrokersIntoChunks(brokers)
 
 	for _, chunk := range chunks {
+		select {
+		case <-ctx.Done():
+			return nil, errors.WithStack(ctx.Err())
+		case wgLimitChannel <- struct{}{}:
+			break
+		}
 		wg.Add(1)
 		go func(chunk []cfclient.ServiceBroker) {
-			defer wg.Done()
+			defer func() {
+				<-wgLimitChannel
+				wg.Done()
+			}()
 			brokerGUIDs := make([]string, 0, len(chunk))
 			for _, broker := range chunk {
 				brokerGUIDs = append(brokerGUIDs, broker.Guid)
@@ -194,14 +214,24 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
+	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
 
 	result := make([]cfclient.ServicePlan, 0, len(services))
 	chunks := splitServicesIntoChunks(services)
 
 	for _, chunk := range chunks {
+		select {
+		case <-ctx.Done():
+			return nil, errors.WithStack(ctx.Err())
+		case wgLimitChannel <- struct{}{}:
+			break
+		}
 		wg.Add(1)
 		go func(chunk []cfclient.Service) {
-			defer wg.Done()
+			defer func() {
+				<-wgLimitChannel
+				wg.Done()
+			}()
 			serviceGUIDs := make([]string, 0, len(chunk))
 			for _, service := range chunk {
 				serviceGUIDs = append(serviceGUIDs, service.Guid)
@@ -237,13 +267,23 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 	var errorOccured error
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
+	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
 
 	chunks := splitCFPlansIntoChunks(plans)
 
 	for _, chunk := range chunks {
+		select {
+		case <-ctx.Done():
+			return nil, errors.WithStack(ctx.Err())
+		case wgLimitChannel <- struct{}{}:
+			break
+		}
 		wg.Add(1)
 		go func(chunk []cfclient.ServicePlan) {
-			defer wg.Done()
+			defer func() {
+				<-wgLimitChannel
+				wg.Done()
+			}()
 
 			plansGUID := make([]string, 0, len(chunk))
 			for _, p := range chunk {

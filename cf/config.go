@@ -81,13 +81,8 @@ func NewConfig(env env.Environment, settings *sbproxy.Settings) (*Settings, erro
 		return nil, err
 	}
 
-	if len(cfSettings.Reg.Username) == 0 {
-		cfSettings.Reg.Username = settings.Sm.User
-	}
-
-	if len(cfSettings.Reg.Password) == 0 {
-		cfSettings.Reg.Password = settings.Sm.Password
-	}
+	cfSettings.Reg.Username = settings.Sm.User
+	cfSettings.Reg.Password = settings.Sm.Password
 
 	return cfSettings, nil
 }

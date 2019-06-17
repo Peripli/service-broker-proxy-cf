@@ -126,7 +126,6 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 		case <-ctx.Done():
 			return nil, errors.WithStack(ctx.Err())
 		case wgLimitChannel <- struct{}{}:
-			break
 		}
 		wg.Add(1)
 		go func(chunk []string) {
@@ -172,7 +171,6 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 		case <-ctx.Done():
 			return nil, errors.WithStack(ctx.Err())
 		case wgLimitChannel <- struct{}{}:
-			break
 		}
 		wg.Add(1)
 		go func(chunk []cfclient.ServiceBroker) {
@@ -224,7 +222,6 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 		case <-ctx.Done():
 			return nil, errors.WithStack(ctx.Err())
 		case wgLimitChannel <- struct{}{}:
-			break
 		}
 		wg.Add(1)
 		go func(chunk []cfclient.Service) {
@@ -276,7 +273,6 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 		case <-ctx.Done():
 			return nil, errors.WithStack(ctx.Err())
 		case wgLimitChannel <- struct{}{}:
-			break
 		}
 		wg.Add(1)
 		go func(chunk []cfclient.ServicePlan) {

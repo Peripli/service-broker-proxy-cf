@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCf(t *testing.T) {
+func TestCF(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Service Manager Proxy CF Client Suite")
+	RunSpecs(t, "Service Broker Proxy CF Client Suite")
 }

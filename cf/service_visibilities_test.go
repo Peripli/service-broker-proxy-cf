@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
+
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 
 	"github.com/gofrs/uuid"
 
@@ -19,7 +22,6 @@ import (
 )
 
 var _ = Describe("Client Service Plan Visibilities", func() {
-
 	const orgGUID = "testorgguid"
 
 	var (
@@ -31,6 +33,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
 		generatedCFVisibilities map[string]*cfclient.ServicePlanVisibility
 		expectedCFVisibiltiies  map[string]*platform.Visibility
+
+		maxAllowedParallelRequests int
+		parallelRequestsCounter    int
+		parallelRequestsMutex      sync.Mutex
 	)
 
 	generateCFBrokers := func(count int) []*cfclient.ServiceBroker {
@@ -146,6 +152,31 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		return visibilities, expectedVisibilities
 	}
 
+	parallelRequestsChecker := func(f http.HandlerFunc) http.HandlerFunc {
+		return func(writer http.ResponseWriter, request *http.Request) {
+			parallelRequestsMutex.Lock()
+			parallelRequestsCounter++
+			if parallelRequestsCounter > maxAllowedParallelRequests {
+				defer func() {
+					parallelRequestsMutex.Lock()
+					defer parallelRequestsMutex.Unlock()
+					Fail(fmt.Sprintf("Max allowed parallel requests is %d but %d were detected", maxAllowedParallelRequests, parallelRequestsCounter))
+				}()
+
+			}
+			parallelRequestsMutex.Unlock()
+			defer func() {
+				parallelRequestsMutex.Lock()
+				parallelRequestsCounter--
+				parallelRequestsMutex.Unlock()
+			}()
+
+			// Simulate a 80ms request
+			<-time.After(80 * time.Millisecond)
+			f(writer, request)
+		}
+	}
+
 	parseFilterQuery := func(plansQuery, queryKey string) map[string]bool {
 		Expect(plansQuery).ToNot(BeEmpty())
 
@@ -186,10 +217,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	setCCBrokersResponse := func(server *ghttp.Server, cfBrokers []*cfclient.ServiceBroker) {
 		if cfBrokers == nil {
-			server.RouteToHandler(http.MethodGet, "/v2/service_brokers", badRequestHandler)
+			server.RouteToHandler(http.MethodGet, "/v2/service_brokers", parallelRequestsChecker(badRequestHandler))
 			return
 		}
-		server.RouteToHandler(http.MethodGet, "/v2/service_brokers", func(rw http.ResponseWriter, req *http.Request) {
+		server.RouteToHandler(http.MethodGet, "/v2/service_brokers", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
 			filter := parseFilterQuery(req.URL.Query().Get("q"), "name")
 			result := make([]cfclient.ServiceBrokerResource, 0, len(filter))
 			for _, broker := range cfBrokers {
@@ -208,15 +239,15 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				Resources: result,
 			}
 			writeJSONResponse(response, rw)
-		})
+		}))
 	}
 
 	setCCServicesResponse := func(server *ghttp.Server, cfServices map[string][]*cfclient.Service) {
 		if cfServices == nil {
-			server.RouteToHandler(http.MethodGet, "/v2/services", badRequestHandler)
+			server.RouteToHandler(http.MethodGet, "/v2/services", parallelRequestsChecker(badRequestHandler))
 			return
 		}
-		server.RouteToHandler(http.MethodGet, "/v2/services", func(rw http.ResponseWriter, req *http.Request) {
+		server.RouteToHandler(http.MethodGet, "/v2/services", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
 			filter := parseFilterQuery(req.URL.Query().Get("q"), "service_broker_guid")
 			result := make([]cfclient.ServicesResource, 0, len(filter))
 			for _, services := range cfServices {
@@ -237,65 +268,71 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				Resources: result,
 			}
 			writeJSONResponse(response, rw)
-		})
+		}))
+	}
+
+	setCCPlansResponse := func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
+		if cfPlans == nil {
+			server.RouteToHandler(http.MethodGet, "/v2/service_plans", parallelRequestsChecker(badRequestHandler))
+			return
+		}
+		server.RouteToHandler(http.MethodGet, "/v2/service_plans", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+			filterQuery := parseFilterQuery(req.URL.Query().Get("q"), "service_guid")
+			planResources := make([]cfclient.ServicePlanResource, 0, len(filterQuery))
+			for _, plans := range cfPlans {
+				for _, plan := range plans {
+					if _, found := filterQuery[plan.ServiceGuid]; found {
+						planResources = append(planResources, cfclient.ServicePlanResource{
+							Entity: *plan,
+							Meta: cfclient.Meta{
+								Guid: plan.Guid,
+							},
+						})
+					}
+				}
+			}
+			servicePlanResponse := cfclient.ServicePlansResponse{
+				Count:     len(planResources),
+				Pages:     1,
+				Resources: planResources,
+			}
+			writeJSONResponse(servicePlanResponse, rw)
+		}))
+	}
+
+	setCCVisibilitiesResponse := func(server *ghttp.Server, cfVisibilities map[string]*cfclient.ServicePlanVisibility) {
+		if cfVisibilities == nil {
+			server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", parallelRequestsChecker(badRequestHandler))
+			return
+		}
+		server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+			reqPlans := parseFilterQuery(req.URL.Query().Get("q"), "service_plan_guid")
+			visibilityResources := make([]cfclient.ServicePlanVisibilityResource, 0, len(reqPlans))
+			for visibilityGuid, visibility := range cfVisibilities {
+				if _, found := reqPlans[visibility.ServicePlanGuid]; found {
+					visibilityResources = append(visibilityResources, cfclient.ServicePlanVisibilityResource{
+						Entity: *visibility,
+						Meta: cfclient.Meta{
+							Guid: visibilityGuid,
+						},
+					})
+				}
+			}
+			servicePlanResponse := cfclient.ServicePlanVisibilitiesResponse{
+				Count:     len(visibilityResources),
+				Pages:     1,
+				Resources: visibilityResources,
+			}
+			writeJSONResponse(servicePlanResponse, rw)
+		}))
 	}
 
 	createCCServer := func(brokers []*cfclient.ServiceBroker, cfServices map[string][]*cfclient.Service, cfPlans map[string][]*cfclient.ServicePlan, cfVisibilities map[string]*cfclient.ServicePlanVisibility) *ghttp.Server {
 		server := fakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
 		setCCServicesResponse(server, cfServices)
-
-		if cfPlans == nil {
-			server.RouteToHandler(http.MethodGet, "/v2/service_plans", badRequestHandler)
-		} else {
-			server.RouteToHandler(http.MethodGet, "/v2/service_plans", func(rw http.ResponseWriter, req *http.Request) {
-				filterQuery := parseFilterQuery(req.URL.Query().Get("q"), "service_guid")
-				planResources := make([]cfclient.ServicePlanResource, 0, len(filterQuery))
-				for _, plans := range cfPlans {
-					for _, plan := range plans {
-						if _, found := filterQuery[plan.ServiceGuid]; found {
-							planResources = append(planResources, cfclient.ServicePlanResource{
-								Entity: *plan,
-								Meta: cfclient.Meta{
-									Guid: plan.Guid,
-								},
-							})
-						}
-					}
-				}
-				servicePlanResponse := cfclient.ServicePlansResponse{
-					Count:     len(planResources),
-					Pages:     1,
-					Resources: planResources,
-				}
-				writeJSONResponse(servicePlanResponse, rw)
-			})
-		}
-
-		if cfVisibilities == nil {
-			server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", badRequestHandler)
-		} else {
-			server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", func(rw http.ResponseWriter, req *http.Request) {
-				reqPlans := parseFilterQuery(req.URL.Query().Get("q"), "service_plan_guid")
-				visibilityResources := make([]cfclient.ServicePlanVisibilityResource, 0, len(reqPlans))
-				for visibilityGuid, visibility := range cfVisibilities {
-					if _, found := reqPlans[visibility.ServicePlanGuid]; found {
-						visibilityResources = append(visibilityResources, cfclient.ServicePlanVisibilityResource{
-							Entity: *visibility,
-							Meta: cfclient.Meta{
-								Guid: visibilityGuid,
-							},
-						})
-					}
-				}
-				servicePlanResponse := cfclient.ServicePlanVisibilitiesResponse{
-					Count:     len(visibilityResources),
-					Pages:     1,
-					Resources: visibilityResources,
-				}
-				writeJSONResponse(servicePlanResponse, rw)
-			})
-		}
+		setCCPlansResponse(server, cfPlans)
+		setCCVisibilitiesResponse(server, cfVisibilities)
 
 		return server
 	}
@@ -311,15 +348,24 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		ctx = context.TODO()
 
 		generatedCFBrokers = generateCFBrokers(5)
-		generatedCFServices = generateCFServices(generatedCFBrokers, 2)
-		generatedCFPlans = generateCFPlans(generatedCFServices, 2, 2)
+		generatedCFServices = generateCFServices(generatedCFBrokers, 10)
+		generatedCFPlans = generateCFPlans(generatedCFServices, 15, 2)
 		generatedCFVisibilities, expectedCFVisibiltiies = generateCFVisibilities(generatedCFPlans)
+
+		parallelRequestsCounter = 0
+		maxAllowedParallelRequests = 3
+	})
+
+	It("is not nil", func() {
+		ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
+		_, client = ccClient(ccServer.URL())
+		Expect(client.Visibility()).ToNot(BeNil())
 	})
 
 	Describe("Get visibilities when visibilities are available", func() {
 		BeforeEach(func() {
 			ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
-			_, client = ccClient(ccServer.URL())
+			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 		})
 
 		Context("for multiple brokers", func() {
@@ -359,7 +405,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("for getting services", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-				_, client = ccClient(ccServer.URL())
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
 			It("should return error", func() {
@@ -372,7 +418,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("for getting plans", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, nil, nil)
-				_, client = ccClient(ccServer.URL())
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
 			It("should return error", func() {
@@ -385,7 +431,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("for getting visibilities", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, nil)
-				_, client = ccClient(ccServer.URL())
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
 			It("should return error", func() {

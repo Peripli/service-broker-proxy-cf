@@ -80,7 +80,7 @@ func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan c
 		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
 			"visibility for org with GUID = %s will be ignored", plan.Guid, plan.Name, orgGUID)
 	case isEnabled:
-		if _, err := pc.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
+		if _, err := pc.client.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
 			return wrapCFError(err)
 		}
 	case !isEnabled:
@@ -109,13 +109,13 @@ func (pc *PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) e
 }
 
 func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {
-	servicePlanVisibilities, err := pc.ListServicePlanVisibilitiesByQuery(query)
+	servicePlanVisibilities, err := pc.client.ListServicePlanVisibilitiesByQuery(query)
 	if err != nil {
 		return wrapCFError(err)
 	}
 
 	for _, visibility := range servicePlanVisibilities {
-		if err := pc.DeleteServicePlanVisibility(visibility.Guid, false); err != nil {
+		if err := pc.client.DeleteServicePlanVisibility(visibility.Guid, false); err != nil {
 			return wrapCFError(err)
 		}
 	}
@@ -131,9 +131,9 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}
 
-	req := pc.NewRequestWithBody(http.MethodPut, "/v2/service_plans/"+planGUID, buf)
+	req := pc.client.NewRequestWithBody(http.MethodPut, "/v2/service_plans/"+planGUID, buf)
 
-	response, err := pc.DoRequest(req)
+	response, err := pc.client.DoRequest(req)
 	if err != nil {
 		return cfclient.ServicePlan{}, wrapCFError(err)
 	}

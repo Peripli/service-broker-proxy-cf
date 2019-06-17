@@ -18,8 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "fix-proxy"
-  digest = "1:e0294974a4b59206739aebc73d62b1a1bf6fc1973ee1d6c255f2b1c0f519dce1"
+  branch = "master"
+  digest = "1:c2003b23c038323bd8847a196966a2c9e1e394e044b88c8b250e00f06654dd82"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -32,7 +32,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "61a84af73542a0dfbb575c869d5438465737283d"
+  revision = "0b05e3116007d5d0dabc7a94e2d71e0255deb21a"
 
 [[projects]]
   digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"
@@ -396,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
+  revision = "57b3e21c3d5606066a87e63cfe07ec6b9f0db000"
 
 [[projects]]
   branch = "master"

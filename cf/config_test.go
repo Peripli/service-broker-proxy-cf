@@ -1,7 +1,9 @@
 package cf_test
 
 import (
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+	"github.com/Peripli/service-broker-proxy/pkg/sm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -82,10 +84,11 @@ var _ = Describe("Config", func() {
 		var (
 			fakeEnv       *envfakes.FakeEnvironment
 			creationError = fmt.Errorf("creation error")
+			proxySettings = &sbproxy.Settings{Sm: &sm.Settings{}}
 		)
 
 		assertErrorDuringNewConfiguration := func() {
-			_, err := cf.NewConfig(fakeEnv)
+			_, err := cf.NewConfig(fakeEnv, proxySettings)
 			Expect(err).Should(HaveOccurred())
 		}
 
@@ -150,7 +153,7 @@ var _ = Describe("Config", func() {
 				})
 
 				Specify("the environment values are used", func() {
-					c, err := cf.NewConfig(fakeEnv)
+					c, err := cf.NewConfig(fakeEnv, proxySettings)
 
 					Expect(err).To(Not(HaveOccurred()))
 					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
@@ -171,7 +174,7 @@ var _ = Describe("Config", func() {
 				})
 
 				It("returns an empty config", func() {
-					c, err := cf.NewConfig(fakeEnv)
+					c, err := cf.NewConfig(fakeEnv, proxySettings)
 					Expect(err).To(Not(HaveOccurred()))
 
 					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))

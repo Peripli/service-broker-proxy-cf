@@ -16,10 +16,8 @@ type CloudFoundryErr cfclient.CloudFoundryError
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
-	*cfclient.Client
-
-	reg                 *reconcile.Settings
-	maxParallelRequests int
+	client   cfclient.CloudFoundryClient
+	settings *reconcile.Settings
 }
 
 // Broker returns platform client which can perform platform broker operations
@@ -42,15 +40,14 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	cfClient, err := config.Cf.CfClientCreateFunc(config.Cf.Config)
+	cfClient, err := config.CF.CfClientCreateFunc(config.CF.Config)
 	if err != nil {
 		return nil, err
 	}
 
 	return &PlatformClient{
-		Client:              cfClient,
-		reg:                 config.Reg,
-		maxParallelRequests: config.Reconcile.MaxParallelRequests,
+		client:   cfClient,
+		settings: config.Settings.Reconcile,
 	}, nil
 }
 

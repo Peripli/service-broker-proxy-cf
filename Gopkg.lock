@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "fix-proxy"
-  digest = "1:0248009c3419fcbe93e5b6dbacad55efe2ffe7e61362798305572a0784fae424"
+  digest = "1:e0294974a4b59206739aebc73d62b1a1bf6fc1973ee1d6c255f2b1c0f519dce1"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -32,7 +32,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "152070c265543f3d1f5eb4578b31c3922dc7c3b6"
+  revision = "61a84af73542a0dfbb575c869d5438465737283d"
 
 [[projects]]
   digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"
@@ -426,11 +426,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:010311506e3917b54487c35a4277e2709678a40c1587d82492c40b78b6a0a01d"
+  digest = "1:249fd56fb36a223aee164e2dc35e3b3a1b92dd3873dfb60216280b9fb9d4a784"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "d442b75600c5d6484576502b3c53a55c54311be9"
+  revision = "15dcb6c0061f497a3f66e3ea034b629c6dd4d99e"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

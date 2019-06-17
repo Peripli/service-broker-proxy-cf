@@ -116,7 +116,7 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
-	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
 
 	result := make([]cfclient.ServiceBroker, 0, len(names))
 	chunks := splitStringsIntoChunks(names)
@@ -138,7 +138,7 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 			brokerNames = append(brokerNames, chunk...)
 			query := queryBuilder{}
 			query.set("name", brokerNames)
-			brokers, err := pc.ListServiceBrokersByQuery(query.build(ctx))
+			brokers, err := pc.client.ListServiceBrokersByQuery(query.build(ctx))
 
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -162,7 +162,7 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
-	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
 
 	result := make([]cfclient.Service, 0, len(brokers))
 	chunks := splitBrokersIntoChunks(brokers)
@@ -177,7 +177,7 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 		wg.Add(1)
 		go func(chunk []cfclient.ServiceBroker) {
 			defer func() {
-				<-wgLimitChannel
+				//<-wgLimitChannel
 				wg.Done()
 			}()
 			brokerGUIDs := make([]string, 0, len(chunk))
@@ -207,14 +207,14 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 func (pc *PlatformClient) getServicesByBrokerGUIDs(ctx context.Context, brokerGUIDs []string) ([]cfclient.Service, error) {
 	query := queryBuilder{}
 	query.set("service_broker_guid", brokerGUIDs)
-	return pc.ListServicesByQuery(query.build(ctx))
+	return pc.client.ListServicesByQuery(query.build(ctx))
 }
 
 func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfclient.Service) ([]cfclient.ServicePlan, error) {
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
-	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
 
 	result := make([]cfclient.ServicePlan, 0, len(services))
 	chunks := splitServicesIntoChunks(services)
@@ -259,7 +259,7 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 func (pc *PlatformClient) getPlansByServiceGUIDs(ctx context.Context, serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
 	query := queryBuilder{}
 	query.set("service_guid", serviceGUIDs)
-	return pc.ListServicePlansByQuery(query.build(ctx))
+	return pc.client.ListServicePlansByQuery(query.build(ctx))
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
@@ -267,7 +267,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 	var errorOccured error
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	wgLimitChannel := make(chan struct{}, pc.maxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
 
 	chunks := splitCFPlansIntoChunks(plans)
 
@@ -313,7 +313,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(ctx context.Context, plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
 	query := queryBuilder{}
 	query.set("service_plan_guid", plansGUID)
-	return pc.ListServicePlanVisibilitiesByQuery(query.build(ctx))
+	return pc.client.ListServicePlanVisibilitiesByQuery(query.build(ctx))
 }
 
 type queryBuilder struct {

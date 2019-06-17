@@ -7,9 +7,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
+
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -126,20 +127,29 @@ func assertErrCauseIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
 }
 
 func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
+	return ccClientWithThrottling(URL, 50)
+}
+
+func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Settings, *cf.PlatformClient) {
 	cfConfig := &cfclient.Config{
 		ApiAddress: URL,
-	}
-	regDetails := &reconcile.Settings{
-		URL:          "http://10.0.2.2",
-		Username:     "user",
-		Password:     "password",
-		BrokerPrefix: reconcile.DefaultProxyBrokerPrefix,
 	}
 	config := &cf.ClientConfiguration{
 		Config:             cfConfig,
 		CfClientCreateFunc: cfclient.NewClient,
 	}
-	settings := &cf.Settings{Cf: config, Reg: regDetails}
+	settings := &cf.Settings{
+		Settings: *sbproxy.DefaultSettings(),
+		CF:       config,
+	}
+	settings.Reconcile.URL = "http://10.0.2.2"
+	settings.Reconcile.Username = "user"
+	settings.Reconcile.Password = "password"
+	settings.Reconcile.MaxParallelRequests = maxAllowedParallelRequests
+	settings.Sm.URL = "http://10.0.2.2"
+	settings.Sm.User = "user"
+	settings.Sm.Password = "password"
+
 	client, err := cf.NewClient(settings)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(client).ShouldNot(BeNil())
@@ -187,17 +197,19 @@ var _ = Describe("Client", func() {
 				Config:             cfclient.DefaultConfig(),
 				CfClientCreateFunc: cfclient.NewClient,
 			}
-			regDetails := &reconcile.Settings{
-				URL:      "http://10.0.2.2",
-				Username: "user",
-				Password: "password",
+			settings = &cf.Settings{
+				Settings: *sbproxy.DefaultSettings(),
+				CF:       config,
 			}
-			settings = &cf.Settings{Cf: config, Reg: regDetails}
+
+			settings.Reconcile.URL = "http://10.0.2.2"
+			settings.Reconcile.Username = "user"
+			settings.Reconcile.Password = "password"
 		})
 
 		Context("when create func fails", func() {
 			BeforeEach(func() {
-				settings.Cf.CfClientCreateFunc = nil
+				settings.CF.CfClientCreateFunc = nil
 			})
 
 			It("returns an error", func() {
@@ -209,7 +221,7 @@ var _ = Describe("Client", func() {
 
 		Context("when the config is invalid", func() {
 			BeforeEach(func() {
-				settings.Cf.Config.ApiAddress = "invalidAPI"
+				settings.CF.Config.ApiAddress = "invalidAPI"
 			})
 
 			It("returns an error", func() {

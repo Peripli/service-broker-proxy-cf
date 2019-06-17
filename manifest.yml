@@ -1,21 +1,23 @@
 ---
 applications:
   - name: cfproxy
-    memory: 64M
-    docker:
-      image: quay.io/service-manager/sb-proxy-cf
+    memory: 3G
+    path: .
     env:
+      GOVERSION: go1.11
       GOPACKAGENAME: github.com/Peripli/service-broker-proxy-cf
       APP_USERNAME: admin
       APP_PASSWORD: admin
       APP_MAX_PARALLEL_REQUESTS: 20
-      SM_URL: https://smanager.local.pcfdev.io
+      SM_URL: http://service-manager.dev.cfdev.sh
       SM_OSB_API_PATH: /v1/osb
-      SM_SKIP_SSL_VALIDATION: false
-      SM_USER: admin
-      SM_PASSWORD: admin
+      SM_SKIP_SSL_VALIDATION: true
+      SM_USER: f1L7vci6PCHYTSDcbU6HAmZpA5Ft8yxxkQMKF4PDyhQ=
+      SM_PASSWORD: SshDds06FbEsGbL5RJOMwPx1NvkrR/Zkzg4fymfBJ78=
+      CF_CLIENT_APIADDRESS: https://api.dev.cfdev.sh
       CF_CLIENT_USERNAME: admin
       CF_CLIENT_PASSWORD: admin
-      CF_CLIENT_SKIPSSLVALIDATION: false
+      CF_CLIENT_SKIPSSLVALIDATION: true
+      CF_CLIENT_HTTPCLIENT_TIMEOUT: 20000ms
       LOG_LEVEL: debug
       LOG_FORMAT: json

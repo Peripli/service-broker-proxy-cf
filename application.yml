@@ -1,29 +1,20 @@
 # Any of the below config properties can be provided via Environment Variables
 app:
-  url: http://10.0.2.2
   username: admin
   password: admin
   max_parallel_requests: 5
 server:
-  port: 8081
   request_timeout: 4000ms
   shutdown_timeout: 4000ms
 log:
   level: debug
   format: text
-sm:
-  user: admin
-  password: admin
-  url: http://localhost:8080
-  osb_api_path: /v1/osb
-  request_timeout: 6000ms
-  skip_ssl_validation: false
   resync_period: 30s
 cf:
   client:
-    apiAddress: http://api.local.pcfdev.io
+    apiAddress: https://api.dev.cfdev.sh
     username: admin
     password: admin
-    skipSslValidation: false
+    skipSslValidation: true
     httpClient:
       timeout: 6000ms

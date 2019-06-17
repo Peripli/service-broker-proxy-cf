@@ -12,8 +12,8 @@ applications:
       SM_URL: http://service-manager.dev.cfdev.sh
       SM_OSB_API_PATH: /v1/osb
       SM_SKIP_SSL_VALIDATION: true
-      SM_USER: f1L7vci6PCHYTSDcbU6HAmZpA5Ft8yxxkQMKF4PDyhQ=
-      SM_PASSWORD: SshDds06FbEsGbL5RJOMwPx1NvkrR/Zkzg4fymfBJ78=
+      SM_USER: 8osAmenS8NH8ba7dE4/MAFgFWBsKAQf+rh+/SE16V9I=
+      SM_PASSWORD: zrzGeTIgO6+ryWyIAuMdEnjDVknC3bRfZLFWVMs1kso=
       CF_CLIENT_APIADDRESS: https://api.dev.cfdev.sh
       CF_CLIENT_USERNAME: admin
       CF_CLIENT_PASSWORD: admin

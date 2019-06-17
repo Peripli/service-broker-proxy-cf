@@ -83,5 +83,8 @@ func NewConfig(env env.Environment) (*Settings, error) {
 		return nil, err
 	}
 
+	cfSettings.Settings.Reconcile.Username = cfSettings.Sm.User
+	cfSettings.Settings.Reconcile.Password = cfSettings.Sm.Password
+
 	return cfSettings, nil
 }

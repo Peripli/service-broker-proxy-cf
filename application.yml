@@ -3,6 +3,7 @@ app:
   url: http://10.0.2.2
   username: admin
   password: admin
+  max_parallel_requests: 5
 server:
   port: 8081
   request_timeout: 4000ms

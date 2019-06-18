@@ -1,11 +1,12 @@
 package cf_test
 
 import (
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"fmt"
+
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-manager/pkg/env/envfakes"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -18,10 +19,16 @@ var _ = Describe("Config", func() {
 	)
 
 	BeforeEach(func() {
-		settings = &cf.Settings{Cf: cf.DefaultClientConfiguration(), Reg: &reconcile.Settings{}}
-		settings.Reg.URL = "http://10.0.2.2"
-		settings.Reg.Username = "user"
-		settings.Reg.Password = "pass"
+		settings = &cf.Settings{
+			Settings: *sbproxy.DefaultSettings(),
+			CF:       cf.DefaultClientConfiguration(),
+		}
+		settings.Settings.Sm.URL = "url"
+		settings.Settings.Sm.User = "user"
+		settings.Settings.Sm.Password = "password"
+		settings.Settings.Reconcile.URL = "url"
+		settings.Settings.Reconcile.Username = "user"
+		settings.Settings.Reconcile.Password = "password"
 	})
 
 	Describe("Validate", func() {
@@ -43,39 +50,24 @@ var _ = Describe("Config", func() {
 
 		Context("when address is missing", func() {
 			It("returns an error", func() {
-				settings.Cf.Config = nil
+				settings.CF.Config = nil
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when request timeout is missing", func() {
 			It("returns an error", func() {
-				settings.Cf.ApiAddress = ""
+				settings.CF.ApiAddress = ""
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when shutdown timeout is missing", func() {
 			It("returns an error", func() {
-				settings.Cf = nil
+				settings.CF = nil
 				assertErrorDuringValidate()
 			})
 		})
-
-		Context("when log level is missing", func() {
-			It("returns an error", func() {
-				settings.Reg.Username = ""
-				assertErrorDuringValidate()
-			})
-		})
-
-		Context("when log format  is missing", func() {
-			It("returns an error", func() {
-				settings.Reg.Password = ""
-				assertErrorDuringValidate()
-			})
-		})
-
 	})
 
 	Describe("New Configuration", func() {
@@ -106,7 +98,7 @@ var _ = Describe("Config", func() {
 				settings cf.Settings
 
 				envSettings = cf.Settings{
-					Cf: &cf.ClientConfiguration{
+					CF: &cf.ClientConfiguration{
 						Config: &cfclient.Config{
 							ApiAddress:   "https://example.com",
 							Username:     "user",
@@ -116,20 +108,12 @@ var _ = Describe("Config", func() {
 						},
 						CfClientCreateFunc: cfclient.NewClient,
 					},
-					Reg: &reconcile.Settings{
-						URL:      "http://10.0.2.2",
-						Username: "user",
-						Password: "passsword",
-					},
+					Settings: *sbproxy.DefaultSettings(),
 				}
 
 				emptySettings = cf.Settings{
-					Cf: &cf.ClientConfiguration{},
-					Reg: &reconcile.Settings{
-						URL:      "http://10.0.2.2",
-						Username: "user",
-						Password: "password",
-					},
+					CF:       &cf.ClientConfiguration{},
+					Settings: *sbproxy.DefaultSettings(),
 				}
 			)
 
@@ -142,6 +126,14 @@ var _ = Describe("Config", func() {
 					}
 					return nil
 				}
+
+				envSettings.Reconcile.URL = "http://10.0.2.2"
+				envSettings.Reconcile.Username = "user"
+				envSettings.Reconcile.Password = "password"
+
+				emptySettings.Reconcile.URL = "http://10.0.2.2"
+				emptySettings.Reconcile.Username = "user"
+				emptySettings.Reconcile.Password = "password"
 			})
 
 			Context("when loaded from environment", func() {
@@ -157,11 +149,11 @@ var _ = Describe("Config", func() {
 
 					Expect(err).To(Not(HaveOccurred()))
 
-					Expect(c.Cf.ApiAddress).Should(Equal(envSettings.Cf.ApiAddress))
-					Expect(c.Cf.ClientID).Should(Equal(envSettings.Cf.ClientID))
-					Expect(c.Cf.ClientSecret).Should(Equal(envSettings.Cf.ClientSecret))
-					Expect(c.Cf.Username).Should(Equal(envSettings.Cf.Username))
-					Expect(c.Cf.Password).Should(Equal(envSettings.Cf.Password))
+					Expect(c.CF.ApiAddress).Should(Equal(envSettings.CF.ApiAddress))
+					Expect(c.CF.ClientID).Should(Equal(envSettings.CF.ClientID))
+					Expect(c.CF.ClientSecret).Should(Equal(envSettings.CF.ClientSecret))
+					Expect(c.CF.Username).Should(Equal(envSettings.CF.Username))
+					Expect(c.CF.Password).Should(Equal(envSettings.CF.Password))
 				})
 			})
 
@@ -176,7 +168,7 @@ var _ = Describe("Config", func() {
 
 					Expect(fakeEnv.UnmarshalCallCount()).To(Equal(1))
 
-					Expect(c.Cf).Should(Equal(emptySettings.Cf))
+					Expect(c.CF).Should(Equal(emptySettings.CF))
 
 				})
 			})

@@ -42,8 +42,8 @@ var _ = Describe("Client FetchCatalog", func() {
 		expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 			Name:      testBroker.Name,
 			BrokerURL: testBroker.BrokerURL,
-			Username:  settings.Reg.Username,
-			Password:  settings.Reg.Password,
+			Username:  settings.Reconcile.Username,
+			Password:  settings.Reconcile.Password,
 		}
 
 		ccServer.AppendHandlers(
@@ -57,6 +57,10 @@ var _ = Describe("Client FetchCatalog", func() {
 
 	AfterEach(func() {
 		ccServer.Close()
+	})
+
+	It("is not nil", func() {
+		Expect(client.CatalogFetcher()).ToNot(BeNil())
 	})
 
 	Describe("Fetch", func() {
@@ -102,5 +106,4 @@ var _ = Describe("Client FetchCatalog", func() {
 			})
 		})
 	})
-
 })

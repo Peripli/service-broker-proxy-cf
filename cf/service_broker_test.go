@@ -25,10 +25,10 @@ var _ = Describe("Client ServiceBroker", func() {
 		ctx             context.Context
 	)
 
-	assertBrokersFoundMatchTestBroker := func(expectedCount int, actualBrokers ...platform.ServiceBroker) {
+	assertBrokersFoundMatchTestBroker := func(expectedCount int, actualBrokers ...*platform.ServiceBroker) {
 		Expect(actualBrokers).To(HaveLen(expectedCount))
 		for _, b := range actualBrokers {
-			Expect(&b).To(Equal(testBroker))
+			Expect(b).To(Equal(testBroker))
 		}
 	}
 
@@ -49,6 +49,10 @@ var _ = Describe("Client ServiceBroker", func() {
 
 	AfterEach(func() {
 		ccServer.Close()
+	})
+
+	It("is not nil", func() {
+		Expect(client.Broker()).ToNot(BeNil())
 	})
 
 	Describe("GetBrokers", func() {
@@ -113,7 +117,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      testBroker.Name,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  settings.Reg.Username,
+								Username:  settings.Reconcile.Username,
 							},
 						},
 					},
@@ -193,7 +197,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      brokerName,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  settings.Reg.Username,
+								Username:  settings.Reconcile.Username,
 							},
 						},
 					},
@@ -205,7 +209,7 @@ var _ = Describe("Client ServiceBroker", func() {
 				broker, err := client.GetBrokerByName(ctx, brokerName)
 
 				Expect(err).ShouldNot(HaveOccurred())
-				assertBrokersFoundMatchTestBroker(1, *broker)
+				assertBrokersFoundMatchTestBroker(1, broker)
 			})
 		})
 
@@ -218,8 +222,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.CreateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  settings.Reg.Username,
-				Password:  settings.Reg.Password,
+				Username:  settings.Reconcile.Username,
+				Password:  settings.Reconcile.Password,
 			}
 
 			actualRequest = &platform.CreateServiceBrokerRequest{
@@ -265,7 +269,7 @@ var _ = Describe("Client ServiceBroker", func() {
 					Entity: cfclient.ServiceBroker{
 						Name:      testBroker.Name,
 						BrokerURL: testBroker.BrokerURL,
-						Username:  settings.Reg.Username,
+						Username:  settings.Reconcile.Username,
 					},
 				}
 			})
@@ -338,8 +342,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  settings.Reg.Username,
-				Password:  settings.Reg.Password,
+				Username:  settings.Reconcile.Username,
+				Password:  settings.Reconcile.Password,
 			}
 
 			actualRequest = &platform.UpdateServiceBrokerRequest{

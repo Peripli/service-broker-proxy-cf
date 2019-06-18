@@ -143,8 +143,6 @@ func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Set
 		CF:       config,
 	}
 	settings.Reconcile.URL = "http://10.0.2.2"
-	settings.Reconcile.Username = "user"
-	settings.Reconcile.Password = "password"
 	settings.Reconcile.MaxParallelRequests = maxAllowedParallelRequests
 	settings.Sm.URL = "http://10.0.2.2"
 	settings.Sm.User = "user"
@@ -203,8 +201,6 @@ var _ = Describe("Client", func() {
 			}
 
 			settings.Reconcile.URL = "http://10.0.2.2"
-			settings.Reconcile.Username = "user"
-			settings.Reconcile.Password = "password"
 		})
 
 		Context("when create func fails", func() {

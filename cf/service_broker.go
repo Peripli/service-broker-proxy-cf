@@ -48,8 +48,8 @@ func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*pl
 func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.CreateServiceBrokerRequest{
-		Username:  pc.settings.Username,
-		Password:  pc.settings.Password,
+		Username:  pc.settings.Sm.User,
+		Password:  pc.settings.Sm.Password,
 		Name:      r.Name,
 		BrokerURL: r.BrokerURL,
 	}
@@ -84,8 +84,8 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 
 	request := cfclient.UpdateServiceBrokerRequest{
-		Username:  pc.settings.Username,
-		Password:  pc.settings.Password,
+		Username:  pc.settings.Sm.User,
+		Password:  pc.settings.Sm.Password,
 		Name:      r.Name,
 		BrokerURL: r.BrokerURL,
 	}

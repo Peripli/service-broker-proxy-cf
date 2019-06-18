@@ -116,7 +116,7 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
-	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	result := make([]cfclient.ServiceBroker, 0, len(names))
 	chunks := splitStringsIntoChunks(names)
@@ -161,7 +161,7 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
-	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	result := make([]cfclient.Service, 0, len(brokers))
 	chunks := splitBrokersIntoChunks(brokers)
@@ -212,7 +212,7 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 	var errorOccured error
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
-	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	result := make([]cfclient.ServicePlan, 0, len(services))
 	chunks := splitServicesIntoChunks(services)
@@ -264,7 +264,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 	var errorOccured error
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	wgLimitChannel := make(chan struct{}, pc.settings.MaxParallelRequests)
+	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	chunks := splitCFPlansIntoChunks(plans)
 

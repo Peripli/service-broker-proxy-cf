@@ -27,8 +27,6 @@ var _ = Describe("Config", func() {
 		settings.Settings.Sm.User = "user"
 		settings.Settings.Sm.Password = "password"
 		settings.Settings.Reconcile.URL = "url"
-		settings.Settings.Reconcile.Username = "user"
-		settings.Settings.Reconcile.Password = "password"
 	})
 
 	Describe("Validate", func() {
@@ -128,12 +126,7 @@ var _ = Describe("Config", func() {
 				}
 
 				envSettings.Reconcile.URL = "http://10.0.2.2"
-				envSettings.Reconcile.Username = "user"
-				envSettings.Reconcile.Password = "password"
-
 				emptySettings.Reconcile.URL = "http://10.0.2.2"
-				emptySettings.Reconcile.Username = "user"
-				emptySettings.Reconcile.Password = "password"
 			})
 
 			Context("when loaded from environment", func() {

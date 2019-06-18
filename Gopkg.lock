@@ -18,8 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:c2003b23c038323bd8847a196966a2c9e1e394e044b88c8b250e00f06654dd82"
+  branch = "migrate-url"
+  digest = "1:078bb11057a1b2aa79397857d622da6c51c4d32673c460b664fb664e2da6486a"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -32,7 +32,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "0b05e3116007d5d0dabc7a94e2d71e0255deb21a"
+  revision = "60b5d0379b66037e04ffd1c9332f9c163c3ef22d"
 
 [[projects]]
   digest = "1:7a122bb0965a9f0f3b4f9a6a0a5c154602cf4a8847cfea7b256ebf5af30e3d88"

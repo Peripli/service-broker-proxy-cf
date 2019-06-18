@@ -175,7 +175,7 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 		wg.Add(1)
 		go func(chunk []cfclient.ServiceBroker) {
 			defer func() {
-				//<-wgLimitChannel
+				<-wgLimitChannel
 				wg.Done()
 			}()
 			brokerGUIDs := make([]string, 0, len(chunk))

@@ -27,6 +27,7 @@ var _ = Describe("Config", func() {
 		settings.Settings.Sm.User = "user"
 		settings.Settings.Sm.Password = "password"
 		settings.Settings.Reconcile.URL = "url"
+		settings.Settings.Reconcile.LegacyURL = "legacyurl"
 	})
 
 	Describe("Validate", func() {

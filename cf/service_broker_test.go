@@ -117,7 +117,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      testBroker.Name,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  settings.Reconcile.Username,
+								Username:  settings.Sm.User,
 							},
 						},
 					},
@@ -197,7 +197,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      brokerName,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  settings.Reconcile.Username,
+								Username:  settings.Sm.User,
 							},
 						},
 					},
@@ -222,8 +222,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.CreateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  settings.Reconcile.Username,
-				Password:  settings.Reconcile.Password,
+				Username:  settings.Sm.User,
+				Password:  settings.Sm.Password,
 			}
 
 			actualRequest = &platform.CreateServiceBrokerRequest{
@@ -269,7 +269,7 @@ var _ = Describe("Client ServiceBroker", func() {
 					Entity: cfclient.ServiceBroker{
 						Name:      testBroker.Name,
 						BrokerURL: testBroker.BrokerURL,
-						Username:  settings.Reconcile.Username,
+						Username:  settings.Sm.User,
 					},
 				}
 			})
@@ -342,8 +342,8 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  settings.Reconcile.Username,
-				Password:  settings.Reconcile.Password,
+				Username:  settings.Sm.User,
+				Password:  settings.Sm.Password,
 			}
 
 			actualRequest = &platform.UpdateServiceBrokerRequest{

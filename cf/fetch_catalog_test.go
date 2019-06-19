@@ -42,8 +42,8 @@ var _ = Describe("Client FetchCatalog", func() {
 		expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 			Name:      testBroker.Name,
 			BrokerURL: testBroker.BrokerURL,
-			Username:  settings.Reconcile.Username,
-			Password:  settings.Reconcile.Password,
+			Username:  settings.Sm.User,
+			Password:  settings.Sm.Password,
 		}
 
 		ccServer.AppendHandlers(

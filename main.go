@@ -13,7 +13,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	env, err := sbproxy.DefaultEnv(func(set *pflag.FlagSet) {
+	env, err := sbproxy.DefaultEnv(ctx, func(set *pflag.FlagSet) {
 		cf.CreatePFlagsForCFClient(set)
 	})
 	if err != nil {

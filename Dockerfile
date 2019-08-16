@@ -31,6 +31,7 @@ WORKDIR /app
 
 # Copy the executable file
 COPY --from=builder /main /app/
+COPY --from=builder /go/src/github.com/Peripli/service-manager/application.yml /app/
 
 EXPOSE 8080
 ENTRYPOINT [ "./main" ]

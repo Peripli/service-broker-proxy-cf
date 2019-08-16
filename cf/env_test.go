@@ -1,6 +1,7 @@
 package cf
 
 import (
+	"context"
 	"os"
 
 	"github.com/Peripli/service-manager/pkg/env"
@@ -46,7 +47,7 @@ var _ = Describe("CF Env", func() {
 		Expect(os.Setenv("VCAP_APPLICATION", vcapApplication)).ShouldNot(HaveOccurred())
 		Expect(os.Setenv("VCAP_SERVICES", "{}")).ShouldNot(HaveOccurred())
 
-		environment, err = env.New(pflag.CommandLine)
+		environment, err = env.New(context.TODO(), pflag.CommandLine)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 

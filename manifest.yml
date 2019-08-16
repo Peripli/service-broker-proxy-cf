@@ -17,5 +17,3 @@ applications:
       CF_CLIENT_USERNAME: admin
       CF_CLIENT_PASSWORD: admin
       CF_CLIENT_SKIPSSLVALIDATION: false
-      LOG_LEVEL: debug
-      LOG_FORMAT: json

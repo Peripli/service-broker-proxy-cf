@@ -18,7 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:09a25d2f1fca196090235e60a804fe29ff5912d7e46c44ce72b6e5fcc28b7bf1"
+  branch = "dynamic-logs"
+  digest = "1:5a865bc655b93bfe8c5645a7f4f1052adc17f1f208353c2f06fc151dc6bd558d"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,14 +32,15 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "487f7be7b3703cd74eff37c1ca1eef1b82bff3fc"
-  version = "v0.5.0"
+  revision = "f19fa0615e662b7a09c79eb03a874f2d243075de"
 
 [[projects]]
-  digest = "1:579211294030b88de4823f5a13979886830747f9ad34e3a83e63d5416d9541ff"
+  branch = "dynamic-logs"
+  digest = "1:ce9e4b1b9f911beca4297efc8b37ed772deeb50be59179077783c6cd57da3466"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
+    "api/configuration",
     "api/filters",
     "api/healthcheck",
     "api/info",
@@ -46,7 +48,6 @@
     "api/osb",
     "pkg/env",
     "pkg/env/envfakes",
-    "pkg/filters/labels",
     "pkg/health",
     "pkg/log",
     "pkg/query",
@@ -65,8 +66,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "be4f5e3b360a3bba7f05c79bf5d2946b9171ee46"
-  version = "v0.4.0"
+  revision = "b255c45cd189252927db8035ae582dd0eee0033e"
 
 [[projects]]
   branch = "master"
@@ -221,12 +221,12 @@
   version = "v1.1.2"
 
 [[projects]]
-  branch = "master"
   digest = "1:96df5bdca983e4b8c62682af5b67100b187d582ac6db0968d8af52e84138d1e6"
   name = "github.com/onrik/logrus"
   packages = ["filename"]
   pruneopts = "UT"
-  revision = "0331655e8b9ec13423e2b31914d0a2154b13474e"
+  revision = "94ad747c51752e8dfa69cfd0335b8c76bf1ae592"
+  version = "v0.4.1"
 
 [[projects]]
   digest = "1:e9c3bb68a6c9470302b8046d4647e0612a2ea6037b9c6a47de60c0a90db504f8"
@@ -348,12 +348,12 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:59e7dceb53b4a1e57eb1eb0bf9951ff0c25912df7660004a789b62b4e8cdca3b"
+  digest = "1:11118bd196646c6515fea3d6c43f66162833c6ae4939bfb229b9956d91c6cf17"
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b5e8006cbee93ec955a89ab31e0e3ce3204f3736"
-  version = "v1.0.2"
+  revision = "b5bf975e5823809fb22c7644d008757f78a4259e"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:7df351557a6d5c30804e7d6f7ed87f2fccb0619c08fcc84869a93f22bec96c11"

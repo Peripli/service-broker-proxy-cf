@@ -18,7 +18,8 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:09a25d2f1fca196090235e60a804fe29ff5912d7e46c44ce72b6e5fcc28b7bf1"
+  branch = "notification_corr_id"
+  digest = "1:90f735ff0a967079ac6c1600cf0f7b7aa98156a1e2bacb5c1f60230be95130c4"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/filter",
@@ -31,11 +32,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "487f7be7b3703cd74eff37c1ca1eef1b82bff3fc"
-  version = "v0.5.0"
+  revision = "17ac8259f80429fbbc2049213aa3320cb84b47db"
 
 [[projects]]
-  digest = "1:579211294030b88de4823f5a13979886830747f9ad34e3a83e63d5416d9541ff"
+  branch = "notification_corr_id"
+  digest = "1:90430aac2cb4983f9543c47c37fc07ddc765cb14c288f3be41bc09e684d5226d"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -46,7 +47,6 @@
     "api/osb",
     "pkg/env",
     "pkg/env/envfakes",
-    "pkg/filters/labels",
     "pkg/health",
     "pkg/log",
     "pkg/query",
@@ -65,16 +65,15 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "be4f5e3b360a3bba7f05c79bf5d2946b9171ee46"
-  version = "v0.4.0"
+  revision = "bfbcf7425db332d49c8ab9fcf1f61cb1e9678400"
 
 [[projects]]
   branch = "master"
-  digest = "1:8597ea40ac83a647f7f67db149d1f0921d7baf873d2fd14ee3e475adeecae0ae"
+  digest = "1:166ffb28681619e62c0a7e23f35c490ad63b99ef3b8033b9e1c62b703a6f55e9"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "16c98753d3152f9d80d3c121523536858095a3da"
+  revision = "35bcce23fc5f8b9969723ac38c0de1f82c4d3471"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
@@ -132,12 +131,12 @@
   version = "v3.1.0"
 
 [[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
+  digest = "1:573ca21d3669500ff845bdebee890eb7fc7f0f50c59f2132f2a0c6b03d85086a"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+  version = "v1.3.2"
 
 [[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
@@ -226,7 +225,7 @@
   name = "github.com/onrik/logrus"
   packages = ["filename"]
   pruneopts = "UT"
-  revision = "0331655e8b9ec13423e2b31914d0a2154b13474e"
+  revision = "94ad747c51752e8dfa69cfd0335b8c76bf1ae592"
 
 [[projects]]
   digest = "1:e9c3bb68a6c9470302b8046d4647e0612a2ea6037b9c6a47de60c0a90db504f8"
@@ -356,12 +355,12 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:7df351557a6d5c30804e7d6f7ed87f2fccb0619c08fcc84869a93f22bec96c11"
+  digest = "1:46aea6ffe39c3d95c13640c2515236ed3c5cdffc3c78c6c0ed4edec2caf7a0dc"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "eee0b6226f0d1db2675a176fdfaa8419bcad4ca8"
-  version = "v1.2.1"
+  revision = "c5e72cdf74dff23857243dd662c465b810891c21"
+  version = "v1.3.2"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -397,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "ea8f1a30c4438cc8b13f05538385ad8dc6049b43"
+  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 
 [[projects]]
   branch = "master"
@@ -411,7 +410,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "b5b0513f8c1bb7c1e3e6f168fba117131fe2614a"
+  revision = "74dc4d7220e7acc4e100824340f3e66577424772"
 
 [[projects]]
   branch = "master"
@@ -427,11 +426,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:249fd56fb36a223aee164e2dc35e3b3a1b92dd3873dfb60216280b9fb9d4a784"
+  digest = "1:47844666be86089349a441f5f0ece22f42a87a8cb8c9a31294c593f43209ad19"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "516e3c20635fbe39539f7ed361a15c51fec29cd8"
+  revision = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

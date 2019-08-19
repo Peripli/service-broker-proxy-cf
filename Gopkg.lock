@@ -19,10 +19,9 @@
 
 [[projects]]
   branch = "dynamic-logs"
-  digest = "1:5a865bc655b93bfe8c5645a7f4f1052adc17f1f208353c2f06fc151dc6bd558d"
+  digest = "1:cbc120938dd38da5c4aa44afa82ed1bf17904f9896f3da86e6f8ee846a21b5d6"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
-    "pkg/filter",
     "pkg/logging",
     "pkg/platform",
     "pkg/sbproxy",
@@ -32,11 +31,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "f19fa0615e662b7a09c79eb03a874f2d243075de"
+  revision = "5289b1dc1a72e6002c5713082a3c979ca1f5061b"
 
 [[projects]]
   branch = "dynamic-logs"
-  digest = "1:ce9e4b1b9f911beca4297efc8b37ed772deeb50be59179077783c6cd57da3466"
+  digest = "1:309f8071c616a8643a055ceb94d503a1707242aa2ef801e220a3283c6587f513"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -66,15 +65,15 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "b255c45cd189252927db8035ae582dd0eee0033e"
+  revision = "fefb6d9cde69c386cfe37f5bebb7f6b3feb7df1b"
 
 [[projects]]
   branch = "master"
-  digest = "1:8597ea40ac83a647f7f67db149d1f0921d7baf873d2fd14ee3e475adeecae0ae"
+  digest = "1:166ffb28681619e62c0a7e23f35c490ad63b99ef3b8033b9e1c62b703a6f55e9"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "16c98753d3152f9d80d3c121523536858095a3da"
+  revision = "35bcce23fc5f8b9969723ac38c0de1f82c4d3471"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
@@ -132,12 +131,12 @@
   version = "v3.1.0"
 
 [[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
+  digest = "1:573ca21d3669500ff845bdebee890eb7fc7f0f50c59f2132f2a0c6b03d85086a"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+  version = "v1.3.2"
 
 [[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
@@ -356,12 +355,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:7df351557a6d5c30804e7d6f7ed87f2fccb0619c08fcc84869a93f22bec96c11"
+  digest = "1:46aea6ffe39c3d95c13640c2515236ed3c5cdffc3c78c6c0ed4edec2caf7a0dc"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "eee0b6226f0d1db2675a176fdfaa8419bcad4ca8"
-  version = "v1.2.1"
+  revision = "c5e72cdf74dff23857243dd662c465b810891c21"
+  version = "v1.3.2"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -397,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "ea8f1a30c4438cc8b13f05538385ad8dc6049b43"
+  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 
 [[projects]]
   branch = "master"
@@ -411,7 +410,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "b5b0513f8c1bb7c1e3e6f168fba117131fe2614a"
+  revision = "74dc4d7220e7acc4e100824340f3e66577424772"
 
 [[projects]]
   branch = "master"
@@ -427,11 +426,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:249fd56fb36a223aee164e2dc35e3b3a1b92dd3873dfb60216280b9fb9d4a784"
+  digest = "1:47844666be86089349a441f5f0ece22f42a87a8cb8c9a31294c593f43209ad19"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "516e3c20635fbe39539f7ed361a15c51fec29cd8"
+  revision = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "dynamic-logs"
-  digest = "1:cbc120938dd38da5c4aa44afa82ed1bf17904f9896f3da86e6f8ee846a21b5d6"
+  digest = "1:893b607fa913c30b94479c9ffca83e43a6df5ec406e7591f4d01a11341b59353"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -31,11 +31,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "5289b1dc1a72e6002c5713082a3c979ca1f5061b"
+  revision = "e74c31c1fb691188a39d9ee44d14459c5eebb335"
 
 [[projects]]
   branch = "dynamic-logs"
-  digest = "1:309f8071c616a8643a055ceb94d503a1707242aa2ef801e220a3283c6587f513"
+  digest = "1:c0c28e36df5824e58f8bee23e0c53adf78b4fe5883dd91728e3a2e3fbf8d76e4"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -65,7 +65,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "fefb6d9cde69c386cfe37f5bebb7f6b3feb7df1b"
+  revision = "5885120131ddae9408868c4f30e730f7b095134d"
 
 [[projects]]
   branch = "master"
@@ -228,7 +228,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:e9c3bb68a6c9470302b8046d4647e0612a2ea6037b9c6a47de60c0a90db504f8"
+  digest = "1:3e2dd43d579954e11bf866eae02afa8312b2647c10db0746cc647b95fd0d4e6b"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -251,11 +251,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "eea6ad008b96acdaa524f5b409513bf062b500ad"
-  version = "v1.8.0"
+  revision = "7e8b50db0c6d0a15ac0eb015d4ca64e7e7e2c88c"
+  version = "v1.9.0"
 
 [[projects]]
-  digest = "1:24621ab937f9ae9950071357af6aa82865f5900584d0c2fa9e0be9ead2902567"
+  digest = "1:9fceb1c4a99ef244b5858f2ce293d63d1653747d1e47a90d25c8303c2e789612"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -273,8 +273,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "90e289841c1ed79b7a598a7cd9959750cb5e89e2"
-  version = "v1.5.0"
+  revision = "27d50ea6455b212cf516609fa58b2b5dce1abc81"
+  version = "v1.6.0"
 
 [[projects]]
   digest = "1:93131d8002d7025da13582877c32d1fc302486775a1b06f62241741006428c5e"
@@ -396,7 +396,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
+  revision = "60c769a6c58655dab1b9adac0d58967dd517cfba"
 
 [[projects]]
   branch = "master"

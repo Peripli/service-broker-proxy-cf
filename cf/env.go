@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// DefaultEnv creates a default environment for the CF service broker proxy
 func DefaultEnv(ctx context.Context, additionalPFlags ...func(set *pflag.FlagSet)) (env.Environment, error) {
 	additionalPFlagProviders := append(additionalPFlags, func(set *pflag.FlagSet) {
 		CreatePFlagsForCFClient(set)

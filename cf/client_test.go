@@ -135,8 +135,8 @@ func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Set
 		ApiAddress: URL,
 	}
 	config := &cf.ClientConfiguration{
-		Config:             cfConfig,
-		CfClientCreateFunc: cfclient.NewClient,
+		Config:           cfConfig,
+		CFClientProvider: cfclient.NewClient,
 	}
 	settings := &cf.Settings{
 		Settings: *sbproxy.DefaultSettings(),
@@ -193,8 +193,8 @@ var _ = Describe("Client", func() {
 
 		BeforeEach(func() {
 			config := &cf.ClientConfiguration{
-				Config:             cfclient.DefaultConfig(),
-				CfClientCreateFunc: cfclient.NewClient,
+				Config:           cfclient.DefaultConfig(),
+				CFClientProvider: cfclient.NewClient,
 			}
 			settings = &cf.Settings{
 				Settings: *sbproxy.DefaultSettings(),
@@ -206,7 +206,7 @@ var _ = Describe("Client", func() {
 
 		Context("when create func fails", func() {
 			BeforeEach(func() {
-				settings.CF.CfClientCreateFunc = nil
+				settings.CF.CFClientProvider = nil
 			})
 
 			It("returns an error", func() {

@@ -19,15 +19,14 @@ var _ = Describe("Config", func() {
 	)
 
 	BeforeEach(func() {
-		settings = &cf.Settings{
-			Settings: *sbproxy.DefaultSettings(),
-			CF:       cf.DefaultClientConfiguration(),
-		}
+		settings = cf.DefaultSettings()
+
 		settings.Settings.Sm.URL = "url"
 		settings.Settings.Sm.User = "user"
 		settings.Settings.Sm.Password = "password"
 		settings.Settings.Reconcile.URL = "url"
 		settings.Settings.Reconcile.LegacyURL = "legacyurl"
+		settings.CF.ApiAddress = "http://apiaddress.com"
 	})
 
 	Describe("Validate", func() {
@@ -105,7 +104,7 @@ var _ = Describe("Config", func() {
 							ClientID:     "clientid",
 							ClientSecret: "clientsecret",
 						},
-						CfClientCreateFunc: cfclient.NewClient,
+						CFClientProvider: cfclient.NewClient,
 					},
 					Settings: *sbproxy.DefaultSettings(),
 				}

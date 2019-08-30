@@ -39,7 +39,7 @@ func setCFOverrides(env env.Environment) error {
 		}
 
 		cfEnvMap := make(map[string]interface{})
-		cfEnvMap["app.url"] = "https://" + cfEnv.ApplicationURIs[0]
+		cfEnvMap["app.legacy_url"] = "https://" + cfEnv.ApplicationURIs[0]
 		cfEnvMap["server.port"] = cfEnv.Port
 		cfEnvMap["cf.client.apiAddress"] = cfEnv.CFAPI
 

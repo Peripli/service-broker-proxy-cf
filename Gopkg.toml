@@ -35,7 +35,7 @@
 
 [[constraint]]
   name = "github.com/Peripli/service-broker-proxy"
-  branch = "dynamic-logs"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/cloudfoundry-community/go-cfenv"

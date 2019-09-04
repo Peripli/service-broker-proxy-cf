@@ -53,7 +53,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "19d694e0706959bfbb70a427a6169061cad5a83d"
+  revision = "ea651ea6f2df715c14055f0ebb519b9b1cd5f362"
 
 [[projects]]
   digest = "1:405d3d8f807116e761d3aa885c65575dee911b042d2bdea60d0299565bf22bb1"
@@ -250,7 +250,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:c0af9fc881a62776156eb2cd00fc1a14bd61ffdf285d1f8ac3b5c2834e1963d2"
+  digest = "1:aed50c53dce3e0ee52c84e5515b8b85404af5b7efc6a9199ab0035b8c25efcb8"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -273,8 +273,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "f90f37d87fa6b1dd9625e2b1e83c23ffae3de228"
-  version = "v1.10.0"
+  revision = "974566c482abc93ffd3df6f4626e79076c7ed290"
+  version = "v1.10.1"
 
 [[projects]]
   digest = "1:2637b4b91a09d72cd753284922f98948e8f7d01e67ad7eb7f58035a54ee88543"
@@ -448,11 +448,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d866ee72e9635adee18ef0841854d5c3356335a7133298ac8b6ae5db1bb98819"
+  digest = "1:b8340ec580cc3c81782c6c46ad20bf17c4b567be60cc2901e8bc220a8b473de1"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "08d80c9d36de4cf3f0843a021c300dd67a5e47dc"
+  revision = "9109b7679e13aa34a54834cfb4949cac4b96e576"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

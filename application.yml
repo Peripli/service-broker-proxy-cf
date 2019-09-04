@@ -9,8 +9,8 @@ server:
   request_timeout: 4000ms
   shutdown_timeout: 4000ms
 log:
-  level: debug
-  format: text
+  level: error
+  format: kibana
 sm:
   user: admin
   password: admin

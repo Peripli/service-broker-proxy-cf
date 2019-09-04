@@ -16,8 +16,11 @@ import (
 
 // ClientConfiguration type holds config info for building the cf client
 type ClientConfiguration struct {
-	*cfclient.Config   `mapstructure:"client"`
-	CfClientCreateFunc func(*cfclient.Config) (*cfclient.Client, error) `mapstructure:"-"`
+	*cfclient.Config `mapstructure:"client"`
+
+	// CFClientProvider delays the creation of the creation of the CF client as it does remote calls during its creation which should be delayed
+	// until the application is ran.
+	CFClientProvider func(*cfclient.Config) (*cfclient.Client, error) `mapstructure:"-"`
 }
 
 // Settings type wraps the CF client configuration
@@ -25,6 +28,14 @@ type Settings struct {
 	sbproxy.Settings `mapstructure:",squash"`
 
 	CF *ClientConfiguration `mapstructure:"cf"`
+}
+
+// DefaultSettings returns the default application settings
+func DefaultSettings() *Settings {
+	return &Settings{
+		Settings: *sbproxy.DefaultSettings(),
+		CF:       DefaultClientConfiguration(),
+	}
 }
 
 // Validate validates the application settings
@@ -40,10 +51,11 @@ func (s *Settings) Validate() error {
 func DefaultClientConfiguration() *ClientConfiguration {
 	cfClientConfig := cfclient.DefaultConfig()
 	cfClientConfig.HttpClient.Timeout = 10 * time.Second
+	cfClientConfig.ApiAddress = ""
 
 	return &ClientConfiguration{
-		Config:             cfClientConfig,
-		CfClientCreateFunc: cfclient.NewClient,
+		Config:           cfClientConfig,
+		CFClientProvider: cfclient.NewClient,
 	}
 }
 
@@ -57,7 +69,7 @@ func (c *ClientConfiguration) Validate() error {
 	if c == nil {
 		return fmt.Errorf("CF Client configuration missing")
 	}
-	if c.CfClientCreateFunc == nil {
+	if c.CFClientProvider == nil {
 		return errors.New("CF ClientCreateFunc missing")
 	}
 	if c.Config == nil {

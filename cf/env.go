@@ -1,15 +1,37 @@
 package cf
 
 import (
+	"context"
 	"fmt"
-	"github.com/Peripli/service-manager/pkg/env"
-	"github.com/cloudfoundry-community/go-cfenv"
 	"os"
 	"reflect"
+
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
+	"github.com/Peripli/service-manager/pkg/env"
+	"github.com/cloudfoundry-community/go-cfenv"
+	"github.com/spf13/pflag"
 )
 
-// SetCFOverrides overrides some SM environment with values from CF's VCAP environment variables
-func SetCFOverrides(env env.Environment) error {
+// DefaultEnv creates a default environment for the CF service broker proxy
+func DefaultEnv(ctx context.Context, additionalPFlags ...func(set *pflag.FlagSet)) (env.Environment, error) {
+	additionalPFlagProviders := append(additionalPFlags, func(set *pflag.FlagSet) {
+		CreatePFlagsForCFClient(set)
+	})
+
+	env, err := sbproxy.DefaultEnv(ctx, additionalPFlagProviders...)
+	if err != nil {
+		panic(fmt.Errorf("error creating environment: %s", err))
+	}
+
+	if err := setCFOverrides(env); err != nil {
+		panic(fmt.Errorf("error setting CF environment values: %s", err))
+	}
+
+	return env, nil
+}
+
+// setCFOverrides overrides some SM environment with values from CF's VCAP environment variables
+func setCFOverrides(env env.Environment) error {
 	if _, exists := os.LookupEnv("VCAP_APPLICATION"); exists {
 		cfEnv, err := cfenv.Current()
 		if err != nil {
@@ -17,7 +39,7 @@ func SetCFOverrides(env env.Environment) error {
 		}
 
 		cfEnvMap := make(map[string]interface{})
-		cfEnvMap["app.url"] = "https://" + cfEnv.ApplicationURIs[0]
+		cfEnvMap["app.legacy_url"] = "https://" + cfEnv.ApplicationURIs[0]
 		cfEnvMap["server.port"] = cfEnv.Port
 		cfEnvMap["cf.client.apiAddress"] = cfEnv.CFAPI
 

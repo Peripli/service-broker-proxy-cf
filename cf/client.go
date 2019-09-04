@@ -2,6 +2,7 @@ package cf
 
 import (
 	"fmt"
+
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
@@ -40,7 +41,7 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	cfClient, err := config.CF.CfClientCreateFunc(config.CF.Config)
+	cfClient, err := config.CF.CFClientProvider(config.CF.Config)
 	if err != nil {
 		return nil, err
 	}

@@ -40,7 +40,7 @@
   version = "v1.4.2"
 
 [[projects]]
-  branch = "master"
+  branch = "change-base"
   digest = "1:749a0b0d0590989f665c40caa2876aae0ea14225065951dadea649dc52827103"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -53,10 +53,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "ea651ea6f2df715c14055f0ebb519b9b1cd5f362"
+  revision = "8a537860b095b701e5b9abd4c116b0596ebe5d5c"
 
 [[projects]]
-  digest = "1:405d3d8f807116e761d3aa885c65575dee911b042d2bdea60d0299565bf22bb1"
+  branch = "master"
+  digest = "1:bee2cd35ae40f334a35a66d603248e94872d9a52e69b4c3becac8e2986366573"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -86,8 +87,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "7b053988866947f624b7f66c6be43de287461e35"
-  version = "v0.5.0"
+  revision = "f479b10d3d8570afeef586a0aaab276de5084e43"
 
 [[projects]]
   branch = "master"

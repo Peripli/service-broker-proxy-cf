@@ -52,8 +52,12 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
+<<<<<<< HEAD
   revision = "24fe832379c509e70e1319c60f29fa512086fdef"
   version = "v0.6.0"
+=======
+  revision = "45cb7b73e5f6292999db5e113126462b2d2b4402"
+>>>>>>> build
 
 [[projects]]
   digest = "1:70dba485aed99782797ad9b577595702a7ad57540c74cd048482cd5f6f2f8bc7"

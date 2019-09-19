@@ -61,7 +61,7 @@ func DefaultClientConfiguration() *ClientConfiguration {
 
 // CreatePFlagsForCFClient adds pflags relevant to the CF client config
 func CreatePFlagsForCFClient(set *pflag.FlagSet) {
-	env.CreatePFlags(set, &Settings{CF: DefaultClientConfiguration()})
+	env.CreatePFlags(set, DefaultSettings())
 }
 
 // Validate validates the configuration and returns appropriate errors in case it is invalid

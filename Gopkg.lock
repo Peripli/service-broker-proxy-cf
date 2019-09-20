@@ -54,11 +54,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "b12e2d5f770ebe581e21aa64561b995beadc5726"
+  revision = "ffd6550dda3ea18543a2627b09df0aeda2804271"
 
 [[projects]]
-  branch = "master"
-  digest = "1:bee2cd35ae40f334a35a66d603248e94872d9a52e69b4c3becac8e2986366573"
+  branch = "get-config-api"
+  digest = "1:7f2c1ea148b85cff16db1c28472dd739fd202050c101250d136516dd13974370"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -88,7 +88,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "7b66160f396ac73bc12ddb75a663fc7128301cae"
+  revision = "f07455f6961f3c55807456df81615b3e57d6da87"
 
 [[projects]]
   branch = "master"

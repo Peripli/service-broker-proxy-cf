@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "adopt-paging"
-  digest = "1:8628f7d527090c36d6261594d50a87f01089075576ccc13001cb7b70428b86f7"
+  digest = "1:1420c57b9f2acc29f1390e3a099dac0290a5f7d981dbe1514ddcfdd8631236e1"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -53,7 +53,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "c7f2e6018142a977f029af4f708883d968111885"
+  revision = "7ff37d165e3a5a4d690cb377a91c57f2cb84132a"
 
 [[projects]]
   branch = "paging-token"

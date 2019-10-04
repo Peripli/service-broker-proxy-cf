@@ -10,15 +10,15 @@
   revision = "4d0c80011a0f37da1711c184028bc40137cd45af"
 
 [[projects]]
-  digest = "1:12156f9d8523585d9d875a03c4b5c6c6374f7370716cd814aa6781732ac942c5"
+  digest = "1:43ac38976d1da4ea8bbb37da4e6baca6127b1c19860104b7e84c28d112f3134c"
   name = "github.com/InVisionApp/go-health"
   packages = [
     ".",
     "checkers",
   ]
   pruneopts = "UT"
-  revision = "06e1878ab5a8acf6e841861c6cbfcc4d3036add0"
-  version = "v2.1.0"
+  revision = "a4a89dc763c320ee165018886368a202bdcffb87"
+  version = "v2.1.2"
 
 [[projects]]
   digest = "1:be2deb3cba3d2526b3692d80483f59df6462aabc875aace2db263f2664f30670"
@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "adopt-paging"
-  digest = "1:1420c57b9f2acc29f1390e3a099dac0290a5f7d981dbe1514ddcfdd8631236e1"
+  digest = "1:f8cec6ef13a9441bc8b27d4b46b60701af0674b4ba8c772d1c94be9f68d8cf33"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -53,11 +53,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "7ff37d165e3a5a4d690cb377a91c57f2cb84132a"
+  revision = "4b8d5383ecf90d04edb7b6dc607852fe20448e0f"
 
 [[projects]]
-  branch = "paging-token"
-  digest = "1:2c5f1e164bf5b8a6229d1dc91f77ed341c6fbf32a85b7e3aae588516ac6feccc"
+  branch = "paging-topic"
+  digest = "1:3150993e0994f009feac3f2fa3aa6dd656d756e7c09ddf90e11b7dd231a3e63c"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -87,7 +87,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "3ee5e490231c9598fee36a55e8dff18f1ad8cf0f"
+  revision = "26e942c4445630d44cd26298b1b54c7a9a271e90"
 
 [[projects]]
   branch = "master"
@@ -250,7 +250,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:aed50c53dce3e0ee52c84e5515b8b85404af5b7efc6a9199ab0035b8c25efcb8"
+  digest = "1:717e9abbff2a22363e45a4ff0ea7eca541dbf20d63e1b11fdd00cb31cb932140"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -273,8 +273,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "974566c482abc93ffd3df6f4626e79076c7ed290"
-  version = "v1.10.1"
+  revision = "72b6ab036f78c4bf1a9748c3941dd7c3de54917a"
+  version = "v1.10.2"
 
 [[projects]]
   digest = "1:2637b4b91a09d72cd753284922f98948e8f7d01e67ad7eb7f58035a54ee88543"
@@ -418,11 +418,11 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "9ee001bba392397c76f100a2d5b13afc86f167f1"
+  revision = "34f69633bfdcf9db92f698f8487115767eebef81"
 
 [[projects]]
   branch = "master"
-  digest = "1:fd79642b76a401ca986fe0d343ab851590527f9d6f714c54a023a23a8251d2ac"
+  digest = "1:8c17b5bd24b2cd05fc3023018b52781aebf84244de6692aa7755a3ad03d47766"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -432,7 +432,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "c00fd9afed17cfdca9b3e1e3b8de7ef2b3f0347b"
+  revision = "d98b1b4438230571bd7fbc5aaa89843e92937bd3"
 
 [[projects]]
   branch = "master"
@@ -448,11 +448,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1b90e63244513e8514749f45da58e89350d35cb3e12416ce6ed95f41c2a1f177"
+  digest = "1:84ed4fd3f7c52941feec4832e385f61377a01b4c98a0f868f16f10c2469fc0fe"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "2837fb4f24fee082b8c39b1a6dc9e0ed9f3fbd4f"
+  revision = "c178f38b412c7b426e4e97be2e75d11ff7b8d4d4"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -498,8 +498,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "c71d63e301d75423acb410203c747cad31e9a5e7"
-  version = "v1.6.3"
+  revision = "bddb1f54ecfd64b1350fd2dd897fa11d426632bc"
+  version = "v1.6.4"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -532,11 +532,11 @@
 
 [[projects]]
   branch = "v2"
-  digest = "1:2d56cd111a870bdf3ee37601877effe1fc79b8983645c147846f4769b6eb7051"
+  digest = "1:d09d57357da185f01b7ae0238df576d386caa6f4d4841c828fb823d2be76f956"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "7b8349ac747c6a24702b762d2c4fd9266cf4f1d6"
+  revision = "970885f01c8bc1fecb7ab1c8ce8e7609bda45530"
 
 [solve-meta]
   analyzer-name = "dep"

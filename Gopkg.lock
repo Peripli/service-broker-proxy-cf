@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:f8cec6ef13a9441bc8b27d4b46b60701af0674b4ba8c772d1c94be9f68d8cf33"
+  branch = "antlr_parser"
+  digest = "1:4f83b586eef3e83da07e3e7e5750f1c3a668b977a226887b9e79ef65d4902eb8"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -52,12 +53,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "24fe832379c509e70e1319c60f29fa512086fdef"
-  version = "v0.6.0"
-  revision = "45cb7b73e5f6292999db5e113126462b2d2b4402"
+  revision = "e748944404f33314b2b74f539f7d9296cf038f19"
 
 [[projects]]
-  digest = "1:70dba485aed99782797ad9b577595702a7ad57540c74cd048482cd5f6f2f8bc7"
+  branch = "antlr_parser"
+  digest = "1:7901e434551ac289f503f8a083581693df1a5761879f41cdb83c691c4336583d"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -72,6 +72,7 @@
     "pkg/health",
     "pkg/log",
     "pkg/query",
+    "pkg/query/parser",
     "pkg/security",
     "pkg/security/authenticators",
     "pkg/security/filters",
@@ -87,8 +88,15 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "7920247e060da10cb2f8ea7dced2f99823ae9c01"
-  version = "v0.6.0"
+  revision = "a9b5332e0c43eadc0a97c625ff4acf55fd8e1b97"
+
+[[projects]]
+  digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
+  name = "github.com/antlr/antlr4"
+  packages = ["runtime/Go/antlr"]
+  pruneopts = "UT"
+  revision = "be58ebffde8e29c154192c019608f0a5b8e6a064"
+  version = "4.7.2"
 
 [[projects]]
   branch = "master"
@@ -419,7 +427,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "34f69633bfdcf9db92f698f8487115767eebef81"
+  revision = "87dc89f01550277dc22b74ffcf4cd89fa2f40f4c"
 
 [[projects]]
   branch = "master"
@@ -433,7 +441,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "72f939374954d0a1b2a1e27dcda950e2724dd5c1"
+  revision = "da9a3fd4c5820e74b24a6cb7fb438dc9b0dd377c"
 
 [[projects]]
   branch = "master"
@@ -449,11 +457,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3e7ac264ca261c2d429880bfd6c3121c36a0f12b6a050d8a747aa29f6f6b2be0"
+  digest = "1:7c927f17d868be652a4cfe7de23e4292dea5b14d974a1d536e3b7cb7e79fd695"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "543471e840be449c53d44b32c7adf1261ad67e37"
+  revision = "b09406accb4736d857a32bf9444cd7edae2ffa79"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

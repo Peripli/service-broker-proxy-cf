@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:4f83b586eef3e83da07e3e7e5750f1c3a668b977a226887b9e79ef65d4902eb8"
+  branch = "unlabeled-vis"
+  digest = "1:af4a8c927940dfb13805d2d855303ad2763249baedb511f2db97bc8f807e2afa"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -52,8 +53,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "53d29b6bb6a3e5f223c52fea7e7c86228eec8d21"
-  version = "v0.6.1"
+  revision = "038b981852818d87528db6121961a7da652774c3"
 
 [[projects]]
   digest = "1:0b8f8ef958ad34460c16e382710fc933c21e675fa959c097d66efacd6ea73cee"

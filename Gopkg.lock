@@ -40,7 +40,7 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:af4a8c927940dfb13805d2d855303ad2763249baedb511f2db97bc8f807e2afa"
+  digest = "1:c5c17aacae56ca1bccacbdc5d2669c5f44c4d01be629cae47909279019e53dc8"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/logging",
@@ -52,11 +52,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "d7f78472a8da1af4ae2deb94008104d6ef56cbe1"
-  version = "v0.6.2"
+  revision = "6416a02c05ac6cbe0fb782c047ecb15bc5fad187"
+  version = "v0.6.3"
 
 [[projects]]
-  digest = "1:0b8f8ef958ad34460c16e382710fc933c21e675fa959c097d66efacd6ea73cee"
+  digest = "1:bd2dc14235be9d1b84285b1cc3ee29fad546032da982664e5bb4770e3236032e"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -87,8 +87,8 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "c49be11e03a29c1f0f04da412d7abf88972b4504"
-  version = "v0.7.1"
+  revision = "27af564c846de652d952197c3f2e48708be09786"
+  version = "v0.7.4"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
@@ -259,7 +259,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:717e9abbff2a22363e45a4ff0ea7eca541dbf20d63e1b11fdd00cb31cb932140"
+  digest = "1:51766ddcba65b7f0eece2906249d7603970959ba0f1011b72037485044339ece"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -282,11 +282,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "72b6ab036f78c4bf1a9748c3941dd7c3de54917a"
-  version = "v1.10.2"
+  revision = "ce5d301e555bb672c693c099ba6ca5087b06c0b4"
+  version = "v1.10.3"
 
 [[projects]]
-  digest = "1:2637b4b91a09d72cd753284922f98948e8f7d01e67ad7eb7f58035a54ee88543"
+  digest = "1:71d53439ebaf7cbc47cf4f6443ed39da7541875e9f547a6470f11f2120a5a6ee"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -304,16 +304,16 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "bdebf9e0ece900259084cfa4121b97ce1a540939"
-  version = "v1.7.0"
+  revision = "f9a52764bd5a0fd2d201bcca584351d03b72f8da"
+  version = "v1.7.1"
 
 [[projects]]
-  digest = "1:bbd3997f0121200f72b64d7a3826eb8a0b910d6a4c19894c9fe2852b9e5eaf3b"
+  digest = "1:6eea828983c70075ca297bb915ffbcfd3e34c5a50affd94428a65df955c0ff9c"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "8fe62057ea2d46ce44254c98e84e810044dbe197"
-  version = "v1.5.0"
+  revision = "903d9455db9ff1d7ac1ab199062eca7266dd11a3"
+  version = "v1.6.0"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -386,12 +386,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:46aea6ffe39c3d95c13640c2515236ed3c5cdffc3c78c6c0ed4edec2caf7a0dc"
+  digest = "1:5a68167017eaa32aa408397806b9d69815244238ed774439a8863ef4bc329eeb"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c5e72cdf74dff23857243dd662c465b810891c21"
-  version = "v1.3.2"
+  revision = "c34bf81952c067718854115564f8e55978be5e1d"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -427,7 +427,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "87dc89f01550277dc22b74ffcf4cd89fa2f40f4c"
+  revision = "c7e5f84aec591254278750bee18f39e5dd19cdb5"
 
 [[projects]]
   branch = "master"
@@ -441,7 +441,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "ec77196f6094c3492a8b61f2c11cf937f78992ae"
+  revision = "a882066a44e04a21d46e51451c71e131344e830e"
 
 [[projects]]
   branch = "master"
@@ -457,11 +457,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fd91c335b8fd64c7803a03f1661fc791a8324aa1888fa958fe7076eea654f758"
+  digest = "1:824b4d14e35e35e821d3127319e51eb838f72434100750ad395db96d00b5a871"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "f89234f9a2c237c4d4cf7b32e3d9fe2f7c4eacd7"
+  revision = "c1f44814a5cd81a6d1cb589ef1e528bc5d305e07"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -541,11 +541,11 @@
 
 [[projects]]
   branch = "v2"
-  digest = "1:d09d57357da185f01b7ae0238df576d386caa6f4d4841c828fb823d2be76f956"
+  digest = "1:2f5d49965f2b58fcfa3f11c6dcfea7824288f202b5f3d7f612c44a77eabdbe65"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "970885f01c8bc1fecb7ab1c8ce8e7609bda45530"
+  revision = "770b8dae4cf00919e5eafffbd8d58186294b61b5"
 
 [solve-meta]
   analyzer-name = "dep"

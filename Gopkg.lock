@@ -10,15 +10,15 @@
   revision = "4d0c80011a0f37da1711c184028bc40137cd45af"
 
 [[projects]]
-  digest = "1:12156f9d8523585d9d875a03c4b5c6c6374f7370716cd814aa6781732ac942c5"
+  digest = "1:43ac38976d1da4ea8bbb37da4e6baca6127b1c19860104b7e84c28d112f3134c"
   name = "github.com/InVisionApp/go-health"
   packages = [
     ".",
     "checkers",
   ]
   pruneopts = "UT"
-  revision = "06e1878ab5a8acf6e841861c6cbfcc4d3036add0"
-  version = "v2.1.0"
+  revision = "a4a89dc763c320ee165018886368a202bdcffb87"
+  version = "v2.1.2"
 
 [[projects]]
   digest = "1:be2deb3cba3d2526b3692d80483f59df6462aabc875aace2db263f2664f30670"
@@ -40,11 +40,9 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "get-config-api"
-  digest = "1:6bfc7b2c77e80366cd189c8c356252e3ce5cb5b895d2cebf5920f58bd78a0623"
+  digest = "1:c5c17aacae56ca1bccacbdc5d2669c5f44c4d01be629cae47909279019e53dc8"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
-    "pkg/authn",
     "pkg/logging",
     "pkg/platform",
     "pkg/sbproxy",
@@ -54,11 +52,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "4390fece8281c3d358bc88a9a6bb1a2adfa36ec0"
+  revision = "6416a02c05ac6cbe0fb782c047ecb15bc5fad187"
+  version = "v0.6.3"
 
 [[projects]]
-  branch = "get-config-api"
-  digest = "1:a2fc73bde264b977a703640ab3693960a53cb9d0a151bc4fe7743182d4508bf7"
+  digest = "1:bd2dc14235be9d1b84285b1cc3ee29fad546032da982664e5bb4770e3236032e"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -89,7 +87,8 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "727a684cd8b8dcf75e05271b29b360b53e56fd4c"
+  revision = "27af564c846de652d952197c3f2e48708be09786"
+  version = "v0.7.4"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
@@ -260,7 +259,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:aed50c53dce3e0ee52c84e5515b8b85404af5b7efc6a9199ab0035b8c25efcb8"
+  digest = "1:51766ddcba65b7f0eece2906249d7603970959ba0f1011b72037485044339ece"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -283,11 +282,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "974566c482abc93ffd3df6f4626e79076c7ed290"
-  version = "v1.10.1"
+  revision = "ce5d301e555bb672c693c099ba6ca5087b06c0b4"
+  version = "v1.10.3"
 
 [[projects]]
-  digest = "1:2637b4b91a09d72cd753284922f98948e8f7d01e67ad7eb7f58035a54ee88543"
+  digest = "1:71d53439ebaf7cbc47cf4f6443ed39da7541875e9f547a6470f11f2120a5a6ee"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -305,16 +304,16 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "bdebf9e0ece900259084cfa4121b97ce1a540939"
-  version = "v1.7.0"
+  revision = "f9a52764bd5a0fd2d201bcca584351d03b72f8da"
+  version = "v1.7.1"
 
 [[projects]]
-  digest = "1:93131d8002d7025da13582877c32d1fc302486775a1b06f62241741006428c5e"
+  digest = "1:6eea828983c70075ca297bb915ffbcfd3e34c5a50affd94428a65df955c0ff9c"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "728039f679cbcd4f6a54e080d2219a4c4928c546"
-  version = "v1.4.0"
+  revision = "903d9455db9ff1d7ac1ab199062eca7266dd11a3"
+  version = "v1.6.0"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -387,12 +386,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:46aea6ffe39c3d95c13640c2515236ed3c5cdffc3c78c6c0ed4edec2caf7a0dc"
+  digest = "1:5a68167017eaa32aa408397806b9d69815244238ed774439a8863ef4bc329eeb"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c5e72cdf74dff23857243dd662c465b810891c21"
-  version = "v1.3.2"
+  revision = "c34bf81952c067718854115564f8e55978be5e1d"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -428,11 +427,11 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "227b76d455e791cb042b03e633e2f7fbcfdf74a5"
+  revision = "c7e5f84aec591254278750bee18f39e5dd19cdb5"
 
 [[projects]]
   branch = "master"
-  digest = "1:fd79642b76a401ca986fe0d343ab851590527f9d6f714c54a023a23a8251d2ac"
+  digest = "1:8c17b5bd24b2cd05fc3023018b52781aebf84244de6692aa7755a3ad03d47766"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -442,7 +441,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "a8b05e9114ab0cb08faec337c959aed24b68bf50"
+  revision = "a882066a44e04a21d46e51451c71e131344e830e"
 
 [[projects]]
   branch = "master"
@@ -458,11 +457,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ec9d9815894f067c7878330735b9e4dfa6dc61234d2ba136b60a1436d6b5ea94"
+  digest = "1:824b4d14e35e35e821d3127319e51eb838f72434100750ad395db96d00b5a871"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "0c1ff786ef13daa914a3351c5e6b0321aed5960e"
+  revision = "c1f44814a5cd81a6d1cb589ef1e528bc5d305e07"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -496,7 +495,7 @@
   version = "v0.3.2"
 
 [[projects]]
-  digest = "1:6eb6e3b6d9fffb62958cf7f7d88dbbe1dd6839436b0802e194c590667a40412a"
+  digest = "1:e0a1881f9e0564bebdeac98c75e59f07acdde6ed3a5396e0e613eaad31194866"
   name = "google.golang.org/appengine"
   packages = [
     "internal",
@@ -508,8 +507,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "5f2a59506353b8d5ba8cbbcd9f3c1f41f1eaf079"
-  version = "v1.6.2"
+  revision = "971852bfffca25b069c31162ae8f247a3dba083b"
+  version = "v1.6.5"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -521,7 +520,7 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:8c05919580be8a5be668709d7e5a69d5cd19b8ee9f23d62ce5b10d3457bf6a13"
+  digest = "1:8ebd7bc4892e673e8d3c6377c71e8c691b92c5e51cd3159efb8343b580213b70"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -529,8 +528,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "730df5f748271903322feb182be83b43ebbbe27d"
-  version = "v2.3.1"
+  revision = "8fd82ff1d52a5162ff23c0a48e2c64a1fa4a3f8f"
+  version = "v2.4.0"
 
 [[projects]]
   branch = "v1"
@@ -542,11 +541,11 @@
 
 [[projects]]
   branch = "v2"
-  digest = "1:2d56cd111a870bdf3ee37601877effe1fc79b8983645c147846f4769b6eb7051"
+  digest = "1:2f5d49965f2b58fcfa3f11c6dcfea7824288f202b5f3d7f612c44a77eabdbe65"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "7b8349ac747c6a24702b762d2c4fd9266cf4f1d6"
+  revision = "770b8dae4cf00919e5eafffbd8d58186294b61b5"
 
 [solve-meta]
   analyzer-name = "dep"

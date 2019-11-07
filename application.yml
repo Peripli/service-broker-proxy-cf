@@ -27,6 +27,3 @@ cf:
     skipSslValidation: false
     httpClient:
       timeout: 6000ms
-authn:
-  user: admin
-  password: admin

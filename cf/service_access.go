@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
+
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
@@ -33,19 +34,8 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 	return pc.updateAccessForPlan(ctx, request, false)
 }
 
-type compositeError []error
-
-func (ce compositeError) Error() string {
-	errs := make([]string, 0, len(ce))
-	for _, e := range ce {
-		errs = append(errs, fmt.Sprintln(e.Error()))
-	}
-
-	return strings.Join(errs, "")
-}
-
 func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, isEnabled bool) error {
-	var compositeErr compositeError
+	compositeErr := &reconcile.CompositeError{}
 
 	if request == nil {
 		return errors.Errorf("modify plan access request cannot be nil")
@@ -59,11 +49,11 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
 		for _, orgGUID := range orgGUIDs {
 			if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
-				compositeErr = append(compositeErr, err)
+				compositeErr.Add(err)
 			}
 		}
-		if compositeErr != nil {
-			return errors.Wrapf(compositeErr, "error while updating access for catalog plan with id %s; %d errors occurred: %s", request.CatalogPlanID, len(compositeErr), compositeErr)
+		if compositeErr.Len() != 0 {
+			return errors.Wrapf(compositeErr, "error while updating access for catalog plan with id %s; %d errors occurred: %s", request.CatalogPlanID, compositeErr.Len(), compositeErr)
 		}
 	} else {
 		if err := pc.updatePlan(plan, isEnabled); err != nil {

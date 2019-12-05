@@ -40,9 +40,11 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:c5c17aacae56ca1bccacbdc5d2669c5f44c4d01be629cae47909279019e53dc8"
+  branch = "aggregate-errors-with-timestamps"
+  digest = "1:384f0ac979042009b1ce6e5a463da4c90a88800c632f5d9074ce73dd6753e2f7"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
+    "pkg/authn",
     "pkg/logging",
     "pkg/platform",
     "pkg/sbproxy",
@@ -52,11 +54,10 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "6416a02c05ac6cbe0fb782c047ecb15bc5fad187"
-  version = "v0.6.3"
+  revision = "d1feac79b5da4eed771b867213140cc17016982f"
 
 [[projects]]
-  digest = "1:bd2dc14235be9d1b84285b1cc3ee29fad546032da982664e5bb4770e3236032e"
+  digest = "1:127aa936d6291ec7ebb8678fef00779fc3574a616cb2b938dbaa407af7221471"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -87,8 +88,8 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "27af564c846de652d952197c3f2e48708be09786"
-  version = "v0.7.4"
+  revision = "b6a3b7004a04a8bf0c46dacb61cfe9c9b15347e9"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"

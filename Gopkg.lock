@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "aggregate-errors-with-timestamps"
-  digest = "1:384f0ac979042009b1ce6e5a463da4c90a88800c632f5d9074ce73dd6753e2f7"
+  digest = "1:54cec1b02db53f33a82a008f260fc7eb04cfde8f9a39da7d80c8fc1221c7c54e"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -54,7 +54,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "d1feac79b5da4eed771b867213140cc17016982f"
+  revision = "96fc0e855e87f8789e28db5c7ff3d606f54a2ee8"
 
 [[projects]]
   digest = "1:127aa936d6291ec7ebb8678fef00779fc3574a616cb2b938dbaa407af7221471"

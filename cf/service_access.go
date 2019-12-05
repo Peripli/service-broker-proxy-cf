@@ -35,7 +35,6 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 }
 
 func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, isEnabled bool) error {
-	compositeErr := &reconcile.CompositeError{}
 
 	if request == nil {
 		return errors.Errorf("modify plan access request cannot be nil")
@@ -46,6 +45,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 		return err
 	}
 
+	compositeErr := &reconcile.CompositeError{}
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
 		for _, orgGUID := range orgGUIDs {
 			if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {

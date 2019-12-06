@@ -54,7 +54,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "21d359fc5e392cf7066e42c9f2d05f5362ed1ec7"
+  revision = "502fc918b6f550060bcb4e97d795176767662ccc"
 
 [[projects]]
   branch = "master"
@@ -89,7 +89,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "6d5a626a84921e4ed1219c1b2e8633200f46ebf4"
+  revision = "7c1612cbc1ae41ac4f6951b3ae0ed051ff305607"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
@@ -428,11 +428,11 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "c7e5f84aec591254278750bee18f39e5dd19cdb5"
+  revision = "e1110fd1c708ef015366ea01799a23c459593c47"
 
 [[projects]]
   branch = "master"
-  digest = "1:8c17b5bd24b2cd05fc3023018b52781aebf84244de6692aa7755a3ad03d47766"
+  digest = "1:8d2362ccfc8f6b720eeac40b2ffbe348292851ac6ce42a7706817a1de49d05a3"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -442,7 +442,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "a882066a44e04a21d46e51451c71e131344e830e"
+  revision = "2180aed2234323691e9fd264fb1d32d20ff04b27"
 
 [[projects]]
   branch = "master"
@@ -462,7 +462,7 @@
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "c1f44814a5cd81a6d1cb589ef1e528bc5d305e07"
+  revision = "4c7a9d0fe056d9d1de37e1409ca8a5c17accb46a"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

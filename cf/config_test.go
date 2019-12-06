@@ -104,6 +104,8 @@ var _ = Describe("Config", func() {
 							ClientID:     "clientid",
 							ClientSecret: "clientsecret",
 						},
+						PageSize:         500,
+						ChunkSize:        10,
 						CFClientProvider: cfclient.NewClient,
 					},
 					Settings: *sbproxy.DefaultSettings(),

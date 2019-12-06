@@ -23,6 +23,7 @@ type Config struct {
 	CFClientProvider func(*cfclient.Config) (*cfclient.Client, error) `mapstructure:"-"`
 }
 
+// ClientConfiguration holds cf client configurations
 type ClientConfiguration struct {
 	cfclient.Config `mapstructure:",squash"`
 

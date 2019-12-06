@@ -64,7 +64,7 @@ func DefaultCFConfiguration() *Config {
 	return &Config{
 		ClientConfiguration: &ClientConfiguration{
 			Config:    *cfClientConfig,
-			PageSize:  500,
+			PageSize:  100,
 			ChunkSize: 10,
 		},
 		CFClientProvider: cfclient.NewClient,

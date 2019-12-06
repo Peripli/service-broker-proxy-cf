@@ -331,7 +331,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			requestChecks: expectedRequest{
 				Method:   http.MethodGet,
 				Path:     "/v2/service_brokers",
-				RawQuery: encodeQuery(query) + "&results-per-page=500",
+				RawQuery: encodeQuery(query) + "&results-per-page=100",
 			},
 			reaction: reactionResponse{
 				Code: http.StatusOK,

@@ -105,7 +105,7 @@ var _ = Describe("Config", func() {
 								ClientID:     "clientid",
 								ClientSecret: "clientsecret",
 							},
-							PageSize:  500,
+							PageSize:  100,
 							ChunkSize: 10,
 						},
 						CFClientProvider: cfclient.NewClient,

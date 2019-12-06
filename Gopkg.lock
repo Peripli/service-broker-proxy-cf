@@ -40,8 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "aggregate-errors-with-timestamps"
-  digest = "1:54cec1b02db53f33a82a008f260fc7eb04cfde8f9a39da7d80c8fc1221c7c54e"
+  branch = "master"
+  digest = "1:b3a24d07d84fb45352e3b8f53a0a4850f9a052245a9cc0cb57d2705649141cb5"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -54,7 +54,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "96fc0e855e87f8789e28db5c7ff3d606f54a2ee8"
+  revision = "7942aea817dd6b404db17bdc0474c43a10baaba2"
 
 [[projects]]
   digest = "1:127aa936d6291ec7ebb8678fef00779fc3574a616cb2b938dbaa407af7221471"
@@ -428,11 +428,11 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "86a70503ff7e82ffc18c7b0de83db35da4791e6a"
+  revision = "e7c4368fe9ddd156b5f1463283cb51c5b400c373"
 
 [[projects]]
   branch = "master"
-  digest = "1:54b4b9bc4be8560c3c1849569a2e75a0fe30c7c77b45f2e96f76df6dbbf04bb6"
+  digest = "1:6d181de04481fe0fca984916930cdaaa0fbad5121c08b7255eb78be76c5ebada"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -442,7 +442,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "5ee1b9f4859acd2e99987ef94ec7a58427c53bef"
+  revision = "1ddd1de85cb0337b623b740a609d35817d516a8d"
 
 [[projects]]
   branch = "master"

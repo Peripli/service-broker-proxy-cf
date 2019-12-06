@@ -131,11 +131,15 @@ func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
 }
 
 func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Settings, *cf.PlatformClient) {
-	cfConfig := &cfclient.Config{
+	cfConfig := cfclient.Config{
 		ApiAddress: URL,
 	}
-	config := &cf.ClientConfiguration{
-		Config:           cfConfig,
+	config := &cf.Config{
+		ClientConfiguration: &cf.ClientConfiguration{
+			Config:    cfConfig,
+			PageSize:  500,
+			ChunkSize: 10,
+		},
 		CFClientProvider: cfclient.NewClient,
 	}
 	settings := &cf.Settings{
@@ -192,8 +196,12 @@ var _ = Describe("Client", func() {
 		)
 
 		BeforeEach(func() {
-			config := &cf.ClientConfiguration{
-				Config:           cfclient.DefaultConfig(),
+			config := &cf.Config{
+				ClientConfiguration: &cf.ClientConfiguration{
+					Config:    *cfclient.DefaultConfig(),
+					PageSize:  500,
+					ChunkSize: 10,
+				},
 				CFClientProvider: cfclient.NewClient,
 			}
 			settings = &cf.Settings{

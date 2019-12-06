@@ -83,7 +83,7 @@ var _ = Describe("CF Env", func() {
 			It("CF overrides are not applied", func() {
 				Expect(environment.Get("app.legacy_url")).Should(Equal(server.DefaultSettings().Host))
 				Expect(environment.Get("server.port")).Should(Equal(server.DefaultSettings().Port))
-				Expect(environment.Get("cf.client.apiAddress")).Should(Equal(cf.DefaultClientConfiguration().ApiAddress))
+				Expect(environment.Get("cf.client.apiAddress")).Should(Equal(cf.DefaultCFConfiguration().ApiAddress))
 			})
 		})
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -17,8 +18,6 @@ import (
 
 	"github.com/cloudfoundry-community/go-cfclient"
 )
-
-const maxChunkLength = 50
 
 // OrgLabelKey label key for CF organization visibilities
 const OrgLabelKey = "organization_guid"
@@ -121,7 +120,7 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	result := make([]cfclient.ServiceBroker, 0, len(names))
-	chunks := splitStringsIntoChunks(names)
+	chunks := splitStringsIntoChunks(names, pc.settings.CF.ChunkSize)
 
 	for _, chunk := range chunks {
 		select {
@@ -137,7 +136,9 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 			}()
 			brokerNames := make([]string, 0, len(chunk))
 			brokerNames = append(brokerNames, chunk...)
-			query := queryBuilder{}
+			query := queryBuilder{
+				pageSize: pc.settings.CF.PageSize,
+			}
 			query.set("name", brokerNames)
 			brokers, err := pc.client.ListServiceBrokersByQuery(query.build(ctx))
 			mutex.Lock()
@@ -163,7 +164,7 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	result := make([]cfclient.Service, 0, len(brokers))
-	chunks := splitBrokersIntoChunks(brokers)
+	chunks := splitBrokersIntoChunks(brokers, pc.settings.CF.ChunkSize)
 
 	for _, chunk := range chunks {
 		select {
@@ -199,7 +200,9 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 }
 
 func (pc *PlatformClient) getServicesByBrokerGUIDs(ctx context.Context, brokerGUIDs []string) ([]cfclient.Service, error) {
-	query := queryBuilder{}
+	query := queryBuilder{
+		pageSize: pc.settings.CF.PageSize,
+	}
 	query.set("service_broker_guid", brokerGUIDs)
 	return pc.client.ListServicesByQuery(query.build(ctx))
 }
@@ -211,7 +214,7 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
 	result := make([]cfclient.ServicePlan, 0, len(services))
-	chunks := splitServicesIntoChunks(services)
+	chunks := splitServicesIntoChunks(services, pc.settings.CF.ChunkSize)
 
 	for _, chunk := range chunks {
 		select {
@@ -247,7 +250,9 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 }
 
 func (pc *PlatformClient) getPlansByServiceGUIDs(ctx context.Context, serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
-	query := queryBuilder{}
+	query := queryBuilder{
+		pageSize: pc.settings.CF.PageSize,
+	}
 	query.set("service_guid", serviceGUIDs)
 	return pc.client.ListServicePlansByQuery(query.build(ctx))
 }
@@ -259,7 +264,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 	var mutex sync.Mutex
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
 
-	chunks := splitCFPlansIntoChunks(plans)
+	chunks := splitCFPlansIntoChunks(plans, pc.settings.CF.ChunkSize)
 
 	for _, chunk := range chunks {
 		select {
@@ -296,13 +301,16 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 }
 
 func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(ctx context.Context, plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
-	query := queryBuilder{}
+	query := queryBuilder{
+		pageSize: pc.settings.CF.PageSize,
+	}
 	query.set("service_plan_guid", plansGUID)
 	return pc.client.ListServicePlanVisibilitiesByQuery(query.build(ctx))
 }
 
 type queryBuilder struct {
-	filters map[string]string
+	filters  map[string]string
+	pageSize int
 }
 
 func (q *queryBuilder) set(key string, elements []string) *queryBuilder {
@@ -323,11 +331,12 @@ func (q *queryBuilder) build(ctx context.Context) map[string][]string {
 	query := strings.Join(queryComponents, ";")
 	log.C(ctx).Debugf("CF filter query built: %s", query)
 	return url.Values{
-		"q": []string{query},
+		"q":                []string{query},
+		"results-per-page": []string{strconv.Itoa(q.pageSize)},
 	}
 }
 
-func splitCFPlansIntoChunks(plans []cfclient.ServicePlan) [][]cfclient.ServicePlan {
+func splitCFPlansIntoChunks(plans []cfclient.ServicePlan, maxChunkLength int) [][]cfclient.ServicePlan {
 	resultChunks := make([][]cfclient.ServicePlan, 0)
 
 	for count := len(plans); count > 0; count = len(plans) {
@@ -338,7 +347,7 @@ func splitCFPlansIntoChunks(plans []cfclient.ServicePlan) [][]cfclient.ServicePl
 	return resultChunks
 }
 
-func splitStringsIntoChunks(names []string) [][]string {
+func splitStringsIntoChunks(names []string, maxChunkLength int) [][]string {
 	resultChunks := make([][]string, 0)
 
 	for count := len(names); count > 0; count = len(names) {
@@ -349,7 +358,7 @@ func splitStringsIntoChunks(names []string) [][]string {
 	return resultChunks
 }
 
-func splitBrokersIntoChunks(brokers []cfclient.ServiceBroker) [][]cfclient.ServiceBroker {
+func splitBrokersIntoChunks(brokers []cfclient.ServiceBroker, maxChunkLength int) [][]cfclient.ServiceBroker {
 	resultChunks := make([][]cfclient.ServiceBroker, 0)
 
 	for count := len(brokers); count > 0; count = len(brokers) {
@@ -360,7 +369,7 @@ func splitBrokersIntoChunks(brokers []cfclient.ServiceBroker) [][]cfclient.Servi
 	return resultChunks
 }
 
-func splitServicesIntoChunks(services []cfclient.Service) [][]cfclient.Service {
+func splitServicesIntoChunks(services []cfclient.Service, maxChunkLength int) [][]cfclient.Service {
 	resultChunks := make([][]cfclient.Service, 0)
 
 	for count := len(services); count > 0; count = len(services) {

@@ -48,14 +48,14 @@ var _ = Describe("Config", func() {
 
 		Context("when address is missing", func() {
 			It("returns an error", func() {
-				settings.CF.Config = nil
+				settings.CF.ApiAddress = ""
 				assertErrorDuringValidate()
 			})
 		})
 
 		Context("when request timeout is missing", func() {
 			It("returns an error", func() {
-				settings.CF.ApiAddress = ""
+				settings.CF.HttpClient.Timeout = 0
 				assertErrorDuringValidate()
 			})
 		})
@@ -96,13 +96,17 @@ var _ = Describe("Config", func() {
 				settings cf.Settings
 
 				envSettings = cf.Settings{
-					CF: &cf.ClientConfiguration{
-						Config: &cfclient.Config{
-							ApiAddress:   "https://example.com",
-							Username:     "user",
-							Password:     "password",
-							ClientID:     "clientid",
-							ClientSecret: "clientsecret",
+					CF: &cf.Config{
+						ClientConfiguration: &cf.ClientConfiguration{
+							Config: cfclient.Config{
+								ApiAddress:   "https://example.com",
+								Username:     "user",
+								Password:     "password",
+								ClientID:     "clientid",
+								ClientSecret: "clientsecret",
+							},
+							PageSize:  500,
+							ChunkSize: 10,
 						},
 						CFClientProvider: cfclient.NewClient,
 					},
@@ -110,7 +114,7 @@ var _ = Describe("Config", func() {
 				}
 
 				emptySettings = cf.Settings{
-					CF:       &cf.ClientConfiguration{},
+					CF:       &cf.Config{},
 					Settings: *sbproxy.DefaultSettings(),
 				}
 			)

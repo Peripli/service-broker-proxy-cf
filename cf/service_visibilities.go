@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -135,7 +136,9 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 			}()
 			brokerNames := make([]string, 0, len(chunk))
 			brokerNames = append(brokerNames, chunk...)
-			query := queryBuilder{}
+			query := queryBuilder{
+				pageSize: pc.settings.CF.PageSize,
+			}
 			query.set("name", brokerNames)
 			brokers, err := pc.client.ListServiceBrokersByQuery(query.build(ctx))
 
@@ -203,7 +206,9 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 }
 
 func (pc *PlatformClient) getServicesByBrokerGUIDs(ctx context.Context, brokerGUIDs []string) ([]cfclient.Service, error) {
-	query := queryBuilder{}
+	query := queryBuilder{
+		pageSize: pc.settings.CF.PageSize,
+	}
 	query.set("service_broker_guid", brokerGUIDs)
 	return pc.client.ListServicesByQuery(query.build(ctx))
 }
@@ -254,7 +259,9 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 }
 
 func (pc *PlatformClient) getPlansByServiceGUIDs(ctx context.Context, serviceGUIDs []string) ([]cfclient.ServicePlan, error) {
-	query := queryBuilder{}
+	query := queryBuilder{
+		pageSize: pc.settings.CF.PageSize,
+	}
 	query.set("service_guid", serviceGUIDs)
 	return pc.client.ListServicePlansByQuery(query.build(ctx))
 }
@@ -307,13 +314,16 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 }
 
 func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(ctx context.Context, plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
-	query := queryBuilder{}
+	query := queryBuilder{
+		pageSize: pc.settings.CF.PageSize,
+	}
 	query.set("service_plan_guid", plansGUID)
 	return pc.client.ListServicePlanVisibilitiesByQuery(query.build(ctx))
 }
 
 type queryBuilder struct {
-	filters map[string]string
+	filters  map[string]string
+	pageSize int
 }
 
 func (q *queryBuilder) set(key string, elements []string) *queryBuilder {
@@ -334,7 +344,8 @@ func (q *queryBuilder) build(ctx context.Context) map[string][]string {
 	query := strings.Join(queryComponents, ";")
 	log.C(ctx).Debugf("CF filter query built: %s", query)
 	return url.Values{
-		"q": []string{query},
+		"q":                []string{query},
+		"results-per-page": []string{strconv.Itoa(q.pageSize)},
 	}
 }
 

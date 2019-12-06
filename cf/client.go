@@ -3,8 +3,6 @@ package cf
 import (
 	"fmt"
 
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
-
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
 
@@ -18,7 +16,7 @@ type CloudFoundryErr cfclient.CloudFoundryError
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
 	client   cfclient.CloudFoundryClient
-	settings *sbproxy.Settings
+	settings *Settings
 }
 
 // Broker returns platform client which can perform platform broker operations
@@ -48,7 +46,7 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 
 	return &PlatformClient{
 		client:   cfClient,
-		settings: &config.Settings,
+		settings: config,
 	}, nil
 }
 

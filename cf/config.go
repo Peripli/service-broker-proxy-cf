@@ -18,6 +18,8 @@ import (
 type ClientConfiguration struct {
 	*cfclient.Config `mapstructure:"client"`
 
+	PageSize int `mapstructure:"page_size"`
+
 	// CFClientProvider delays the creation of the creation of the CF client as it does remote calls during its creation which should be delayed
 	// until the application is ran.
 	CFClientProvider func(*cfclient.Config) (*cfclient.Client, error) `mapstructure:"-"`
@@ -55,6 +57,7 @@ func DefaultClientConfiguration() *ClientConfiguration {
 
 	return &ClientConfiguration{
 		Config:           cfClientConfig,
+		PageSize:         500,
 		CFClientProvider: cfclient.NewClient,
 	}
 }
@@ -68,6 +71,9 @@ func CreatePFlagsForCFClient(set *pflag.FlagSet) {
 func (c *ClientConfiguration) Validate() error {
 	if c == nil {
 		return fmt.Errorf("CF Client configuration missing")
+	}
+	if c.PageSize <= 0 || c.PageSize > 500 {
+		return errors.New("CF PageSize must be between 1 and 500 inclusive")
 	}
 	if c.CFClientProvider == nil {
 		return errors.New("CF ClientCreateFunc missing")

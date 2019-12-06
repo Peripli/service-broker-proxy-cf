@@ -136,6 +136,7 @@ func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Set
 	}
 	config := &cf.ClientConfiguration{
 		Config:           cfConfig,
+		PageSize:         500,
 		CFClientProvider: cfclient.NewClient,
 	}
 	settings := &cf.Settings{

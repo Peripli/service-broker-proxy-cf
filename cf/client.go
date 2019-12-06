@@ -20,18 +20,18 @@ type PlatformClient struct {
 }
 
 // Broker returns platform client which can perform platform broker operations
-func (c *PlatformClient) Broker() platform.BrokerClient {
-	return c
+func (pc *PlatformClient) Broker() platform.BrokerClient {
+	return pc
 }
 
 // Visibility returns platform client which can perform visibility operations
-func (c *PlatformClient) Visibility() platform.VisibilityClient {
-	return c
+func (pc *PlatformClient) Visibility() platform.VisibilityClient {
+	return pc
 }
 
 // CatalogFetcher returns platform client which can perform refetching of service broker catalogs
-func (c *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
-	return c
+func (pc *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
+	return pc
 }
 
 // NewClient creates a new CF cf client from the specified configuration.
@@ -39,7 +39,7 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	cfClient, err := config.CF.CFClientProvider(config.CF.Config)
+	cfClient, err := config.CF.CFClientProvider(&config.CF.Config)
 	if err != nil {
 		return nil, err
 	}

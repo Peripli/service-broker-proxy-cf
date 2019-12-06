@@ -40,8 +40,7 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:1613bc87ab44f2c8b20fd132f49cad4803e9a4e707ba3bec6a51d908c9c16f12"
+  digest = "1:f70b6a8ee0ec108ee71d59d92c4015eb0b908ece2396d28fa99253aed28d6814"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -54,11 +53,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "502fc918b6f550060bcb4e97d795176767662ccc"
+  revision = "f19e624be497dd0510b9f00436d67f24a776d4ba"
+  version = "v0.7.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e60e5a720f997c28cac01043cfbfb9143c9e9c2e5954756e0af5cb5958f34689"
+  digest = "1:127aa936d6291ec7ebb8678fef00779fc3574a616cb2b938dbaa407af7221471"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -89,7 +88,8 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "7c1612cbc1ae41ac4f6951b3ae0ed051ff305607"
+  revision = "b6a3b7004a04a8bf0c46dacb61cfe9c9b15347e9"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
@@ -387,12 +387,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:5a68167017eaa32aa408397806b9d69815244238ed774439a8863ef4bc329eeb"
+  digest = "1:719b772d0c56bbf1acd3a748f88b9d02ff6da543994b5d7e1adf052eb5b693a1"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c34bf81952c067718854115564f8e55978be5e1d"
-  version = "v1.3.4"
+  revision = "5c2e4b382486589dad7478130a364ee2fa6a068b"
+  version = "v1.3.5"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -428,7 +428,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "e1110fd1c708ef015366ea01799a23c459593c47"
+  revision = "e7c4368fe9ddd156b5f1463283cb51c5b400c373"
 
 [[projects]]
   branch = "master"
@@ -442,11 +442,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "2180aed2234323691e9fd264fb1d32d20ff04b27"
+  revision = "5ee1b9f4859acd2e99987ef94ec7a58427c53bef"
 
 [[projects]]
   branch = "master"
-  digest = "1:457f9784b7d0402c051d4af2aa29b9ac602129801b0e4a643006d294f40775ec"
+  digest = "1:d6cd171816957f16fe559d9365073b79cb9bee957fb331ec19f1e1329858b944"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -454,15 +454,15 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "0f29369cfe4552d0e4bcddc57cc75f4d7e672a33"
+  revision = "858c2ad4c8b6c5d10852cb89079f6ca1c7309787"
 
 [[projects]]
   branch = "master"
-  digest = "1:824b4d14e35e35e821d3127319e51eb838f72434100750ad395db96d00b5a871"
+  digest = "1:4da420ceda5f68e8d748aa2169d0ed44ffadb1bbd6537cf778a49563104189b8"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4c7a9d0fe056d9d1de37e1409ca8a5c17accb46a"
+  revision = "ce4227a45e2eb77e5c847278dcc6a626742e2945"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -542,11 +542,11 @@
 
 [[projects]]
   branch = "v2"
-  digest = "1:2f5d49965f2b58fcfa3f11c6dcfea7824288f202b5f3d7f612c44a77eabdbe65"
+  digest = "1:b75b3deb2bce8bc079e16bb2aecfe01eb80098f5650f9e93e5643ca8b7b73737"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "770b8dae4cf00919e5eafffbd8d58186294b61b5"
+  revision = "1f64d6156d11335c3f22d9330b0ad14fc1e789ce"
 
 [solve-meta]
   analyzer-name = "dep"

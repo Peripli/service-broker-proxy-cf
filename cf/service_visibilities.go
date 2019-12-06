@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+
 	"github.com/Peripli/service-manager/pkg/log"
 
 	"github.com/pkg/errors"
@@ -112,7 +114,7 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 }
 
 func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) ([]cfclient.ServiceBroker, error) {
-	var errorOccured error
+	errorOccured := &reconcile.CompositeError{}
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
@@ -139,27 +141,24 @@ func (pc *PlatformClient) getBrokersByName(ctx context.Context, names []string) 
 			}
 			query.set("name", brokerNames)
 			brokers, err := pc.client.ListServiceBrokersByQuery(query.build(ctx))
-
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
-				if errorOccured == nil {
-					errorOccured = err
-				}
-			} else if errorOccured == nil {
+				errorOccured.Add(err)
+			} else if errorOccured.Len() == 0 {
 				result = append(result, brokers...)
 			}
 		}(chunk)
 	}
 	wg.Wait()
-	if errorOccured != nil {
+	if errorOccured.Len() != 0 {
 		return nil, errorOccured
 	}
 	return result, nil
 }
 
 func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cfclient.ServiceBroker) ([]cfclient.Service, error) {
-	var errorOccured error
+	errorOccured := &reconcile.CompositeError{}
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
@@ -184,20 +183,17 @@ func (pc *PlatformClient) getServicesByBrokers(ctx context.Context, brokers []cf
 				brokerGUIDs = append(brokerGUIDs, broker.Guid)
 			}
 			brokers, err := pc.getServicesByBrokerGUIDs(ctx, brokerGUIDs)
-
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
-				if errorOccured == nil {
-					errorOccured = err
-				}
-			} else if errorOccured == nil {
+				errorOccured.Add(err)
+			} else if errorOccured.Len() == 0 {
 				result = append(result, brokers...)
 			}
 		}(chunk)
 	}
 	wg.Wait()
-	if errorOccured != nil {
+	if errorOccured.Len() != 0 {
 		return nil, errorOccured
 	}
 	return result, nil
@@ -212,7 +208,7 @@ func (pc *PlatformClient) getServicesByBrokerGUIDs(ctx context.Context, brokerGU
 }
 
 func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfclient.Service) ([]cfclient.ServicePlan, error) {
-	var errorOccured error
+	errorOccured := &reconcile.CompositeError{}
 	var mutex sync.Mutex
 	var wg sync.WaitGroup
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
@@ -237,20 +233,17 @@ func (pc *PlatformClient) getPlansByServices(ctx context.Context, services []cfc
 				serviceGUIDs = append(serviceGUIDs, service.Guid)
 			}
 			plans, err := pc.getPlansByServiceGUIDs(ctx, serviceGUIDs)
-
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
-				if errorOccured == nil {
-					errorOccured = err
-				}
-			} else if errorOccured == nil {
+				errorOccured.Add(err)
+			} else if errorOccured.Len() == 0 {
 				result = append(result, plans...)
 			}
 		}(chunk)
 	}
 	wg.Wait()
-	if errorOccured != nil {
+	if errorOccured.Len() != 0 {
 		return nil, errorOccured
 	}
 	return result, nil
@@ -266,7 +259,7 @@ func (pc *PlatformClient) getPlansByServiceGUIDs(ctx context.Context, serviceGUI
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfclient.ServicePlan) ([]cfclient.ServicePlanVisibility, error) {
 	var result []cfclient.ServicePlanVisibility
-	var errorOccured error
+	errorOccured := &reconcile.CompositeError{}
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
@@ -291,21 +284,17 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, plans []cfcl
 				plansGUID = append(plansGUID, p.Guid)
 			}
 			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, plansGUID)
-
 			mutex.Lock()
 			defer mutex.Unlock()
-
 			if err != nil {
-				if errorOccured == nil {
-					errorOccured = err
-				}
-			} else if errorOccured == nil {
+				errorOccured.Add(err)
+			} else if errorOccured.Len() == 0 {
 				result = append(result, visibilities...)
 			}
 		}(chunk)
 	}
 	wg.Wait()
-	if errorOccured != nil {
+	if errorOccured.Len() != 0 {
 		return nil, errorOccured
 	}
 	return result, nil

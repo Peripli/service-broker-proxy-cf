@@ -477,7 +477,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					getPlansRoute.reaction.Code = ccResponseErrCode
 				})
 
-				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, &ccResponseErrBody))
+				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, fmt.Errorf(ccResponseErrBody.Description)))
 			})
 
 			Context("when no plan is found", func() {

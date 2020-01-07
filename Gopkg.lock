@@ -260,7 +260,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:51766ddcba65b7f0eece2906249d7603970959ba0f1011b72037485044339ece"
+  digest = "1:89a071f4773bd23b5f03a31653b05dfe8cb708254aeb34d4cdb9651a4ddcbd6d"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -283,11 +283,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "ce5d301e555bb672c693c099ba6ca5087b06c0b4"
-  version = "v1.10.3"
+  revision = "388ac7e50a3abf0798010091d5094171f4aefc0b"
+  version = "v1.11.0"
 
 [[projects]]
-  digest = "1:71d53439ebaf7cbc47cf4f6443ed39da7541875e9f547a6470f11f2120a5a6ee"
+  digest = "1:f5a97129d6d5901f826fbe7c5e0a6e1c57f94accc0a22bdf355b626c98c116f3"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -305,8 +305,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "f9a52764bd5a0fd2d201bcca584351d03b72f8da"
-  version = "v1.7.1"
+  revision = "22a9feb22fe99439870ed2e013401725a9d495df"
+  version = "v1.8.1"
 
 [[projects]]
   digest = "1:6eea828983c70075ca297bb915ffbcfd3e34c5a50affd94428a65df955c0ff9c"
@@ -428,11 +428,11 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "e7c4368fe9ddd156b5f1463283cb51c5b400c373"
+  revision = "53104e6ec876ad4e22ad27cce588b01392043c1b"
 
 [[projects]]
   branch = "master"
-  digest = "1:6d181de04481fe0fca984916930cdaaa0fbad5121c08b7255eb78be76c5ebada"
+  digest = "1:46d73ba90c7e7e7950cbfc9fa6dd6bfe5ac013ddbf098cfdbd13e24083709651"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -442,7 +442,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "1ddd1de85cb0337b623b740a609d35817d516a8d"
+  revision = "c0dbc17a35534bf2e581d7a942408dc936316da4"
 
 [[projects]]
   branch = "master"
@@ -458,11 +458,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4da420ceda5f68e8d748aa2169d0ed44ffadb1bbd6537cf778a49563104189b8"
+  digest = "1:c1b1f11d25f274813ed6642e8eb55237183a3456d4a809cfcb0395d0fc50a46c"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "ce4227a45e2eb77e5c847278dcc6a626742e2945"
+  revision = "b016eb3dc98ea7f69ed55e8216b87187067ae621"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -496,6 +496,17 @@
   version = "v0.3.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:918a46e4a2fb83df33f668f5a6bd51b2996775d073fce1800d3ec01b0a5ddd2b"
+  name = "golang.org/x/xerrors"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "UT"
+  revision = "9bdfabe68543c54f90421aeb9a60ef8061b5b544"
+
+[[projects]]
   digest = "1:e0a1881f9e0564bebdeac98c75e59f07acdde6ed3a5396e0e613eaad31194866"
   name = "google.golang.org/appengine"
   packages = [
@@ -521,7 +532,7 @@
   version = "v1.4.7"
 
 [[projects]]
-  digest = "1:8ebd7bc4892e673e8d3c6377c71e8c691b92c5e51cd3159efb8343b580213b70"
+  digest = "1:3c4aaca5a82adc021322f239e0cf3f46852bb0b18ae050d0feab2e9e4c527462"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -529,8 +540,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "8fd82ff1d52a5162ff23c0a48e2c64a1fa4a3f8f"
-  version = "v2.4.0"
+  revision = "4ef0f1b175ccd65472d154e1207c4d7b8102545f"
+  version = "v2.4.1"
 
 [[projects]]
   branch = "v1"

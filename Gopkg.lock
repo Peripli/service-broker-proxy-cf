@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "security_builder"
-  digest = "1:c5ad293fd650d633e87c5a99d1383dc3c059f5fdb2cac5d31a2129be580f11f1"
+  digest = "1:1fb0b5cca8592ec0d9592af8d457dd0613b79f14fe8aec3a9dab7fc21a3bd51a"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -54,11 +54,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "3cb4e554d1b9f6d417b491297c0ff7bcedfa6ee9"
+  revision = "6a2f54b94e2adb721cc1e337eb0d2f93d661e22b"
 
 [[projects]]
-  branch = "decouple_sec_builder"
-  digest = "1:2e85138a39e824879df26f7586293d948f081bb7d9080ffae1c9ad42f797ad55"
+  branch = "master"
+  digest = "1:62c7cbfe3d3fbeffcfdaf85b8844143ed3b1c47649e6a91323dc5d1adf060d7d"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -98,7 +98,7 @@
     "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "35ace2121236e26b5577d2c5bf21a387e3a82824"
+  revision = "dbd93234e1e97f0e21bcc3af8b888f6b723b0363"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"

@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:b3a24d07d84fb45352e3b8f53a0a4850f9a052245a9cc0cb57d2705649141cb5"
+  branch = "master"
+  digest = "1:1fb0b5cca8592ec0d9592af8d457dd0613b79f14fe8aec3a9dab7fc21a3bd51a"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -53,11 +54,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "7942aea817dd6b404db17bdc0474c43a10baaba2"
-  version = "v0.7.1"
+  revision = "18460ca073e331d717e2e8d7a20322d9482d33d6"
 
 [[projects]]
-  digest = "1:127aa936d6291ec7ebb8678fef00779fc3574a616cb2b938dbaa407af7221471"
+  branch = "master"
+  digest = "1:32604556f7f5dcd120229568bdf1b3b26c04b0f0414b39629ef1c6c14d00a627"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -67,9 +68,12 @@
     "api/info",
     "api/notifications",
     "api/osb",
+    "config",
+    "operations",
     "pkg/env",
     "pkg/env/envfakes",
     "pkg/health",
+    "pkg/httpclient",
     "pkg/log",
     "pkg/query",
     "pkg/query/parser",
@@ -78,26 +82,31 @@
     "pkg/security/filters",
     "pkg/security/filters/middlewares",
     "pkg/security/http",
+    "pkg/security/http/authn",
+    "pkg/security/http/authz",
     "pkg/server",
+    "pkg/sm",
     "pkg/types",
     "pkg/util",
     "pkg/util/slice",
     "pkg/web",
     "pkg/ws",
     "storage",
+    "storage/catalog",
     "storage/interceptors",
+    "storage/postgres",
+    "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "b6a3b7004a04a8bf0c46dacb61cfe9c9b15347e9"
-  version = "v0.9.0"
+  revision = "e64b05359b4a6cb8c42584a2f25910d62fcbbd40"
 
 [[projects]]
-  digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
+  digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
   name = "github.com/antlr/antlr4"
   packages = ["runtime/Go/antlr"]
   pruneopts = "UT"
-  revision = "be58ebffde8e29c154192c019608f0a5b8e6a064"
-  version = "4.7.2"
+  revision = "d569f917954406e599d780c009224aa14f1920de"
+  version = "4.8"
 
 [[projects]]
   branch = "master"
@@ -161,6 +170,28 @@
   pruneopts = "UT"
   revision = "d41eeda0759468834c84365a32d1b1ec4264c75f"
   version = "v3.1.0"
+
+[[projects]]
+  digest = "1:d11309893a17c6f3d487c09d5be0cb6c023d05453558a6afbb17d44af2fded3b"
+  name = "github.com/golang-migrate/migrate"
+  packages = [
+    ".",
+    "database",
+    "database/postgres",
+    "source",
+    "source/file",
+  ]
+  pruneopts = "UT"
+  revision = "93d53a5ae84d81945eedadfe8f6865530d61d51c"
+  version = "v3.5.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
+  name = "github.com/golang/glog"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   digest = "1:573ca21d3669500ff845bdebee890eb7fc7f0f50c59f2132f2a0c6b03d85086a"
@@ -228,12 +259,44 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:9d697efc0ad1d6ee43708e8fc822861a66107d03f95d2b398ef488305500140a"
+  name = "github.com/jmoiron/sqlx"
+  packages = [
+    ".",
+    "reflectx",
+    "types",
+  ]
+  pruneopts = "UT"
+  revision = "2ba0fc60eb4a54030f3a6d73ff0a047349c7eeca"
+
+[[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   pruneopts = "UT"
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
   version = "v1.0.2"
+
+[[projects]]
+  digest = "1:8658f775ba5edb37ede96d8ec9eaecdfe06bc4aef1776152070185e6513dc0cc"
+  name = "github.com/kubernetes-sigs/go-open-service-broker-client"
+  packages = ["v2"]
+  pruneopts = "UT"
+  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
+  version = "0.0.10"
+
+[[projects]]
+  branch = "master"
+  digest = "1:e8501d7fa801be523f103178ced935b37778925c7338f0f94e50c14a4d450f4a"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid",
+    "scram",
+  ]
+  pruneopts = "UT"
+  revision = "9eb3fc897d6fd97dd4aad3d0404b54e2f7cc56be"
 
 [[projects]]
   digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"
@@ -428,7 +491,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "53104e6ec876ad4e22ad27cce588b01392043c1b"
+  revision = "6d4e4cb37c7d6416dfea8472e751c7b6615267a6"
 
 [[projects]]
   branch = "master"
@@ -442,11 +505,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "c0dbc17a35534bf2e581d7a942408dc936316da4"
+  revision = "6afb5195e5aab057fda82e27171243402346b0ad"
 
 [[projects]]
   branch = "master"
-  digest = "1:d6cd171816957f16fe559d9365073b79cb9bee957fb331ec19f1e1329858b944"
+  digest = "1:f1d392a89dc9b0d4556b368faa99438ac2dd443fa4d8a6f1742acb3c41f78d1f"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -454,15 +517,15 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "858c2ad4c8b6c5d10852cb89079f6ca1c7309787"
+  revision = "bf48bf16ab8d622ce64ec6ce98d2c98f916b6303"
 
 [[projects]]
   branch = "master"
-  digest = "1:c1b1f11d25f274813ed6642e8eb55237183a3456d4a809cfcb0395d0fc50a46c"
+  digest = "1:e13350b7207ecc34977340d53522e0335dd36ed86ca7c346a36d2e88eb0fadfc"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "b016eb3dc98ea7f69ed55e8216b87187067ae621"
+  revision = "b77594299b429d05028403d72b68172959c7dad5"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:b3a24d07d84fb45352e3b8f53a0a4850f9a052245a9cc0cb57d2705649141cb5"
+  branch = "master-smaap"
+  digest = "1:ce42907e4c4ed31bc113c20b39eff2b58c297a463d8fd14e853bac0a030f1b1a"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -53,11 +54,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "7942aea817dd6b404db17bdc0474c43a10baaba2"
-  version = "v0.7.1"
+  revision = "c9fcef05f43e5e3c80cfb79d9706ad5a1deeee2d"
 
 [[projects]]
-  digest = "1:127aa936d6291ec7ebb8678fef00779fc3574a616cb2b938dbaa407af7221471"
+  branch = "osb-interceptors"
+  digest = "1:3605e29cae79f7665317d39ffcf80abbb519f90eba181f5b6ebe557aaef437fe"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -67,6 +68,7 @@
     "api/info",
     "api/notifications",
     "api/osb",
+    "operations",
     "pkg/env",
     "pkg/env/envfakes",
     "pkg/health",
@@ -88,8 +90,7 @@
     "storage/interceptors",
   ]
   pruneopts = "UT"
-  revision = "b6a3b7004a04a8bf0c46dacb61cfe9c9b15347e9"
-  version = "v0.9.0"
+  revision = "fd1e7ab0ea41263260755fdce967bfb3f532679f"
 
 [[projects]]
   digest = "1:d04889482897652dedae6d8575b479c06fa3eb3c3abe248163b25d3df5fab43e"
@@ -163,6 +164,14 @@
   version = "v3.1.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
+  name = "github.com/golang/glog"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+
+[[projects]]
   digest = "1:573ca21d3669500ff845bdebee890eb7fc7f0f50c59f2132f2a0c6b03d85086a"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
@@ -234,6 +243,14 @@
   pruneopts = "UT"
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
   version = "v1.0.2"
+
+[[projects]]
+  digest = "1:8658f775ba5edb37ede96d8ec9eaecdfe06bc4aef1776152070185e6513dc0cc"
+  name = "github.com/kubernetes-sigs/go-open-service-broker-client"
+  packages = ["v2"]
+  pruneopts = "UT"
+  revision = "dca737037ce636eb282e84e3a1c7479c9692e884"
+  version = "0.0.10"
 
 [[projects]]
   digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"

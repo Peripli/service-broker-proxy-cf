@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:1fb0b5cca8592ec0d9592af8d457dd0613b79f14fe8aec3a9dab7fc21a3bd51a"
+  branch = "parallel_broker_resync"
+  digest = "1:ccdd659fb9c972a60d2268bd1a2e49a2034b63828466a008f015bae5a9708583"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -53,11 +54,10 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "a2592f2e5e371fbe00c877ee8c3476a1c75f7c0d"
-  version = "v0.8.0"
+  revision = "7bf0259d250e26591ca36c8195c1c9849fec82d7"
 
 [[projects]]
-  digest = "1:055fc0e43add62718304665b638fa52b0ddc2aa61873f6fdf1bc047d84283aa5"
+  digest = "1:32604556f7f5dcd120229568bdf1b3b26c04b0f0414b39629ef1c6c14d00a627"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -67,7 +67,6 @@
     "api/info",
     "api/notifications",
     "api/osb",
-    "api/profile",
     "config",
     "operations",
     "pkg/env",
@@ -75,7 +74,6 @@
     "pkg/health",
     "pkg/httpclient",
     "pkg/log",
-    "pkg/multitenancy",
     "pkg/query",
     "pkg/query/parser",
     "pkg/security",
@@ -99,8 +97,8 @@
     "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "fe1b4ba4cd5f95f18c277d3067f7accb682f4743"
-  version = "v0.10.0"
+  revision = "e64b05359b4a6cb8c42584a2f25910d62fcbbd40"
+  version = "v0.9.9"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"

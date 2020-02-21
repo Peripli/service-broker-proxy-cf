@@ -46,26 +46,11 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-
 		for _, orgGUID := range orgGUIDs {
-			if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-				if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
-					return err
-				}
-				return nil
-			}); schedulerErr != nil {
-				log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
-			}
+			pc.scheduleUpdateOrgVisibilityForPlan(ctx, request, scheduler, plan, isEnabled, orgGUID)
 		}
 	} else {
-		if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-			if err := pc.updatePlan(plan, isEnabled); err != nil {
-				return err
-			}
-			return nil
-		}); schedulerErr != nil {
-			log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
-		}
+		pc.scheduleUpdatePlan(ctx, request, scheduler, plan, isEnabled)
 	}
 	if err := scheduler.Await(); err != nil {
 		compositeErr := err.(*reconcile.CompositeError)
@@ -73,6 +58,28 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	}
 
 	return nil
+}
+
+func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) {
+	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
+		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
+			return err
+		}
+		return nil
+	}); schedulerErr != nil {
+		log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
+	}
+}
+
+func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfclient.ServicePlan, isPublic bool) {
+	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
+		if err := pc.updatePlan(plan, isPublic); err != nil {
+			return err
+		}
+		return nil
+	}); schedulerErr != nil {
+		log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
+	}
 }
 
 func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {

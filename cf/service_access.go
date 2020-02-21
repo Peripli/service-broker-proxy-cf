@@ -40,15 +40,16 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 		return errors.Errorf("modify plan access request cannot be nil")
 	}
 
-	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, request.CatalogPlanID, request.BrokerName)
-	if err != nil {
-		return err
+	plan := pc.planResolver.GetPlan(request.CatalogPlanID, request.BrokerName)
+	if plan == nil {
+		return errors.Errorf("no plan found with catalog id %s from service broker %s",
+			request.CatalogPlanID, request.BrokerName)
 	}
 
 	compositeErr := &reconcile.CompositeError{}
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
 		for _, orgGUID := range orgGUIDs {
-			if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
+			if err := pc.updateOrgVisibilityForPlan(ctx, *plan, isEnabled, orgGUID); err != nil {
 				compositeErr.Add(err)
 			}
 		}
@@ -56,7 +57,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 			return errors.Wrapf(compositeErr, "error while updating access for catalog plan with id %s; %d errors occurred: %s", request.CatalogPlanID, compositeErr.Len(), compositeErr)
 		}
 	} else {
-		if err := pc.updatePlan(plan, isEnabled); err != nil {
+		if err := pc.updatePlan(*plan, isEnabled); err != nil {
 			return err
 		}
 	}
@@ -141,34 +142,4 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 	servicePlan.Guid = planResource.Meta.Guid
 
 	return servicePlan, nil
-}
-
-func (pc *PlatformClient) getPlanForCatalogPlanIDAndBrokerName(ctx context.Context, catalogPlanGUID, brokerName string) (cfclient.ServicePlan, error) {
-	brokers, err := pc.getBrokersByName(ctx, []string{brokerName})
-	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
-	}
-	if len(brokers) == 0 {
-		return cfclient.ServicePlan{}, errors.Errorf("no brokers found for broker name %s", brokerName)
-	}
-	if len(brokers) > 1 {
-		return cfclient.ServicePlan{}, errors.Errorf("more than 1 (%d) brokers found for broker name %s", len(brokers), brokerName)
-	}
-
-	services, err := pc.getServicesByBrokers(ctx, brokers)
-	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
-	}
-
-	plans, err := pc.getPlansByServices(ctx, services)
-	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
-	}
-	for _, plan := range plans {
-		if plan.UniqueId == catalogPlanGUID {
-			return plan, nil
-		}
-	}
-
-	return cfclient.ServicePlan{}, errors.Errorf("no plans for broker with name %s and catalog plan ID = %s found", brokerName, catalogPlanGUID)
 }

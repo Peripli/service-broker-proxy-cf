@@ -3,10 +3,15 @@ package cf
 import (
 	"fmt"
 
-	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
-
 	"github.com/pkg/errors"
+
+	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
+)
+
+const (
+	cfPageSizeParam = "results-per-page"
 )
 
 // CloudFoundryErr type represents a CF error with improved error message
@@ -15,8 +20,9 @@ type CloudFoundryErr cfclient.CloudFoundryError
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
-	client   cfclient.CloudFoundryClient
-	settings *Settings
+	client       cfclient.CloudFoundryClient
+	settings     *Settings
+	planResolver *cfmodel.PlanResolver
 }
 
 // Broker returns platform client which can perform platform broker operations
@@ -45,8 +51,9 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	}
 
 	return &PlatformClient{
-		client:   cfClient,
-		settings: config,
+		client:       cfClient,
+		settings:     config,
+		planResolver: &cfmodel.PlanResolver{},
 	}, nil
 }
 

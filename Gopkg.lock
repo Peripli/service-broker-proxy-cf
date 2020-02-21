@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:1fb0b5cca8592ec0d9592af8d457dd0613b79f14fe8aec3a9dab7fc21a3bd51a"
+  branch = "master"
+  digest = "1:9a2976ef125612f3e26878e4052debf48c9a0595f70cb4c80d2dcf929a35f4e9"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -53,8 +54,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "a2592f2e5e371fbe00c877ee8c3476a1c75f7c0d"
-  version = "v0.8.0"
+  revision = "17c6735c9dc5aceba328d1b52312a4dae26c5e35"
 
 [[projects]]
   digest = "1:055fc0e43add62718304665b638fa52b0ddc2aa61873f6fdf1bc047d84283aa5"

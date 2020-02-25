@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "credentials_api"
-  digest = "1:c75fd060109fea8b74ef78675ab927c291f424fdc02e0131ed11d115ea50e4f9"
+  digest = "1:8a41a1fbd53c67d19c7c7a391af5d1b6bdc414e65b54344d182a341207331f1b"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -55,11 +55,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "ccb2e0e18742346c6d20603a22cbcdd1cdee76aa"
+  revision = "45036dbfde68b211c0636c4b745875b6eb7d867f"
 
 [[projects]]
   branch = "credentials_api"
-  digest = "1:ff78386fb5e38d8d386d92800967505cc8f749aea9cbf83afdb6704ecf8b2158"
+  digest = "1:dad41cec7e478ab735e8a62d037bada9115fd27bf7d298ccac922f651c5c9fe6"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -101,7 +101,7 @@
     "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "100ff2c86fc1f6bc54c55b127d5d33d377ad1291"
+  revision = "2547c2a989ba7018668650d2add39697f2e6a706"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -526,11 +526,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f4caa38f81f81dc7832d923b152eddd743c2f088ef0269bcd6cba53ce5851485"
+  digest = "1:578046baf093df15df2904bbb0fe06f3f2385bad59987532201007754aa7e1d5"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "cb0a6d8edb6c3528b01a0be84a5fe513dbf880a6"
+  revision = "d5e6a3e2c0ae16fc7480523ebcb7fd4dd3215489"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

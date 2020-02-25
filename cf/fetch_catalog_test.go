@@ -12,9 +12,13 @@ import (
 	"github.com/onsi/gomega/ghttp"
 )
 
+const (
+	brokerUsername = "username"
+	brokerPassword = "password"
+)
+
 var _ = Describe("Client FetchCatalog", func() {
 	var (
-		settings        *cf.Settings
 		client          *cf.PlatformClient
 		ccServer        *ghttp.Server
 		testBroker      *platform.ServiceBroker
@@ -37,13 +41,13 @@ var _ = Describe("Client FetchCatalog", func() {
 
 		ccServer = fakeCCServer(false)
 
-		settings, client = ccClient(ccServer.URL())
+		_, client = ccClient(ccServer.URL())
 
 		expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 			Name:      testBroker.Name,
 			BrokerURL: testBroker.BrokerURL,
-			Username:  settings.Sm.User,
-			Password:  settings.Sm.Password,
+			Username:  brokerUsername,
+			Password:  brokerPassword,
 		}
 
 		ccServer.AppendHandlers(
@@ -73,7 +77,7 @@ var _ = Describe("Client FetchCatalog", func() {
 					Entity: cfclient.ServiceBroker{
 						Name:      testBroker.Name,
 						BrokerURL: testBroker.BrokerURL,
-						Username:  testBroker.Name,
+						Username:  brokerUsername,
 					},
 				}
 
@@ -81,7 +85,13 @@ var _ = Describe("Client FetchCatalog", func() {
 			})
 
 			It("returns no error", func() {
-				err = client.Fetch(ctx, testBroker)
+				err = client.Fetch(ctx, &platform.UpdateServiceBrokerRequest{
+					GUID:      testBroker.GUID,
+					Name:      testBroker.Name,
+					BrokerURL: testBroker.BrokerURL,
+					Username:  brokerUsername,
+					Password:  brokerPassword,
+				})
 
 				Expect(err).ShouldNot(HaveOccurred())
 			})
@@ -100,7 +110,13 @@ var _ = Describe("Client FetchCatalog", func() {
 			})
 
 			It("propagates the error", func() {
-				err = client.Fetch(ctx, testBroker)
+				err = client.Fetch(ctx, &platform.UpdateServiceBrokerRequest{
+					GUID:      testBroker.GUID,
+					Name:      testBroker.Name,
+					BrokerURL: testBroker.BrokerURL,
+					Username:  brokerUsername,
+					Password:  brokerPassword,
+				})
 
 				assertErrCauseIsCFError(err, ccResponseErr)
 			})

@@ -1,85 +1,45 @@
 package cfmodel
 
-import "github.com/cloudfoundry-community/go-cfclient"
+import (
+	"context"
 
-import "sync"
+	"github.com/Peripli/service-manager/pkg/log"
+	"github.com/cloudfoundry-community/go-cfclient"
+
+	"sync"
+)
 
 // PlanData contains selected properties of a service plan in CF
 type PlanData struct {
+	GUID          string
 	BrokerName    string
 	CatalogPlanID string
 	Public        bool
 }
 
-// PlanMap maps CF plan id to PlanData
+// PlanMap maps plan GUID to PlanData
 type PlanMap map[string]PlanData
-
-type planNode = cfclient.ServicePlan
-
-type serviceNode struct {
-	cfclient.Service
-	plans []*planNode
-}
-
-type brokerNode struct {
-	cfclient.ServiceBroker
-	services []*serviceNode
-}
 
 // PlanResolver provides functions for locating service plans based on data loaded from CF
 // It just stores the data and provides querying in a thread-safe way
 // It does not perform any data fetching
-// Currently PlanResolver is used in setting visibilities during both resync and notification processing
 type PlanResolver struct {
 	mutex sync.RWMutex
 
-	brokers  map[string]*brokerNode
-	services map[string]*serviceNode
-	plans    map[string]*planNode
-
-	brokerNameMap map[string]*brokerNode
+	// brokerPlans maps broker name to its plans
+	brokerPlans map[string][]PlanData
 }
 
 // NewPlanResolver constructs a new NewPlanResolver
 func NewPlanResolver() *PlanResolver {
 	return &PlanResolver{
-		brokers:       map[string]*brokerNode{},
-		services:      map[string]*serviceNode{},
-		plans:         map[string]*planNode{},
-		brokerNameMap: map[string]*brokerNode{},
-	}
-}
-
-func (r *PlanResolver) addBrokers(brokers ...cfclient.ServiceBroker) {
-	for _, broker := range brokers {
-		bnode := &brokerNode{ServiceBroker: broker}
-		r.brokers[broker.Guid] = bnode
-		r.brokerNameMap[broker.Name] = bnode
-	}
-}
-
-func (r *PlanResolver) addServices(services ...cfclient.Service) {
-	for _, service := range services {
-		snode := &serviceNode{Service: service}
-		r.services[service.Guid] = snode
-		if broker, found := r.brokers[service.ServiceBrokerGuid]; found {
-			broker.services = append(broker.services, snode)
-		}
-	}
-}
-
-func (r *PlanResolver) addPlans(plans ...cfclient.ServicePlan) {
-	for _, plan := range plans {
-		plan := plan // use a separate object with a separate address
-		r.plans[plan.Guid] = &plan
-		if service, found := r.services[plan.ServiceGuid]; found {
-			service.plans = append(service.plans, &plan)
-		}
+		brokerPlans: map[string][]PlanData{},
 	}
 }
 
 // Reset replaces all the data
 func (r *PlanResolver) Reset(
+	ctx context.Context,
 	brokers []cfclient.ServiceBroker,
 	services []cfclient.Service,
 	plans []cfclient.ServicePlan,
@@ -87,73 +47,82 @@ func (r *PlanResolver) Reset(
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	r.brokers = map[string]*brokerNode{}
-	r.services = map[string]*serviceNode{}
-	r.plans = map[string]*planNode{}
-	r.brokerNameMap = map[string]*brokerNode{}
+	logger := log.C(ctx)
 
-	r.addBrokers(brokers...)
-	r.addServices(services...)
-	r.addPlans(plans...)
+	r.brokerPlans = make(map[string][]PlanData, len(brokers))
+
+	brokerMap := make(map[string]*cfclient.ServiceBroker, len(brokers))
+	for i, broker := range brokers {
+		brokerMap[broker.Guid] = &brokers[i]
+	}
+
+	serviceMap := make(map[string]*cfclient.Service, len(services))
+	for i, service := range services {
+		serviceMap[service.Guid] = &services[i]
+	}
+
+	for _, plan := range plans {
+		service := serviceMap[plan.ServiceGuid]
+		if service == nil {
+			logger.Errorf("Service with GUID %s not found for plan with GUID %s",
+				plan.ServiceGuid, plan.Guid)
+			continue
+		}
+		broker := brokerMap[service.ServiceBrokerGuid]
+		if broker == nil {
+			logger.Errorf("Service broker with GUID %s not found for service with GUID %s",
+				service.ServiceBrokerGuid, service.Guid)
+			continue
+		}
+		r.brokerPlans[broker.Name] = append(r.brokerPlans[broker.Name], PlanData{
+			GUID:          plan.Guid,
+			BrokerName:    broker.Name,
+			CatalogPlanID: plan.UniqueId,
+			Public:        plan.Public,
+		})
+	}
 }
 
 // ResetBroker replaces the data for a particular broker
-func (r *PlanResolver) ResetBroker(
-	broker cfclient.ServiceBroker,
-	services []cfclient.Service,
-	plans []cfclient.ServicePlan,
-) {
+func (r *PlanResolver) ResetBroker(brokerName string, plans []cfclient.ServicePlan) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	r.deleteBroker(broker.Guid)
+	r.deleteBroker(brokerName)
 
-	r.addBrokers(broker)
-	r.addServices(services...)
-	r.addPlans(plans...)
+	for _, plan := range plans {
+		r.brokerPlans[brokerName] = append(r.brokerPlans[brokerName], PlanData{
+			GUID:          plan.Guid,
+			BrokerName:    brokerName,
+			CatalogPlanID: plan.UniqueId,
+			Public:        plan.Public,
+		})
+	}
 }
 
-func (r *PlanResolver) deleteBroker(brokerGUID string) {
-	broker, ok := r.brokers[brokerGUID]
-	if !ok {
-		return
-	}
-	delete(r.brokers, brokerGUID)
-	delete(r.brokerNameMap, broker.Name)
-
-	for _, service := range broker.services {
-		delete(r.services, service.Guid)
-		for _, plan := range service.plans {
-			delete(r.plans, plan.Guid)
-		}
-	}
+func (r *PlanResolver) deleteBroker(brokerName string) {
+	delete(r.brokerPlans, brokerName)
 }
 
 // DeleteBroker deletes the data for a particular broker
-func (r *PlanResolver) DeleteBroker(brokerGUID string) {
+func (r *PlanResolver) DeleteBroker(brokerName string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	r.deleteBroker(brokerGUID)
+	r.deleteBroker(brokerName)
 }
 
 // GetPlan returns the plan with given catalog ID and broker name
-func (r *PlanResolver) GetPlan(catalogPlanID, brokerName string) *cfclient.ServicePlan {
+func (r *PlanResolver) GetPlan(catalogPlanID, brokerName string) (PlanData, bool) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	broker, found := r.brokerNameMap[brokerName]
-	if !found {
-		return nil
-	}
-	for _, service := range broker.services {
-		for _, plan := range service.plans {
-			if plan.UniqueId == catalogPlanID {
-				return plan
-			}
+	for _, plan := range r.brokerPlans[brokerName] {
+		if plan.CatalogPlanID == catalogPlanID {
+			return plan, true
 		}
 	}
-	return nil
+	return PlanData{}, false
 }
 
 // GetBrokerPlans returns all the plans from brokers with given names
@@ -163,17 +132,23 @@ func (r *PlanResolver) GetBrokerPlans(brokerNames []string) PlanMap {
 
 	plans := PlanMap{}
 	for _, brokerName := range brokerNames {
-		if broker, found := r.brokerNameMap[brokerName]; found {
-			for _, service := range broker.services {
-				for _, plan := range service.plans {
-					plans[plan.Guid] = PlanData{
-						BrokerName:    brokerName,
-						CatalogPlanID: plan.UniqueId,
-						Public:        plan.Public,
-					}
-				}
-			}
+		for _, plan := range r.brokerPlans[brokerName] {
+			plans[plan.GUID] = plan
 		}
 	}
 	return plans
+}
+
+// UpdatePlan updates the public property of the given plan
+func (r *PlanResolver) UpdatePlan(catalogPlanID, brokerName string, public bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	plans := r.brokerPlans[brokerName]
+	for i, plan := range plans {
+		if plan.CatalogPlanID == catalogPlanID {
+			plans[i].Public = public
+			return
+		}
+	}
 }

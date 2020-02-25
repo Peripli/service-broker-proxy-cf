@@ -63,10 +63,6 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 		return nil, wrapCFError(err)
 	}
 
-	if err := pc.reloadBroker(ctx, broker.Guid); err != nil {
-		return nil, err
-	}
-
 	response := &platform.ServiceBroker{
 		GUID:      broker.Guid,
 		Name:      broker.Name,
@@ -82,8 +78,6 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 	if err := pc.client.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
 	}
-
-	pc.planResolver.DeleteBroker(r.GUID)
 
 	return nil
 }
@@ -102,10 +96,6 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 	broker, err := pc.client.UpdateServiceBroker(r.GUID, request)
 	if err != nil {
 		return nil, wrapCFError(err)
-	}
-
-	if err := pc.reloadBroker(ctx, broker.Guid); err != nil {
-		return nil, err
 	}
 
 	response := &platform.ServiceBroker{

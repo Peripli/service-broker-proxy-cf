@@ -5,8 +5,11 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 )
+
+var _ platform.Caching = &PlatformClient{}
 
 // ResetCache reloads all the data from CF
 func (pc *PlatformClient) ResetCache(ctx context.Context) error {
@@ -19,43 +22,43 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	logger.Info("Loading all service brokers from Cloud Foundry...")
 	brokers, err := pc.client.ListServiceBrokersByQuery(query)
 	if err != nil {
-		return wrapCFError(err)
+		return err
 	}
 	logger.Infof("Loaded %d service brokers from Cloud Foundry", len(brokers))
 
 	logger.Info("Loading all services from Cloud Foundry...")
 	services, err := pc.client.ListServicesByQuery(query)
 	if err != nil {
-		return wrapCFError(err)
+		return err
 	}
 	logger.Infof("Loaded %d services from Cloud Foundry", len(services))
 
 	logger.Info("Loading all service plans from Cloud Foundry...")
 	plans, err := pc.client.ListServicePlansByQuery(query)
 	if err != nil {
-		return wrapCFError(err)
+		return err
 	}
 	logger.Infof("Loaded %d service plans from Cloud Foundry...", len(plans))
 
-	pc.planResolver.Reset(brokers, services, plans)
+	pc.planResolver.Reset(ctx, brokers, services, plans)
 
 	return nil
 }
 
-func (pc *PlatformClient) reloadBroker(ctx context.Context, brokerGUID string) error {
-	logger := log.C(ctx)
-
-	logger.Infof("Loading service broker with GUID %s from Cloud Foundry...", brokerGUID)
-	broker, err := pc.client.GetServiceBrokerByGuid(brokerGUID)
-	if err != nil {
-		return wrapCFError(err)
+// ResetBroker resets the data for the given broker
+func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.ServiceBroker, deleted bool) error {
+	if deleted {
+		pc.planResolver.DeleteBroker(broker.Name)
+		return nil
 	}
 
-	logger.Infof("Loading services of broker with GUID %s from Cloud Foundry...", brokerGUID)
+	logger := log.C(ctx)
+
+	logger.Infof("Loading services of broker with GUID %s from Cloud Foundry...", broker.GUID)
 	services, err := pc.client.ListServicesByQuery(
-		pc.buildQuery("service_broker_guid", brokerGUID))
+		pc.buildQuery("service_broker_guid", broker.GUID))
 	if err != nil {
-		return wrapCFError(err)
+		return err
 	}
 
 	serviceGUIDs := make([]string, len(services))
@@ -66,11 +69,11 @@ func (pc *PlatformClient) reloadBroker(ctx context.Context, brokerGUID string) e
 	plans, err := pc.client.ListServicePlansByQuery(
 		pc.buildQuery("service_guid", serviceGUIDs...))
 	if err != nil {
-		return wrapCFError(err)
+		return err
 	}
 	logger.Infof("Loaded %d plans from Cloud Foundry", len(plans))
 
-	pc.planResolver.ResetBroker(broker, services, plans)
+	pc.planResolver.ResetBroker(broker.Name, plans)
 
 	return nil
 }

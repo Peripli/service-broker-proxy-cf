@@ -7,6 +7,7 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
+	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
@@ -73,10 +74,8 @@ var _ = Describe("Client Service Plan Access", func() {
 		updatedPrivatePlanToPublicResponse cfclient.ServicePlanResource
 		updatedLimitedPlanToPublicResponse cfclient.ServicePlanResource
 
-		brokerDetails   interface{}
-		servicesDetails interface{}
-		planDetails     map[string]*planRouteDetails
-		routes          []*mockRoute
+		planDetails map[string]*planRouteDetails
+		routes      []*mockRoute
 
 		planGUID   string
 		brokerGUID string
@@ -95,6 +94,12 @@ var _ = Describe("Client Service Plan Access", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
+		ctx, err = log.Configure(ctx, &log.Settings{
+			Level:  "debug",
+			Format: "text",
+			Output: "ginkgowriter",
+		})
+		Expect(err).To(BeNil())
 
 		ccServer = fakeCCServer(true)
 
@@ -256,31 +261,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		}
 		ccResponseErrCode = http.StatusInternalServerError
 
-		brokerDetails = cfclient.ServiceBrokerResponse{
-			Count: 1,
-			Pages: 1,
-			Resources: []cfclient.ServiceBrokerResource{
-				cfclient.ServiceBrokerResource{
-					Entity: cfclient.ServiceBroker{
-						Guid: brokerGUID,
-					},
-				},
-			},
-		}
-
-		servicesDetails = cfclient.ServicesResponse{
-			Count: 1,
-			Pages: 1,
-			Resources: []cfclient.ServicesResource{
-				cfclient.ServicesResource{
-					Entity: cfclient.Service{
-						Guid:              serviceGUID,
-						ServiceBrokerGuid: brokerGUID,
-					},
-				},
-			},
-		}
-
 		planDetails = make(map[string]*planRouteDetails, 3)
 
 		planDetails[publicPlanGUID] = &planRouteDetails{
@@ -322,34 +302,58 @@ var _ = Describe("Client Service Plan Access", func() {
 		updatePlanRoute = mockRoute{}
 	})
 
-	prepareGetBrokersRoute := func(brokerName string) mockRoute {
-		var query string
-		Expect(brokerName).ShouldNot(BeEmpty())
-		query = fmt.Sprintf("name IN %s", brokerName)
-
-		route := mockRoute{
+	prepareGetBrokersRoute := func() mockRoute {
+		return mockRoute{
 			requestChecks: expectedRequest{
 				Method:   http.MethodGet,
 				Path:     "/v2/service_brokers",
-				RawQuery: encodeQuery(query) + "&results-per-page=100",
+				RawQuery: "results-per-page=100",
 			},
 			reaction: reactionResponse{
 				Code: http.StatusOK,
-				Body: brokerDetails,
+				Body: cfclient.ServiceBrokerResponse{
+					Count: 1,
+					Pages: 1,
+					Resources: []cfclient.ServiceBrokerResource{
+						cfclient.ServiceBrokerResource{
+							Meta: cfclient.Meta{
+								Guid: brokerGUID,
+							},
+							Entity: cfclient.ServiceBroker{
+								Guid: brokerGUID,
+								Name: brokerGUID,
+							},
+						},
+					},
+				},
 			},
 		}
-		return route
 	}
 
 	prepareGetServicesRoute := func() mockRoute {
 		route := mockRoute{
 			requestChecks: expectedRequest{
-				Method: http.MethodGet,
-				Path:   "/v2/services",
+				Method:   http.MethodGet,
+				Path:     "/v2/services",
+				RawQuery: "results-per-page=100",
 			},
 			reaction: reactionResponse{
 				Code: http.StatusOK,
-				Body: servicesDetails,
+				Body: cfclient.ServicesResponse{
+					Count: 1,
+					Pages: 1,
+					Resources: []cfclient.ServicesResource{
+						cfclient.ServicesResource{
+							Meta: cfclient.Meta{
+								Guid: serviceGUID,
+							},
+							Entity: cfclient.Service{
+								Guid:              serviceGUID,
+								ServiceBrokerGuid: brokerGUID,
+							},
+						},
+					},
+				},
 			},
 		}
 		return route
@@ -379,8 +383,9 @@ var _ = Describe("Client Service Plan Access", func() {
 		}
 		route := mockRoute{
 			requestChecks: expectedRequest{
-				Method: http.MethodGet,
-				Path:   "/v2/service_plans",
+				Method:   http.MethodGet,
+				Path:     "/v2/service_plans",
+				RawQuery: "results-per-page=100",
 			},
 			reaction: reactionResponse{
 				Code: http.StatusOK,
@@ -463,7 +468,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				brokerGUID = brokerGUIDForPublicPlan
 				orgData = validOrgData
 
-				getBrokersRoute = prepareGetBrokersRoute(brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute()
 				getServicesRoute = prepareGetServicesRoute()
 
 				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute)
@@ -485,7 +490,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					getPlansRoute = prepareGetPlansRoute()
 				})
 
-				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, fmt.Errorf("no plans for broker with name")))
+				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, fmt.Errorf("no plan found")))
 			})
 		})
 	}
@@ -574,12 +579,19 @@ var _ = Describe("Client Service Plan Access", func() {
 	})
 
 	Describe("DisableAccessForPlan", func() {
+		disableAccessForPlan := func(ctx context.Context, request *platform.ModifyPlanAccessRequest) error {
+			if err := client.ResetCache(ctx); err != nil {
+				return err
+			}
+			return client.DisableAccessForPlan(ctx, request)
+		}
+
 		assertDisableAccessForPlanReturnsNoErr := func(data *types.Labels, planGUID, brokerGUID *string) func() {
 			return func() {
 				Expect(data).ShouldNot(BeNil())
 				Expect(planGUID).ShouldNot(BeNil())
 
-				err = client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+				err = disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 					BrokerName:    *brokerGUID,
 					CatalogPlanID: *planGUID,
 					Labels:        *data,
@@ -594,7 +606,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				Expect(data).ShouldNot(BeNil())
 				Expect(planGUID).ShouldNot(BeNil())
 
-				err := client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+				err := disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 					BrokerName:    *brokerGUID,
 					CatalogPlanID: *planGUID,
 					Labels:        *data,
@@ -615,7 +627,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = validOrgData
-				getBrokersRoute = prepareGetBrokersRoute(brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute()
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, orgGUID)
@@ -638,7 +650,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not attempt to delete visibilities", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        validOrgData,
@@ -655,11 +667,10 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when the plan is limited", func() {
 				BeforeEach(func() {
 					setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
-
 				})
 
 				It("deletes visibilities for the plan", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        validOrgData,
@@ -678,7 +689,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not attempt to delete visibilities as none exist", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        validOrgData,
@@ -697,7 +708,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = emptyOrgData
-				getBrokersRoute = prepareGetBrokersRoute(brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute()
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
@@ -725,7 +736,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("deletes visibilities for the plan if any are found", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        emptyOrgData,
@@ -736,7 +747,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("updates the plan to private", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        emptyOrgData,
@@ -754,7 +765,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("deletes visibilities for the plan if any are found", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        emptyOrgData,
@@ -765,7 +776,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not try to update the plan", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        emptyOrgData,
@@ -783,7 +794,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not delete visibilities as none are found", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        emptyOrgData,
@@ -794,7 +805,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not try to update the plan", func() {
-					client.DisableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        emptyOrgData,
@@ -809,13 +820,19 @@ var _ = Describe("Client Service Plan Access", func() {
 	})
 
 	Describe("EnableAccessForPlan", func() {
+		enableAccessForPlan := func(ctx context.Context, request *platform.ModifyPlanAccessRequest) error {
+			if err := client.ResetCache(ctx); err != nil {
+				return err
+			}
+			return client.EnableAccessForPlan(ctx, request)
+		}
 
 		assertEnableAccessForPlanReturnsNoErr := func(data *types.Labels, planGUID, brokerGUID *string) func() {
 			return func() {
 				Expect(data).ShouldNot(BeNil())
 				Expect(planGUID).ShouldNot(BeNil())
 
-				err = client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+				err = enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 					BrokerName:    *brokerGUID,
 					CatalogPlanID: *planGUID,
 					Labels:        *data,
@@ -830,7 +847,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				Expect(data).ShouldNot(BeNil())
 				Expect(planGUID).ShouldNot(BeNil())
 
-				err := client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+				err := enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 					BrokerName:    *brokerGUID,
 					CatalogPlanID: *planGUID,
 					Labels:        *data,
@@ -851,7 +868,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = validOrgData
-				getBrokersRoute = prepareGetBrokersRoute(brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute()
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				createVisibilityRoute = prepareCreateVisibilityRoute(planGUID)
@@ -872,7 +889,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not create new visibilities", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -891,7 +908,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("creates a service plan visibility for the plan and org even if one is already present", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -909,7 +926,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("creates a service plan visibility for the plan and org even if one is already present", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -927,7 +944,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				planGUID = guid
 				brokerGUID = brokerguid
 				orgData = emptyOrgData
-				getBrokersRoute = prepareGetBrokersRoute(brokerGUID)
+				getBrokersRoute = prepareGetBrokersRoute()
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
 				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
@@ -955,7 +972,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("deletes visibilities if any are found", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -966,7 +983,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not try to update the plan", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -984,7 +1001,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("updates the plan to public", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -994,7 +1011,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("deletes visibilities if any are found", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -1013,7 +1030,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("updates the plan to public", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,
@@ -1023,7 +1040,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				})
 
 				It("does not delete visibilities as none are found", func() {
-					client.EnableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
 						BrokerName:    brokerGUID,
 						CatalogPlanID: planGUID,
 						Labels:        orgData,

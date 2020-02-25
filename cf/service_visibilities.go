@@ -30,9 +30,9 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	plans := pc.planResolver.GetBrokerPlans(brokerNames)
 	publicPlans := filterPublicPlans(plans)
 
-	visibilities, err := pc.getPlansVisibilities(ctx, getPlanIDs(plans))
+	visibilities, err := pc.getPlansVisibilities(ctx, getPlanGUIDs(plans))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get visibilities from platform")
+		return nil, err
 	}
 
 	result := make([]*platform.Visibility, 0, len(visibilities)+len(publicPlans))
@@ -71,12 +71,12 @@ func filterPublicPlans(plans cfmodel.PlanMap) []cfmodel.PlanData {
 	return publicPlans
 }
 
-func getPlanIDs(plans cfmodel.PlanMap) []string {
-	ids := make([]string, 0, len(plans))
-	for id := range plans {
-		ids = append(ids, id)
+func getPlanGUIDs(plans cfmodel.PlanMap) []string {
+	guids := make([]string, 0, len(plans))
+	for guid := range plans {
+		guids = append(guids, guid)
 	}
-	return ids
+	return guids
 }
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []string) ([]cfclient.ServicePlanVisibility, error) {

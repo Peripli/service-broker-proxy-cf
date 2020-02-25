@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
+
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+	"github.com/Peripli/service-manager/pkg/log"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
-	"github.com/Peripli/service-manager/pkg/log"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
@@ -35,13 +37,12 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 }
 
 func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, isEnabled bool) error {
-
 	if request == nil {
 		return errors.Errorf("modify plan access request cannot be nil")
 	}
 
-	plan := pc.planResolver.GetPlan(request.CatalogPlanID, request.BrokerName)
-	if plan == nil {
+	plan, found := pc.planResolver.GetPlan(request.CatalogPlanID, request.BrokerName)
+	if !found {
 		return errors.Errorf("no plan found with catalog id %s from service broker %s",
 			request.CatalogPlanID, request.BrokerName)
 	}
@@ -49,7 +50,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	compositeErr := &reconcile.CompositeError{}
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
 		for _, orgGUID := range orgGUIDs {
-			if err := pc.updateOrgVisibilityForPlan(ctx, *plan, isEnabled, orgGUID); err != nil {
+			if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
 				compositeErr.Add(err)
 			}
 		}
@@ -57,7 +58,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 			return errors.Wrapf(compositeErr, "error while updating access for catalog plan with id %s; %d errors occurred: %s", request.CatalogPlanID, compositeErr.Len(), compositeErr)
 		}
 	} else {
-		if err := pc.updatePlan(*plan, isEnabled); err != nil {
+		if err := pc.updatePlan(plan, isEnabled); err != nil {
 			return err
 		}
 	}
@@ -65,17 +66,17 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	return nil
 }
 
-func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
+func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, isEnabled bool, orgGUID string) error {
 	switch {
 	case plan.Public:
-		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
-			"visibility for org with GUID = %s will be ignored", plan.Guid, plan.Name, orgGUID)
+		log.C(ctx).Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
+			"visibility for org with GUID %s will be ignored", plan.GUID, orgGUID)
 	case isEnabled:
-		if _, err := pc.client.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
+		if _, err := pc.client.CreateServicePlanVisibility(plan.GUID, orgGUID); err != nil {
 			return wrapCFError(err)
 		}
 	case !isEnabled:
-		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.Guid, orgGUID)}}
+		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
 		if err := pc.deleteAccessVisibilities(query); err != nil {
 			return wrapCFError(err)
 		}
@@ -84,19 +85,25 @@ func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan c
 	return nil
 }
 
-func (pc *PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) error {
-	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s", plan.Guid)}}
+func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error {
+	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s", plan.GUID)}}
 	if err := pc.deleteAccessVisibilities(query); err != nil {
 		return err
 	}
+
 	if plan.Public == isPublic {
 		return nil
 	}
-	_, err := pc.UpdateServicePlan(plan.Guid, ServicePlanRequest{
+
+	_, err := pc.UpdateServicePlan(plan.GUID, ServicePlanRequest{
 		Public: isPublic,
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	pc.planResolver.UpdatePlan(plan.CatalogPlanID, plan.BrokerName, isPublic)
+	return nil
 }
 
 func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {

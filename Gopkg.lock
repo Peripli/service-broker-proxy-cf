@@ -40,8 +40,7 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "caching-plan-resolver"
-  digest = "1:c48021d9c2bd37be3ea9ca9ae651487ded91ec7c362df3b71d07db66bb4afd8e"
+  digest = "1:730f54e849a61172924eaa5a12892732000fef4946dfd79997d1a7a7dc6f2ea5"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -54,10 +53,11 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "b2597b76d455d69b4221476270ed06a75b242901"
+  revision = "6c72e7925bb9760cfe1fa10c0315e51e81301005"
+  version = "v0.8.1"
 
 [[projects]]
-  digest = "1:055fc0e43add62718304665b638fa52b0ddc2aa61873f6fdf1bc047d84283aa5"
+  digest = "1:42a542d1f078682ca31f70ae14671f32b605269c01210225fd9361f7da7a9dda"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -99,8 +99,8 @@
     "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "fe1b4ba4cd5f95f18c277d3067f7accb682f4743"
-  version = "v0.10.0"
+  revision = "4623a495d1d96fe95b3c73dc78749dc277d806db"
+  version = "v0.10.2"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -493,7 +493,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "86ce3cb696783b739e41e834e2eead3e1b4aa3fb"
+  revision = "2aa609cf4a9d7d1126360de73b55b6002f9e052a"
 
 [[projects]]
   branch = "master"
@@ -507,7 +507,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "16171245cfb220d5317888b716d69c1fb4e7992b"
+  revision = "5a598a2470a0279bd28bab287167dc1ef0813153"
 
 [[projects]]
   branch = "master"
@@ -523,11 +523,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:72b7c210f8cfe1431d2f300fbf37f25e52aa77324b05ab6b698483054033803e"
+  digest = "1:578046baf093df15df2904bbb0fe06f3f2385bad59987532201007754aa7e1d5"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "d101bd2416d505c0448a6ce8a282482678040a89"
+  revision = "d5e6a3e2c0ae16fc7480523ebcb7fd4dd3215489"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

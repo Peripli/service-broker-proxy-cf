@@ -23,3 +23,5 @@
 # IDE specific
 .vscode/
 /.idea
+
+main

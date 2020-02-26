@@ -72,9 +72,8 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 }
 
 // DeleteBroker implements service-broker-proxy/pkg/cf/Client.DeleteBroker and provides logic for
-// registering a new broker in CF
+// deleting broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
-
 	if err := pc.client.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
 	}

@@ -53,7 +53,7 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	return &PlatformClient{
 		client:       cfClient,
 		settings:     config,
-		planResolver: &cfmodel.PlanResolver{},
+		planResolver: cfmodel.NewPlanResolver(),
 	}, nil
 }
 

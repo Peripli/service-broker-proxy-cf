@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:1fb0b5cca8592ec0d9592af8d457dd0613b79f14fe8aec3a9dab7fc21a3bd51a"
+  branch = "caching-plan-resolver"
+  digest = "1:c48021d9c2bd37be3ea9ca9ae651487ded91ec7c362df3b71d07db66bb4afd8e"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -53,8 +54,7 @@
     "pkg/sm",
   ]
   pruneopts = "UT"
-  revision = "a2592f2e5e371fbe00c877ee8c3476a1c75f7c0d"
-  version = "v0.8.0"
+  revision = "b2597b76d455d69b4221476270ed06a75b242901"
 
 [[projects]]
   digest = "1:055fc0e43add62718304665b638fa52b0ddc2aa61873f6fdf1bc047d84283aa5"

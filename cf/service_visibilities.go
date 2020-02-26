@@ -101,11 +101,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 				wg.Done()
 			}()
 
-			plansGUID := make([]string, 0, len(chunk))
-			for _, guid := range chunk {
-				plansGUID = append(plansGUID, guid)
-			}
-			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, plansGUID)
+			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, chunk)
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
@@ -133,17 +129,6 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(ctx context.Context, pla
 	return vis, err
 }
 
-func splitCFPlansIntoChunks(plans []cfclient.ServicePlan, maxChunkLength int) [][]cfclient.ServicePlan {
-	resultChunks := make([][]cfclient.ServicePlan, 0)
-
-	for count := len(plans); count > 0; count = len(plans) {
-		sliceLength := min(count, maxChunkLength)
-		resultChunks = append(resultChunks, plans[:sliceLength])
-		plans = plans[sliceLength:]
-	}
-	return resultChunks
-}
-
 func splitStringsIntoChunks(names []string, maxChunkLength int) [][]string {
 	resultChunks := make([][]string, 0)
 
@@ -151,28 +136,6 @@ func splitStringsIntoChunks(names []string, maxChunkLength int) [][]string {
 		sliceLength := min(count, maxChunkLength)
 		resultChunks = append(resultChunks, names[:sliceLength])
 		names = names[sliceLength:]
-	}
-	return resultChunks
-}
-
-func splitBrokersIntoChunks(brokers []cfclient.ServiceBroker, maxChunkLength int) [][]cfclient.ServiceBroker {
-	resultChunks := make([][]cfclient.ServiceBroker, 0)
-
-	for count := len(brokers); count > 0; count = len(brokers) {
-		sliceLength := min(count, maxChunkLength)
-		resultChunks = append(resultChunks, brokers[:sliceLength])
-		brokers = brokers[sliceLength:]
-	}
-	return resultChunks
-}
-
-func splitServicesIntoChunks(services []cfclient.Service, maxChunkLength int) [][]cfclient.Service {
-	resultChunks := make([][]cfclient.Service, 0)
-
-	for count := len(services); count > 0; count = len(services) {
-		sliceLength := min(count, maxChunkLength)
-		resultChunks = append(resultChunks, services[:sliceLength])
-		services = services[sliceLength:]
 	}
 	return resultChunks
 }

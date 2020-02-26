@@ -63,7 +63,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	return nil
 }
 
-func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) {
+func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isEnabled bool, orgGUID string) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
 			return err
@@ -74,7 +74,7 @@ func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context
 	}
 }
 
-func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfclient.ServicePlan, isPublic bool) {
+func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isPublic bool) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		if err := pc.updatePlan(plan, isPublic); err != nil {
 			return err

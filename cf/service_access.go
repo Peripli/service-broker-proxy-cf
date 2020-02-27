@@ -114,10 +114,7 @@ func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error
 		return nil
 	}
 
-	_, err := pc.UpdateServicePlan(plan.GUID, ServicePlanRequest{
-		Public: isPublic,
-	})
-	if err != nil {
+	if _, err := pc.UpdateServicePlan(plan.GUID, ServicePlanRequest{Public: isPublic}); err != nil {
 		return err
 	}
 

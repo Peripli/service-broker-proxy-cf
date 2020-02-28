@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "credentials_api"
-  digest = "1:8a41a1fbd53c67d19c7c7a391af5d1b6bdc414e65b54344d182a341207331f1b"
+  digest = "1:4cf65168621e14ba8f1fac48f14eb84b17f5065121fb5cd57e7f79e0b02aaa34"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -55,11 +55,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "45036dbfde68b211c0636c4b745875b6eb7d867f"
+  revision = "e4ce6febf1ed601001e0efd62e40178d85ace683"
 
 [[projects]]
   branch = "credentials_api"
-  digest = "1:dad41cec7e478ab735e8a62d037bada9115fd27bf7d298ccac922f651c5c9fe6"
+  digest = "1:3061970fb66da4cb443a817837342c6808c22ba93008b90103109c709b3869ea"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -101,7 +101,7 @@
     "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "2547c2a989ba7018668650d2add39697f2e6a706"
+  revision = "5b461686feb8915845cc9c6a8728d671d4f6272e"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -201,8 +201,8 @@
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "d23c5127dc24889085f8ccea5c9d560a57a879d8"
-  version = "v1.3.3"
+  revision = "5d5b4c10bd43f85e63bd9e4a3fa9b1ea2ef88af2"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
@@ -510,7 +510,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "5a598a2470a0279bd28bab287167dc1ef0813153"
+  revision = "0de0cce0169b09b364e001f108dc0399ea8630b3"
 
 [[projects]]
   branch = "master"

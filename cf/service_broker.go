@@ -1,7 +1,12 @@
 package cf
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -82,23 +87,49 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 // UpdateBroker implements service-broker-proxy/pkg/cf/Client.UpdateBroker and provides logic for
 // updating a broker registration in CF
 func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
-
-	request := cfclient.UpdateServiceBrokerRequest{
-		Username:  r.Username,
-		Password:  r.Password,
+	request := struct {
+		Name      string `json:"name"`
+		BrokerURL string `json:"broker_url"`
+		Username  string `json:"auth_username,omitempty"`
+		Password  string `json:"auth_password,omitempty"`
+	}{
 		Name:      r.Name,
 		BrokerURL: r.BrokerURL,
+		Username:  r.Username,
+		Password:  r.Password,
 	}
 
-	broker, err := pc.client.UpdateServiceBroker(r.GUID, request)
+	var serviceBrokerResource cfclient.ServiceBrokerResource
+
+	buf := bytes.NewBuffer(nil)
+	err := json.NewEncoder(buf).Encode(request)
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
-	response := &platform.ServiceBroker{
-		GUID:      broker.Guid,
-		Name:      broker.Name,
-		BrokerURL: broker.BrokerURL,
+	req := pc.client.NewRequestWithBody("PUT", fmt.Sprintf("/v2/service_brokers/%s", r.GUID), buf)
+	resp, err := pc.client.DoRequest(req)
+	if err != nil {
+		return nil, wrapCFError(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, wrapCFError(fmt.Errorf("CF API returned with status code %d", resp.StatusCode))
 	}
 
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, wrapCFError(err)
+	}
+	err = json.Unmarshal(body, &serviceBrokerResource)
+	if err != nil {
+		return nil, wrapCFError(err)
+	}
+	serviceBrokerResource.Entity.Guid = serviceBrokerResource.Meta.Guid
+
+	response := &platform.ServiceBroker{
+		GUID:      serviceBrokerResource.Entity.Guid,
+		Name:      serviceBrokerResource.Entity.Name,
+		BrokerURL: serviceBrokerResource.Entity.BrokerURL,
+	}
 	return response, nil
 }

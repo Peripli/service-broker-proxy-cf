@@ -2,6 +2,8 @@ package cf
 
 import (
 	"context"
+	"net/url"
+	"strconv"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -10,7 +12,9 @@ import (
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered in CF
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBroker, error) {
-	brokers, err := pc.client.ListServiceBrokers()
+	brokers, err := pc.client.ListServiceBrokersByQuery(url.Values{
+		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
+	})
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
@@ -64,7 +68,6 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	}
-
 	return response, nil
 }
 
@@ -93,11 +96,11 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
+
 	response := &platform.ServiceBroker{
 		GUID:      broker.Guid,
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	}
-
 	return response, nil
 }

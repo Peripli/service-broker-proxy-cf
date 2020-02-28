@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
+
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+	"github.com/Peripli/service-manager/pkg/log"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
-	"github.com/Peripli/service-manager/pkg/log"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
@@ -39,9 +41,10 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 		return errors.Errorf("modify plan access request cannot be nil")
 	}
 
-	plan, err := pc.getPlanForCatalogPlanIDAndBrokerName(ctx, request.CatalogPlanID, request.BrokerName)
-	if err != nil {
-		return err
+	plan, found := pc.planResolver.GetPlan(request.CatalogPlanID, request.BrokerName)
+	if !found {
+		return errors.Errorf("no plan found with catalog id %s from service broker %s",
+			request.CatalogPlanID, request.BrokerName)
 	}
 
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
@@ -60,7 +63,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	return nil
 }
 
-func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) {
+func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isEnabled bool, orgGUID string) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
 			return err
@@ -71,7 +74,7 @@ func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context
 	}
 }
 
-func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfclient.ServicePlan, isPublic bool) {
+func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isPublic bool) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		if err := pc.updatePlan(plan, isPublic); err != nil {
 			return err
@@ -82,17 +85,17 @@ func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platf
 	}
 }
 
-func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfclient.ServicePlan, isEnabled bool, orgGUID string) error {
+func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, isEnabled bool, orgGUID string) error {
 	switch {
 	case plan.Public:
-		log.C(ctx).Info("Plan with GUID = %s and NAME = %s is already public and therefore attempt to update access "+
-			"visibility for org with GUID = %s will be ignored", plan.Guid, plan.Name, orgGUID)
+		log.C(ctx).Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
+			"visibility for org with GUID %s will be ignored", plan.GUID, orgGUID)
 	case isEnabled:
-		if _, err := pc.client.CreateServicePlanVisibility(plan.Guid, orgGUID); err != nil {
+		if _, err := pc.client.CreateServicePlanVisibility(plan.GUID, orgGUID); err != nil {
 			return wrapCFError(err)
 		}
 	case !isEnabled:
-		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.Guid, orgGUID)}}
+		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
 		if err := pc.deleteAccessVisibilities(query); err != nil {
 			return wrapCFError(err)
 		}
@@ -101,19 +104,22 @@ func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan c
 	return nil
 }
 
-func (pc *PlatformClient) updatePlan(plan cfclient.ServicePlan, isPublic bool) error {
-	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s", plan.Guid)}}
+func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error {
+	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s", plan.GUID)}}
 	if err := pc.deleteAccessVisibilities(query); err != nil {
 		return err
 	}
+
 	if plan.Public == isPublic {
 		return nil
 	}
-	_, err := pc.UpdateServicePlan(plan.Guid, ServicePlanRequest{
-		Public: isPublic,
-	})
 
-	return err
+	if _, err := pc.UpdateServicePlan(plan.GUID, ServicePlanRequest{Public: isPublic}); err != nil {
+		return err
+	}
+
+	pc.planResolver.UpdatePlan(plan.CatalogPlanID, plan.BrokerName, isPublic)
+	return nil
 }
 
 func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {
@@ -159,34 +165,4 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 	servicePlan.Guid = planResource.Meta.Guid
 
 	return servicePlan, nil
-}
-
-func (pc *PlatformClient) getPlanForCatalogPlanIDAndBrokerName(ctx context.Context, catalogPlanGUID, brokerName string) (cfclient.ServicePlan, error) {
-	brokers, err := pc.getBrokersByName(ctx, []string{brokerName})
-	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
-	}
-	if len(brokers) == 0 {
-		return cfclient.ServicePlan{}, errors.Errorf("no brokers found for broker name %s", brokerName)
-	}
-	if len(brokers) > 1 {
-		return cfclient.ServicePlan{}, errors.Errorf("more than 1 (%d) brokers found for broker name %s", len(brokers), brokerName)
-	}
-
-	services, err := pc.getServicesByBrokers(ctx, brokers)
-	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
-	}
-
-	plans, err := pc.getPlansByServices(ctx, services)
-	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
-	}
-	for _, plan := range plans {
-		if plan.UniqueId == catalogPlanGUID {
-			return plan, nil
-		}
-	}
-
-	return cfclient.ServicePlan{}, errors.Errorf("no plans for broker with name %s and catalog plan ID = %s found", brokerName, catalogPlanGUID)
 }

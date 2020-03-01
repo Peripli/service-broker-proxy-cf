@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -15,7 +17,9 @@ import (
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered in CF
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBroker, error) {
-	brokers, err := pc.client.ListServiceBrokers()
+	brokers, err := pc.client.ListServiceBrokersByQuery(url.Values{
+		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
+	})
 	if err != nil {
 		return nil, wrapCFError(err)
 	}
@@ -69,14 +73,12 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	}
-
 	return response, nil
 }
 
 // DeleteBroker implements service-broker-proxy/pkg/cf/Client.DeleteBroker and provides logic for
-// registering a new broker in CF
+// deleting broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
-
 	if err := pc.client.DeleteServiceBroker(r.GUID); err != nil {
 		return wrapCFError(err)
 	}
@@ -131,5 +133,6 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 		Name:      serviceBrokerResource.Entity.Name,
 		BrokerURL: serviceBrokerResource.Entity.BrokerURL,
 	}
+
 	return response, nil
 }

@@ -41,7 +41,7 @@
 
 [[projects]]
   branch = "credentials_api"
-  digest = "1:4cf65168621e14ba8f1fac48f14eb84b17f5065121fb5cd57e7f79e0b02aaa34"
+  digest = "1:84eced9ee71d8f99b7cb8203f1b570ab6378fb0d45b8a9cf75b3d9db40e3e310"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -55,11 +55,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "e4ce6febf1ed601001e0efd62e40178d85ace683"
+  revision = "dd8ce48b5025e75f7206bfd6805f1f4094189f29"
 
 [[projects]]
   branch = "credentials_api"
-  digest = "1:3061970fb66da4cb443a817837342c6808c22ba93008b90103109c709b3869ea"
+  digest = "1:5b9a5a2f407e0e43dd9bb5452234a4f1827cdc70d8b95bbdd463813857f4ff1d"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -101,7 +101,7 @@
     "storage/postgres/notification_connection",
   ]
   pruneopts = "UT"
-  revision = "5b461686feb8915845cc9c6a8728d671d4f6272e"
+  revision = "5893920c43a5b80ff3f0302dea5078e5ac88276f"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -453,12 +453,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:13503b1b68ee704913caf452f02968fa313a9934e67d951ed0d39ca8e230d5e0"
+  digest = "1:358f9a53d3bb46b9dd07b4490f9b30f9f85218b41f6bbb48d6503668a45721a6"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0360deb6d803e8c271363ce5f6c85d6cd843a3a0"
-  version = "v1.5.0"
+  revision = "f042915ca17de35980544c91ab2c8ceb73b682f2"
+  version = "v1.6.0"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -510,7 +510,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "0de0cce0169b09b364e001f108dc0399ea8630b3"
+  revision = "244492dfa37ae2ce87222fd06250a03160745faa"
 
 [[projects]]
   branch = "master"
@@ -526,11 +526,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:578046baf093df15df2904bbb0fe06f3f2385bad59987532201007754aa7e1d5"
+  digest = "1:a70084a3b2539ae837aa84c5ab561c6eddfc48eb64737d4f4414405694e47b0e"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "d5e6a3e2c0ae16fc7480523ebcb7fd4dd3215489"
+  revision = "5d559ad92b82f3696a2a2f23108ac03758aabedb"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"

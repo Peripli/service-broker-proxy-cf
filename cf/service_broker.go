@@ -121,7 +121,7 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 	body, err := ioutil.ReadAll(resp.Body)
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.C(ctx).Debugf("unable to close response body stream:", err)
+			log.C(ctx).Debug("unable to close response body stream:", err)
 		}
 	}()
 	if err != nil {

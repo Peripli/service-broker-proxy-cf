@@ -14,7 +14,6 @@ import (
 
 var _ = Describe("Client ServiceBroker", func() {
 	var (
-		settings        *cf.Settings
 		client          *cf.PlatformClient
 		ccServer        *ghttp.Server
 		testBroker      *platform.ServiceBroker
@@ -43,8 +42,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		ccServer = fakeCCServer(false)
 
-		settings, client = ccClient(ccServer.URL())
-
+		_, client = ccClient(ccServer.URL())
 	})
 
 	AfterEach(func() {
@@ -117,7 +115,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      testBroker.Name,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  settings.Sm.User,
+								Username:  brokerUsername,
 							},
 						},
 					},
@@ -197,7 +195,7 @@ var _ = Describe("Client ServiceBroker", func() {
 							Entity: cfclient.ServiceBroker{
 								Name:      brokerName,
 								BrokerURL: testBroker.BrokerURL,
-								Username:  settings.Sm.User,
+								Username:  brokerUsername,
 							},
 						},
 					},
@@ -222,13 +220,15 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.CreateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  settings.Sm.User,
-				Password:  settings.Sm.Password,
+				Username:  brokerUsername,
+				Password:  brokerPassword,
 			}
 
 			actualRequest = &platform.CreateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
+				Username:  brokerUsername,
+				Password:  brokerPassword,
 			}
 
 			ccServer.AppendHandlers(
@@ -269,7 +269,7 @@ var _ = Describe("Client ServiceBroker", func() {
 					Entity: cfclient.ServiceBroker{
 						Name:      testBroker.Name,
 						BrokerURL: testBroker.BrokerURL,
-						Username:  settings.Sm.User,
+						Username:  brokerUsername,
 					},
 				}
 			})
@@ -342,14 +342,16 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cfclient.UpdateServiceBrokerRequest{
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
-				Username:  settings.Sm.User,
-				Password:  settings.Sm.Password,
+				Username:  brokerUsername,
+				Password:  brokerPassword,
 			}
 
 			actualRequest = &platform.UpdateServiceBrokerRequest{
 				GUID:      testBroker.GUID,
 				Name:      testBroker.Name,
 				BrokerURL: testBroker.BrokerURL,
+				Username:  brokerUsername,
+				Password:  brokerPassword,
 			}
 
 			ccServer.AppendHandlers(

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
@@ -14,7 +15,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"github.com/pkg/errors"
 )
 
 const InvalidJSON = `{invalidjson`
@@ -121,9 +121,13 @@ func verifyReqReceived(server *ghttp.Server, times int, method, path string, raw
 	}
 }
 
-func assertErrCauseIsCFError(actualErr error, expectedErr cf.CloudFoundryErr) {
-	cause := errors.Cause(actualErr).(cf.CloudFoundryErr)
-	Expect(cause).To(MatchError(expectedErr))
+func assertCFError(actualErr error, expectedErr cfclient.CloudFoundryError) {
+	Expect(actualErr).ToNot(BeNil())
+	Expect(actualErr.Error()).To(SatisfyAll(
+		ContainSubstring(strconv.Itoa(expectedErr.Code)),
+		ContainSubstring(expectedErr.ErrorCode),
+		ContainSubstring(expectedErr.Description),
+	))
 }
 
 func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {

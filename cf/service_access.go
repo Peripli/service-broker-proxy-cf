@@ -49,6 +49,8 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
+		log.C(ctx).Infof("Updating access for plan with catalog id %s in %d organizations ...",
+			plan.CatalogPlanID, len(orgGUIDs))
 		for _, orgGUID := range orgGUIDs {
 			pc.scheduleUpdateOrgVisibilityForPlan(ctx, request, scheduler, plan, isEnabled, orgGUID)
 		}
@@ -67,7 +69,8 @@ func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		return pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID)
 	}); schedulerErr != nil {
-		log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
+		log.C(ctx).WithError(schedulerErr).
+			Errorf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
 	}
 }
 
@@ -86,13 +89,17 @@ func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan c
 			"visibility for org with GUID %s will be ignored", plan.GUID, orgGUID)
 	case isEnabled:
 		if _, err := pc.client.CreateServicePlanVisibility(plan.GUID, orgGUID); err != nil {
-			return wrapCFError(err)
+			return err
 		}
+		log.C(ctx).Infof("Enabled access for plan with GUID %s in organization with GUID %s",
+			plan.GUID, orgGUID)
 	case !isEnabled:
 		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
 		if err := pc.deleteAccessVisibilities(query); err != nil {
-			return wrapCFError(err)
+			return err
 		}
+		log.C(ctx).Infof("Disabled access for plan with GUID %s in organization with GUID %s",
+			plan.GUID, orgGUID)
 	}
 
 	return nil
@@ -119,12 +126,12 @@ func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error
 func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {
 	servicePlanVisibilities, err := pc.client.ListServicePlanVisibilitiesByQuery(query)
 	if err != nil {
-		return wrapCFError(err)
+		return err
 	}
 
 	for _, visibility := range servicePlanVisibilities {
 		if err := pc.client.DeleteServicePlanVisibility(visibility.Guid, false); err != nil {
-			return wrapCFError(err)
+			return err
 		}
 	}
 
@@ -136,14 +143,14 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 	var planResource cfclient.ServicePlanResource
 	buf := bytes.NewBuffer(nil)
 	if err := json.NewEncoder(buf).Encode(request); err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
+		return cfclient.ServicePlan{}, err
 	}
 
 	req := pc.client.NewRequestWithBody(http.MethodPut, "/v2/service_plans/"+planGUID, buf)
 
 	response, err := pc.client.DoRequest(req)
 	if err != nil {
-		return cfclient.ServicePlan{}, wrapCFError(err)
+		return cfclient.ServicePlan{}, err
 	}
 	if response.StatusCode != http.StatusCreated {
 		return cfclient.ServicePlan{}, errors.Errorf("error updating service plan, response code: %d", response.StatusCode)

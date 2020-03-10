@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Peripli/service-manager/pkg/log"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/Peripli/service-manager/pkg/log"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -22,7 +23,7 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
 	})
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
 
 	var clientBrokers []*platform.ServiceBroker
@@ -43,7 +44,7 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*platform.ServiceBroker, error) {
 	broker, err := pc.client.GetServiceBrokerByName(name)
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
 
 	return &platform.ServiceBroker{
@@ -66,7 +67,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 
 	broker, err := pc.client.CreateServiceBroker(request)
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
 
 	response := &platform.ServiceBroker{
@@ -81,7 +82,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 // deleting broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
 	if err := pc.client.DeleteServiceBroker(r.GUID); err != nil {
-		return wrapCFError(err)
+		return err
 	}
 
 	return nil
@@ -107,15 +108,16 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 	buf := bytes.NewBuffer(nil)
 	err := json.NewEncoder(buf).Encode(request)
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
-	req := pc.client.NewRequestWithBody("PUT", fmt.Sprintf("/v2/service_brokers/%s", r.GUID), buf)
+	path := fmt.Sprintf("/v2/service_brokers/%s", r.GUID)
+	req := pc.client.NewRequestWithBody("PUT", path, buf)
 	resp, err := pc.client.DoRequest(req)
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, wrapCFError(fmt.Errorf("CF API returned with status code %d", resp.StatusCode))
+		return nil, fmt.Errorf("CF API PUT %s returned status code %d", path, resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -125,11 +127,11 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 		}
 	}()
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
 	err = json.Unmarshal(body, &serviceBrokerResource)
 	if err != nil {
-		return nil, wrapCFError(err)
+		return nil, err
 	}
 	serviceBrokerResource.Entity.Guid = serviceBrokerResource.Meta.Guid
 

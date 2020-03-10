@@ -85,7 +85,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 	chunks := splitStringsIntoChunks(planIDs, pc.settings.CF.ChunkSize)
 	for _, chunk := range chunks {
 		chunk := chunk // copy for goroutine
-		scheduler.Schedule(func(ctx context.Context) error {
+		err := scheduler.Schedule(func(ctx context.Context) error {
 			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, chunk)
 			if err != nil {
 				return err
@@ -96,6 +96,9 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 			result = append(result, visibilities...)
 			return nil
 		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := scheduler.Await(); err != nil {

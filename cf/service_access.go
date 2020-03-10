@@ -90,7 +90,7 @@ func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan c
 			"visibility for org with GUID %s will be ignored", plan.GUID, orgGUID)
 	case isEnabled:
 		if _, err := pc.client.CreateServicePlanVisibility(plan.GUID, orgGUID); err != nil {
-			return fmt.Errorf("Could not enable access for plan with GUID %s in organization with GUID %s: %v",
+			return fmt.Errorf("could not enable access for plan with GUID %s in organization with GUID %s: %v",
 				plan.GUID, orgGUID, err)
 		}
 		logger.Infof("Enabled access for plan with GUID %s in organization with GUID %s",
@@ -132,7 +132,7 @@ func (pc *PlatformClient) deleteAccessVisibilities(ctx context.Context, query ur
 
 	for _, visibility := range servicePlanVisibilities {
 		if err := pc.client.DeleteServicePlanVisibility(visibility.Guid, false); err != nil {
-			return fmt.Errorf("Could not disable access for plan with GUID %s in organization with GUID %s: %v",
+			return fmt.Errorf("could not disable access for plan with GUID %s in organization with GUID %s: %v",
 				visibility.ServicePlanGuid, visibility.OrganizationGuid, err)
 		}
 		log.C(ctx).Infof("Disabled access for plan with GUID %s in organization with GUID %s",
@@ -146,7 +146,7 @@ func (pc *PlatformClient) deleteAccessVisibilities(ctx context.Context, query ur
 func (pc *PlatformClient) UpdateServicePlan(ctx context.Context, planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
 	plan, err := pc.updateServicePlan(planGUID, request)
 	if err != nil {
-		err = fmt.Errorf("Could not update service plan with GUID %s: %v", planGUID, err)
+		err = fmt.Errorf("could not update service plan with GUID %s: %v", planGUID, err)
 	} else {
 		log.C(ctx).Infof("Service plan with GUID %s updated to public: %v", planGUID, request.Public)
 	}

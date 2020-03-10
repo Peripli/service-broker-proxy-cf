@@ -47,7 +47,7 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*platform.ServiceBroker, error) {
 	broker, err := pc.client.GetServiceBrokerByName(name)
 	if err != nil {
-		return nil, fmt.Errorf("Could not retrieve service broker with name %s: %v", name, err)
+		return nil, fmt.Errorf("could not retrieve service broker with name %s: %v", name, err)
 	}
 	log.C(ctx).Infof("Retrieved service broker with name %s, GUID %s and URL %s",
 		broker.Name, broker.Guid, broker.BrokerURL)
@@ -72,7 +72,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 
 	broker, err := pc.client.CreateServiceBroker(request)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create service broker with name %s: %v", r.Name, err)
+		return nil, fmt.Errorf("could not create service broker with name %s: %v", r.Name, err)
 	}
 	log.C(ctx).Infof("Created service broker with name %s and URL %s", r.Name, r.BrokerURL)
 
@@ -88,7 +88,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 // deleting broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
 	if err := pc.client.DeleteServiceBroker(r.GUID); err != nil {
-		return fmt.Errorf("Could not delete service broker with GUID %s: %v", r.GUID, err)
+		return fmt.Errorf("could not delete service broker with GUID %s: %v", r.GUID, err)
 	}
 	log.C(ctx).Infof("Deleted service broker with GUID %s", r.GUID)
 	return nil
@@ -99,7 +99,7 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
 	broker, err := pc.updateBroker(ctx, r)
 	if err != nil {
-		err = fmt.Errorf("Could not update service broker with GUID %s: %v", r.GUID, err)
+		err = fmt.Errorf("could not update service broker with GUID %s: %v", r.GUID, err)
 	} else {
 		log.C(ctx).Infof("Updated service broker with GUID %s, name %s and URL %s",
 			broker.GUID, broker.Name, broker.BrokerURL)

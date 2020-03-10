@@ -32,7 +32,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		generatedCFServices     map[string][]*cfclient.Service
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
 		generatedCFVisibilities map[string]*cfclient.ServicePlanVisibility
-		expectedCFVisibiltiies  map[string]*platform.Visibility
+		expectedCFVisibilities  map[string]*platform.Visibility
 
 		maxAllowedParallelRequests int
 		parallelRequestsCounter    int
@@ -360,7 +360,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		generatedCFBrokers = generateCFBrokers(5)
 		generatedCFServices = generateCFServices(generatedCFBrokers, 10)
 		generatedCFPlans = generateCFPlans(generatedCFServices, 15, 2)
-		generatedCFVisibilities, expectedCFVisibiltiies = generateCFVisibilities(generatedCFPlans)
+		generatedCFVisibilities, expectedCFVisibilities = generateCFVisibilities(generatedCFPlans)
 
 		parallelRequestsCounter = 0
 		maxAllowedParallelRequests = 3
@@ -383,7 +383,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				platformVisibilities, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).ShouldNot(HaveOccurred())
 
-				for _, expectedCFVisibility := range expectedCFVisibiltiies {
+				for _, expectedCFVisibility := range expectedCFVisibilities {
 					Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
 				}
 			})
@@ -402,7 +402,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 						serviceGUID := service.Guid
 						for _, plan := range generatedCFPlans[serviceGUID] {
 							planGUID := plan.Guid
-							expectedVis := expectedCFVisibiltiies[planGUID]
+							expectedVis := expectedCFVisibilities[planGUID]
 							Expect(platformVisibilities).Should(ContainElement(expectedVis))
 						}
 					}

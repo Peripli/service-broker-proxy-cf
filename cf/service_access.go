@@ -56,8 +56,8 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 		pc.scheduleUpdatePlan(ctx, request, scheduler, plan, isEnabled)
 	}
 	if err := scheduler.Await(); err != nil {
-		compositeErr := err.(*reconcile.CompositeError)
-		return errors.Wrapf(compositeErr, "error while updating access for catalog plan with id %s; %d errors occurred: %s", request.CatalogPlanID, compositeErr.Len(), compositeErr)
+		return fmt.Errorf("error while updating access for catalog plan with id %s: %v",
+			request.CatalogPlanID, err)
 	}
 
 	return nil
@@ -65,10 +65,7 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 
 func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isEnabled bool, orgGUID string) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-		if err := pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID); err != nil {
-			return err
-		}
-		return nil
+		return pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID)
 	}); schedulerErr != nil {
 		log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
 	}
@@ -76,10 +73,7 @@ func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context
 
 func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isPublic bool) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-		if err := pc.updatePlan(plan, isPublic); err != nil {
-			return err
-		}
-		return nil
+		return pc.updatePlan(plan, isPublic)
 	}); schedulerErr != nil {
 		log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
 	}

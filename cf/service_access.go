@@ -76,38 +76,38 @@ func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context
 
 func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isPublic bool) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-		return pc.updatePlan(plan, isPublic)
+		return pc.updatePlan(ctx, plan, isPublic)
 	}); schedulerErr != nil {
 		log.C(ctx).Warningf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
 	}
 }
 
 func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, isEnabled bool, orgGUID string) error {
+	logger := log.C(ctx)
 	switch {
 	case plan.Public:
-		log.C(ctx).Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
+		logger.Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
 			"visibility for org with GUID %s will be ignored", plan.GUID, orgGUID)
 	case isEnabled:
 		if _, err := pc.client.CreateServicePlanVisibility(plan.GUID, orgGUID); err != nil {
-			return err
+			return fmt.Errorf("Could not enable access for plan with GUID %s in organization with GUID %s: %v",
+				plan.GUID, orgGUID, err)
 		}
-		log.C(ctx).Infof("Enabled access for plan with GUID %s in organization with GUID %s",
+		logger.Infof("Enabled access for plan with GUID %s in organization with GUID %s",
 			plan.GUID, orgGUID)
 	case !isEnabled:
 		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
-		if err := pc.deleteAccessVisibilities(query); err != nil {
+		if err := pc.deleteAccessVisibilities(ctx, query); err != nil {
 			return err
 		}
-		log.C(ctx).Infof("Disabled access for plan with GUID %s in organization with GUID %s",
-			plan.GUID, orgGUID)
 	}
 
 	return nil
 }
 
-func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error {
+func (pc *PlatformClient) updatePlan(ctx context.Context, plan cfmodel.PlanData, isPublic bool) error {
 	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s", plan.GUID)}}
-	if err := pc.deleteAccessVisibilities(query); err != nil {
+	if err := pc.deleteAccessVisibilities(ctx, query); err != nil {
 		return err
 	}
 
@@ -115,7 +115,7 @@ func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error
 		return nil
 	}
 
-	if _, err := pc.UpdateServicePlan(plan.GUID, ServicePlanRequest{Public: isPublic}); err != nil {
+	if _, err := pc.UpdateServicePlan(ctx, plan.GUID, ServicePlanRequest{Public: isPublic}); err != nil {
 		return err
 	}
 
@@ -123,7 +123,8 @@ func (pc *PlatformClient) updatePlan(plan cfmodel.PlanData, isPublic bool) error
 	return nil
 }
 
-func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {
+func (pc *PlatformClient) deleteAccessVisibilities(ctx context.Context, query url.Values) error {
+	log.C(ctx).Infof("Fetching service plan visibilities with query %v ...", query)
 	servicePlanVisibilities, err := pc.client.ListServicePlanVisibilitiesByQuery(query)
 	if err != nil {
 		return err
@@ -131,15 +132,28 @@ func (pc *PlatformClient) deleteAccessVisibilities(query url.Values) error {
 
 	for _, visibility := range servicePlanVisibilities {
 		if err := pc.client.DeleteServicePlanVisibility(visibility.Guid, false); err != nil {
-			return err
+			return fmt.Errorf("Could not disable access for plan with GUID %s in organization with GUID %s: %v",
+				visibility.ServicePlanGuid, visibility.OrganizationGuid, err)
 		}
+		log.C(ctx).Infof("Disabled access for plan with GUID %s in organization with GUID %s",
+			visibility.ServicePlanGuid, visibility.OrganizationGuid)
 	}
 
 	return nil
 }
 
 // UpdateServicePlan updates the public property of the plan with the specified GUID
-func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
+func (pc *PlatformClient) UpdateServicePlan(ctx context.Context, planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
+	plan, err := pc.updateServicePlan(planGUID, request)
+	if err != nil {
+		err = fmt.Errorf("Could not update service plan with GUID %s: %v", planGUID, err)
+	} else {
+		log.C(ctx).Infof("Service plan with GUID %s updated to public: %v", planGUID, request.Public)
+	}
+	return plan, err
+}
+
+func (pc *PlatformClient) updateServicePlan(planGUID string, request ServicePlanRequest) (cfclient.ServicePlan, error) {
 	var planResource cfclient.ServicePlanResource
 	buf := bytes.NewBuffer(nil)
 	if err := json.NewEncoder(buf).Encode(request); err != nil {
@@ -153,7 +167,7 @@ func (pc *PlatformClient) UpdateServicePlan(planGUID string, request ServicePlan
 		return cfclient.ServicePlan{}, err
 	}
 	if response.StatusCode != http.StatusCreated {
-		return cfclient.ServicePlan{}, errors.Errorf("error updating service plan, response code: %d", response.StatusCode)
+		return cfclient.ServicePlan{}, errors.Errorf("response code: %d", response.StatusCode)
 	}
 
 	decoder := json.NewDecoder(response.Body)

@@ -1083,7 +1083,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(planGUID, requestBody)
+				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				assertCFError(err, ccResponseErrBody)
 
@@ -1097,7 +1097,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(planGUID, requestBody)
+				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				Expect(err).Should(HaveOccurred())
 
@@ -1111,7 +1111,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(planGUID, requestBody)
+				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				Expect(err).Should(HaveOccurred())
 			})
@@ -1124,7 +1124,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns the updated service plan", func() {
-				plan, err := client.UpdateServicePlan(planGUID, requestBody)
+				plan, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(plan).Should(BeEquivalentTo(planDetails[planGUID].updatePlanResponse.Entity))

@@ -8,8 +8,6 @@ import (
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/Peripli/service-manager/pkg/log"
 
-	"github.com/pkg/errors"
-
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -81,39 +79,30 @@ func getPlanGUIDs(plans cfmodel.PlanMap) []string {
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []string) ([]cfclient.ServicePlanVisibility, error) {
 	var result []cfclient.ServicePlanVisibility
-	errorOccured := &reconcile.CompositeError{}
-	var wg sync.WaitGroup
-	var mutex sync.Mutex
-	wgLimitChannel := make(chan struct{}, pc.settings.Reconcile.MaxParallelRequests)
+	var mutex sync.Mutex // protects result
+	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 
 	chunks := splitStringsIntoChunks(planIDs, pc.settings.CF.ChunkSize)
-
 	for _, chunk := range chunks {
-		select {
-		case <-ctx.Done():
-			return nil, errors.WithStack(ctx.Err())
-		case wgLimitChannel <- struct{}{}:
-		}
-		wg.Add(1)
-		go func(chunk []string) {
-			defer func() {
-				<-wgLimitChannel
-				wg.Done()
-			}()
-
+		chunk := chunk // copy for goroutine
+		err := scheduler.Schedule(func(ctx context.Context) error {
 			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, chunk)
+			if err != nil {
+				return err
+			}
+
 			mutex.Lock()
 			defer mutex.Unlock()
-			if err != nil {
-				errorOccured.Add(err)
-			} else if errorOccured.Len() == 0 {
-				result = append(result, visibilities...)
-			}
-		}(chunk)
+			result = append(result, visibilities...)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
-	wg.Wait()
-	if errorOccured.Len() != 0 {
-		return nil, errorOccured
+
+	if err := scheduler.Await(); err != nil {
+		return nil, err
 	}
 	return result, nil
 }

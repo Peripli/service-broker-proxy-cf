@@ -19,7 +19,7 @@ var _ = Describe("Client ServiceBroker", func() {
 		testBroker      *platform.ServiceBroker
 		ccResponseCode  int
 		ccResponse      interface{}
-		ccResponseErr   cf.CloudFoundryErr
+		ccResponseErr   cfclient.CloudFoundryError
 		expectedRequest interface{}
 		ctx             context.Context
 	)
@@ -65,7 +65,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cf.CloudFoundryErr{
+				ccResponseErr = cfclient.CloudFoundryError{
 					Code:        1009,
 					ErrorCode:   "err",
 					Description: "test err",
@@ -78,7 +78,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.GetBrokers(ctx)
 
-				assertErrCauseIsCFError(err, ccResponseErr)
+				assertCFError(err, ccResponseErr)
 			})
 
 		})
@@ -148,7 +148,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cf.CloudFoundryErr{
+				ccResponseErr = cfclient.CloudFoundryError{
 					Code:        1009,
 					ErrorCode:   "err",
 					Description: "test err",
@@ -161,7 +161,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.GetBrokerByName(ctx, brokerName)
 
-				assertErrCauseIsCFError(err, ccResponseErr)
+				assertCFError(err, ccResponseErr)
 			})
 		})
 
@@ -242,7 +242,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cf.CloudFoundryErr{
+				ccResponseErr = cfclient.CloudFoundryError{
 					Code:        1009,
 					ErrorCode:   "err",
 					Description: "test err",
@@ -255,7 +255,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.CreateBroker(ctx, actualRequest)
 
-				assertErrCauseIsCFError(err, ccResponseErr)
+				assertCFError(err, ccResponseErr)
 			})
 		})
 
@@ -302,7 +302,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cf.CloudFoundryErr{
+				ccResponseErr = cfclient.CloudFoundryError{
 					Code:        1009,
 					ErrorCode:   "err",
 					Description: "test err",
@@ -315,7 +315,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				err := client.DeleteBroker(ctx, actualRequest)
 
-				assertErrCauseIsCFError(err, ccResponseErr)
+				assertCFError(err, ccResponseErr)
 			})
 		})
 
@@ -364,7 +364,7 @@ var _ = Describe("Client ServiceBroker", func() {
 		})
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cf.CloudFoundryErr{
+				ccResponseErr = cfclient.CloudFoundryError{
 					Code:        1009,
 					ErrorCode:   "err",
 					Description: "test err",
@@ -377,7 +377,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			It("returns an error", func() {
 				_, err := client.UpdateBroker(ctx, actualRequest)
 
-				assertErrCauseIsCFError(err, ccResponseErr)
+				assertCFError(err, ccResponseErr)
 			})
 		})
 

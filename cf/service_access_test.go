@@ -49,7 +49,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		emptyOrgData types.Labels
 		err          error
 
-		ccResponseErrBody cf.CloudFoundryErr
+		ccResponseErrBody cfclient.CloudFoundryError
 		ccResponseErrCode int
 
 		publicPlan  cfclient.ServicePlanResource
@@ -254,7 +254,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			},
 		}
 
-		ccResponseErrBody = cf.CloudFoundryErr{
+		ccResponseErrBody = cfclient.CloudFoundryError{
 			Code:        1009,
 			ErrorCode:   "err",
 			Description: "test err",
@@ -482,7 +482,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					getPlansRoute.reaction.Code = ccResponseErrCode
 				})
 
-				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, fmt.Errorf(ccResponseErrBody.Description)))
+				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, &ccResponseErrBody))
 			})
 
 			Context("when no plan is found", func() {
@@ -1083,9 +1083,9 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(planGUID, requestBody)
+				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
-				assertErrCauseIsCFError(err, ccResponseErrBody)
+				assertCFError(err, ccResponseErrBody)
 
 			})
 		})
@@ -1097,7 +1097,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(planGUID, requestBody)
+				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				Expect(err).Should(HaveOccurred())
 
@@ -1111,7 +1111,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(planGUID, requestBody)
+				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				Expect(err).Should(HaveOccurred())
 			})
@@ -1124,7 +1124,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 
 			It("returns the updated service plan", func() {
-				plan, err := client.UpdateServicePlan(planGUID, requestBody)
+				plan, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(plan).Should(BeEquivalentTo(planDetails[planGUID].updatePlanResponse.Entity))

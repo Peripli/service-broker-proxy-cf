@@ -24,7 +24,7 @@ var _ = Describe("Client FetchCatalog", func() {
 		testBroker      *platform.ServiceBroker
 		ccResponseCode  int
 		ccResponse      interface{}
-		ccResponseErr   cf.CloudFoundryErr
+		ccResponseErr   cfclient.CloudFoundryError
 		expectedRequest interface{}
 		err             error
 		ctx             context.Context
@@ -99,7 +99,7 @@ var _ = Describe("Client FetchCatalog", func() {
 
 		Context("when UpdateBroker returns an error", func() {
 			BeforeEach(func() {
-				ccResponseErr = cf.CloudFoundryErr{
+				ccResponseErr = cfclient.CloudFoundryError{
 					Code:        1009,
 					ErrorCode:   "err",
 					Description: "test err",
@@ -118,7 +118,7 @@ var _ = Describe("Client FetchCatalog", func() {
 					Password:  brokerPassword,
 				})
 
-				assertErrCauseIsCFError(err, ccResponseErr)
+				assertCFError(err, ccResponseErr)
 			})
 		})
 	})

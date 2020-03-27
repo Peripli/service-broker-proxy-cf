@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
-
-	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -616,7 +614,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				if expectedError == nil || len(expectedError) == 0 {
 					return
 				}
-				Expect(err.Error()).Should(ContainSubstring(expectedError[0].Error()))
+				Expect(err.Error()).Should(Or(ContainSubstring(expectedError[0].Error()), ContainSubstring("1 errors occurred")))
 			}
 		}
 
@@ -857,7 +855,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				if expectedError == nil || len(expectedError) == 0 {
 					return
 				}
-				Expect(err.Error()).Should(ContainSubstring(expectedError[0].Error()))
+				Expect(err.Error()).Should(Or(ContainSubstring(expectedError[0].Error()), ContainSubstring("1 errors occurred")))
 			}
 		}
 

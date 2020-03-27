@@ -40,7 +40,8 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:b7c8c76951fe0060058f97be865acd9a089d8840e9e7e3647bf9dac45f164e4f"
+  branch = "master"
+  digest = "1:325e2a2ecc9464fec3fb843c594b2864bd1fd9a8fef89762aa8d01e122d671d7"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -54,11 +55,10 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "d01d407381c348babd4671b285e5144d7f267554"
-  version = "v0.9.0"
+  revision = "806ec93b57c9cc8a1efef4803448d35c6b40d64f"
 
 [[projects]]
-  digest = "1:c54d19c8cdacc23df35d0e08a02190fa2007f2de39ad68575611b1a8c73fba53"
+  digest = "1:6cf181fd553dd54cc3f366a8073e8cc7ef2f2ddba1461eefcf32438a7ce599df"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -71,6 +71,8 @@
     "api/profile",
     "config",
     "operations",
+    "operations/opcontext",
+    "pkg/client",
     "pkg/env",
     "pkg/env/envfakes",
     "pkg/health",
@@ -98,10 +100,11 @@
     "storage/interceptors",
     "storage/postgres",
     "storage/postgres/notification_connection",
+    "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "8e292c9120fe9c5c2f5357ad024e4332176e386f"
-  version = "v0.11.0"
+  revision = "8a1cc3932b41629a7c455a8daec2ad5d508c7e53"
+  version = "v0.12.1"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -221,12 +224,12 @@
   version = "v1.6.1"
 
 [[projects]]
-  digest = "1:e62657cca9badaa308d86e7716083e4c5933bb78e30a17743fc67f50be26f6f4"
+  digest = "1:6d29f02f0f01c627c2be40fb7347669a9ff2aa215cb97747294c1d13ffa74bdd"
   name = "github.com/gorilla/websocket"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c3e18be99d19e6b3e8f1559eea2c161a665c4b6b"
-  version = "v1.4.1"
+  revision = "b65e62901fc1c0d968042419e74789f6af455eb9"
+  version = "v1.4.2"
 
 [[projects]]
   digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
@@ -263,7 +266,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9d697efc0ad1d6ee43708e8fc822861a66107d03f95d2b398ef488305500140a"
+  digest = "1:5f7995e31baca7f9f00534818e69b5a0aadae6fcf3689e9fdcce9d487db45022"
   name = "github.com/jmoiron/sqlx"
   packages = [
     ".",
@@ -271,7 +274,7 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "2ba0fc60eb4a54030f3a6d73ff0a047349c7eeca"
+  revision = "ee514944af4b0d1b90212831674e03df1b850998"
 
 [[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
@@ -310,12 +313,12 @@
   version = "v1.8.1"
 
 [[projects]]
-  digest = "1:53bc4cd4914cd7cd52139990d5170d6dc99067ae31c56530621b18b35fc30318"
+  digest = "1:6ea2d98ba8ae7c06a918970661b744be5d1a385c40917b9c317e9a4f2c36ac6f"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
-  version = "v1.1.2"
+  revision = "694aaefbc689be1915c2ef39e880409057931a94"
+  version = "v1.2.2"
 
 [[projects]]
   digest = "1:96df5bdca983e4b8c62682af5b67100b187d582ac6db0968d8af52e84138d1e6"
@@ -496,7 +499,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "f7b00557c8c46a1ea4b035cae84f52028c2c0564"
+  revision = "0ec3e9974c59449edd84298612e9f16fa13368e8"
 
 [[projects]]
   branch = "master"
@@ -510,7 +513,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "244492dfa37ae2ce87222fd06250a03160745faa"
+  revision = "d3edc9973b7eb1fb302b0ff2c62357091cea9a30"
 
 [[projects]]
   branch = "master"
@@ -526,11 +529,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8d59aa6f03198132e0ca3bf998677f9698e1e27fc67976c85d85086ac3496530"
+  digest = "1:8b163cc073aac41680c1ce438eae6b046f04511952e60c3cff2915033fe6f58b"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "5c8b2ff67527cb88b770f693cebf3799036d8bc0"
+  revision = "85ca7c5b95cdf1e557abb38a283d1e61a5959c31"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -639,6 +642,7 @@
     "github.com/Peripli/service-manager/pkg/log",
     "github.com/Peripli/service-manager/pkg/server",
     "github.com/Peripli/service-manager/pkg/types",
+    "github.com/Peripli/service-manager/test/testutil",
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-community/go-cfenv",
     "github.com/gofrs/uuid",
@@ -646,6 +650,7 @@
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/ghttp",
     "github.com/pkg/errors",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/pflag",
   ]
   solver-name = "gps-cdcl"

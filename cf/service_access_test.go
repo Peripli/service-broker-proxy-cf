@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/Peripli/service-manager/pkg/types"
-
-	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

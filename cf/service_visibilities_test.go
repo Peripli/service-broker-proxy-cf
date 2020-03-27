@@ -9,13 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
-
-	"github.com/gofrs/uuid"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"

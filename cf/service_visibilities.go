@@ -2,14 +2,13 @@ package cf
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/Peripli/service-manager/pkg/log"
-
-	"github.com/Peripli/service-broker-proxy/pkg/platform"
-
 	"github.com/cloudfoundry-community/go-cfclient"
 )
 
@@ -102,7 +101,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 	}
 
 	if err := scheduler.Await(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error requesting service plan visibilities: %v", err)
 	}
 	return result, nil
 }

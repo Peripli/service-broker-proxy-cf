@@ -40,6 +40,7 @@
   version = "v1.5.0"
 
 [[projects]]
+  branch = "master"
   digest = "1:325e2a2ecc9464fec3fb843c594b2864bd1fd9a8fef89762aa8d01e122d671d7"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
@@ -55,10 +56,9 @@
   ]
   pruneopts = "UT"
   revision = "806ec93b57c9cc8a1efef4803448d35c6b40d64f"
-  version = "v0.9.2"
 
 [[projects]]
-  digest = "1:977e70ab2616ccc3a24afa4f532a7094a726a062c9a5d46ba544c11172d561b9"
+  digest = "1:6cf181fd553dd54cc3f366a8073e8cc7ef2f2ddba1461eefcf32438a7ce599df"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -100,6 +100,7 @@
     "storage/interceptors",
     "storage/postgres",
     "storage/postgres/notification_connection",
+    "test/testutil",
   ]
   pruneopts = "UT"
   revision = "8a1cc3932b41629a7c455a8daec2ad5d508c7e53"
@@ -641,6 +642,7 @@
     "github.com/Peripli/service-manager/pkg/log",
     "github.com/Peripli/service-manager/pkg/server",
     "github.com/Peripli/service-manager/pkg/types",
+    "github.com/Peripli/service-manager/test/testutil",
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-community/go-cfenv",
     "github.com/gofrs/uuid",
@@ -648,6 +650,7 @@
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/ghttp",
     "github.com/pkg/errors",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/pflag",
   ]
   solver-name = "gps-cdcl"

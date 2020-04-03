@@ -442,7 +442,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 			It("should return error", func() {
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-				Expect(err).To(MatchError(MatchRegexp("error requesting service plan visibilities.*errors occurred")))
+				Expect(err).To(HaveOccurred())
+				Expect(logInterceptor.String()).To(MatchRegexp("Error requesting service plan visibilities.*Expected"))
 			})
 		})
 	})

@@ -614,7 +614,8 @@ var _ = Describe("Client Service Plan Access", func() {
 				if expectedError == nil || len(expectedError) == 0 {
 					return
 				}
-				Expect(err.Error()).Should(Or(ContainSubstring(expectedError[0].Error()), ContainSubstring("1 errors occurred")))
+				log.D().Error(err)
+				Expect(logInterceptor.String()).To(ContainSubstring(expectedError[0].Error()))
 			}
 		}
 
@@ -855,7 +856,8 @@ var _ = Describe("Client Service Plan Access", func() {
 				if expectedError == nil || len(expectedError) == 0 {
 					return
 				}
-				Expect(err.Error()).Should(Or(ContainSubstring(expectedError[0].Error()), ContainSubstring("1 errors occurred")))
+				log.D().Error(err)
+				Expect(logInterceptor.String()).To(ContainSubstring(expectedError[0].Error()))
 			}
 		}
 

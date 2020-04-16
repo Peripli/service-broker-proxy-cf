@@ -40,8 +40,7 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:325e2a2ecc9464fec3fb843c594b2864bd1fd9a8fef89762aa8d01e122d671d7"
+  digest = "1:315a464ed12de67d00620b8562a0b41476ee9328e0753b450906d4aa55626b0e"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -55,10 +54,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "806ec93b57c9cc8a1efef4803448d35c6b40d64f"
+  revision = "83acc2e77829666a84d038868ad463c60d143b73"
+  version = "v0.9.3"
 
 [[projects]]
-  digest = "1:6cf181fd553dd54cc3f366a8073e8cc7ef2f2ddba1461eefcf32438a7ce599df"
+  digest = "1:14b1a59e91e170028b431195b9756403a08f806187df9bf6213e3ea7ca1537e6"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -103,8 +103,8 @@
     "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "8a1cc3932b41629a7c455a8daec2ad5d508c7e53"
-  version = "v0.12.1"
+  revision = "18d7a6f37a954073b7dafc601225a793d6cb6d40"
+  version = "v0.13.0"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -116,11 +116,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:166ffb28681619e62c0a7e23f35c490ad63b99ef3b8033b9e1c62b703a6f55e9"
+  digest = "1:dbb051e1805bf4a9a00884b730345c077792a0a61cc5696fdb6f75b4999c08b0"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "35bcce23fc5f8b9969723ac38c0de1f82c4d3471"
+  revision = "18981bf12b4b9d07a2ec9dafa272ac6c70662705"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
@@ -200,12 +200,12 @@
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
-  digest = "1:d1e35b720b5f5156502ffdd174000c81295919293735342da78582e4dc7a8bcd"
+  digest = "1:112b07cad4bd500e6e445cc0b9294ca310faa41199c19475c557daa2c7519549"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "84668698ea25b64748563aa20726db66a6b8d299"
-  version = "v1.3.5"
+  revision = "1b794fe86dd6a0c7c52ae69b5c9cb0aeedc52afa"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
@@ -294,7 +294,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e8501d7fa801be523f103178ced935b37778925c7338f0f94e50c14a4d450f4a"
+  digest = "1:00a8bb2a5d9b736e4f8c5f3f3bc0b73aeb0ef1b91e63f72f322750370a3b3757"
   name = "github.com/lib/pq"
   packages = [
     ".",
@@ -302,7 +302,7 @@
     "scram",
   ]
   pruneopts = "UT"
-  revision = "9eb3fc897d6fd97dd4aad3d0404b54e2f7cc56be"
+  revision = "356e267cd3f45ee1303b7d8765e3583cb949950e"
 
 [[projects]]
   digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"
@@ -378,12 +378,12 @@
   version = "v1.9.0"
 
 [[projects]]
-  digest = "1:6eea828983c70075ca297bb915ffbcfd3e34c5a50affd94428a65df955c0ff9c"
+  digest = "1:1d835d5c3153aceef96c2d58866edde1aa70e25339831cff07b1e47456410e5c"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "903d9455db9ff1d7ac1ab199062eca7266dd11a3"
-  version = "v1.6.0"
+  revision = "8e8d2a6aad23fcaa64716c5fa6975ec3abbf8281"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -480,12 +480,12 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:b70c951ba6fdeecfbd50dabe95aa5e1b973866ae9abbece46ad60348112214f2"
+  digest = "1:d6144d834c1d542969d499093cb6df7e0dbaebfb510bdda5648fd35ea4aee7c3"
   name = "github.com/tidwall/sjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "25fb082a20e29e83fb7b7ef5f5919166aad1f084"
-  version = "v1.0.4"
+  revision = "11cb24d8421de3e1bb5c5efb066a03037150568d"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -499,7 +499,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "0ec3e9974c59449edd84298612e9f16fa13368e8"
+  revision = "0848c9571904fcbcb24543358ca8b5a7dbfde875"
 
 [[projects]]
   branch = "master"
@@ -529,11 +529,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8b163cc073aac41680c1ce438eae6b046f04511952e60c3cff2915033fe6f58b"
+  digest = "1:f88172369bcdae548777d8f2c59b11561f7e41686f426c583a7abaeec6978cc7"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "85ca7c5b95cdf1e557abb38a283d1e61a5959c31"
+  revision = "669c56c373c468cbe0f0c12b7939832b26088d33"
 
 [[projects]]
   digest = "1:7570a3e4daa14b7627089e77ad8c714f5f36b4cf1b7dfd8510df7d6935dc42a0"
@@ -594,6 +594,42 @@
   version = "v1.6.5"
 
 [[projects]]
+  digest = "1:f1865c7b6c5f85632ff40fd729aa3393e66a2db3de74d43ab7c594be7e9bfe25"
+  name = "google.golang.org/protobuf"
+  packages = [
+    "encoding/prototext",
+    "encoding/protowire",
+    "internal/descfmt",
+    "internal/descopts",
+    "internal/detrand",
+    "internal/encoding/defval",
+    "internal/encoding/messageset",
+    "internal/encoding/tag",
+    "internal/encoding/text",
+    "internal/errors",
+    "internal/fieldnum",
+    "internal/fieldsort",
+    "internal/filedesc",
+    "internal/filetype",
+    "internal/flags",
+    "internal/genname",
+    "internal/impl",
+    "internal/mapsort",
+    "internal/pragma",
+    "internal/set",
+    "internal/strs",
+    "internal/version",
+    "proto",
+    "reflect/protoreflect",
+    "reflect/protoregistry",
+    "runtime/protoiface",
+    "runtime/protoimpl",
+  ]
+  pruneopts = "UT"
+  revision = "3b9eee12916ce611400f93d6c2fed2fc2911b0ad"
+  version = "v1.21.0"
+
+[[projects]]
   digest = "1:80057945464ffb5b0da1f026beb8df0e8dbd098eaf771a349291bed2cd29a83e"
   name = "gopkg.in/fsnotify.v1"
   packages = ["."]
@@ -603,7 +639,7 @@
   version = "v1.4.9"
 
 [[projects]]
-  digest = "1:3c4aaca5a82adc021322f239e0cf3f46852bb0b18ae050d0feab2e9e4c527462"
+  digest = "1:11dd25b4604cee057da7b3135528ea8c8e47bc3047dcd36fa1cae79a8a5c1dde"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -611,8 +647,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "4ef0f1b175ccd65472d154e1207c4d7b8102545f"
-  version = "v2.4.1"
+  revision = "2204b3eaf539b5d4ad438a05b5e0a10e85816bf9"
+  version = "v2.5.0"
 
 [[projects]]
   branch = "v1"

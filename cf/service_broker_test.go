@@ -2,6 +2,7 @@ package cf_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
@@ -14,20 +15,40 @@ import (
 
 var _ = Describe("Client ServiceBroker", func() {
 	var (
-		client          *cf.PlatformClient
-		ccServer        *ghttp.Server
-		testBroker      *platform.ServiceBroker
-		ccResponseCode  int
-		ccResponse      interface{}
-		ccResponseErr   cfclient.CloudFoundryError
-		expectedRequest interface{}
-		ctx             context.Context
+		client              *cf.PlatformClient
+		ccServer            *ghttp.Server
+		testBroker          *platform.ServiceBroker
+		ccResponseCode      int
+		ccResponse          interface{}
+		ccResponseErr       cfclient.CloudFoundryError
+		ccGlobalBroker      cfclient.ServiceBroker
+		ccSpaceScopedBroker cfclient.ServiceBroker
+		expectedRequest     interface{}
+		ctx                 context.Context
 	)
 
 	assertBrokersFoundMatchTestBroker := func(expectedCount int, actualBrokers ...*platform.ServiceBroker) {
 		Expect(actualBrokers).To(HaveLen(expectedCount))
 		for _, b := range actualBrokers {
 			Expect(b).To(Equal(testBroker))
+		}
+	}
+
+	ccBrokersResponse := func(brokers ...cfclient.ServiceBroker) cfclient.ServiceBrokerResponse {
+		ccBrokersResources := make([]cfclient.ServiceBrokerResource, 0)
+		for _, broker := range brokers {
+			ccBrokersResources = append(ccBrokersResources, cfclient.ServiceBrokerResource{
+				Meta: cfclient.Meta{
+					Guid: broker.Guid,
+				},
+				Entity: broker,
+			})
+		}
+
+		return cfclient.ServiceBrokerResponse{
+			Count:     len(ccBrokersResources),
+			Pages:     1,
+			Resources: ccBrokersResources,
 		}
 	}
 
@@ -38,6 +59,20 @@ var _ = Describe("Client ServiceBroker", func() {
 			GUID:      "test-testBroker-guid",
 			Name:      "test-testBroker-name",
 			BrokerURL: "http://example.com",
+		}
+
+		ccGlobalBroker = cfclient.ServiceBroker{
+			Guid:      testBroker.GUID,
+			Name:      testBroker.Name,
+			BrokerURL: testBroker.BrokerURL,
+		}
+
+		spaceScopedSuffix := "-space-scoped"
+		ccSpaceScopedBroker = cfclient.ServiceBroker{
+			Guid:      testBroker.GUID + spaceScopedSuffix,
+			Name:      testBroker.Name + spaceScopedSuffix,
+			BrokerURL: testBroker.BrokerURL + spaceScopedSuffix,
+			SpaceGUID: "cf-space-guid",
 		}
 
 		ccServer = fakeCCServer(false)
@@ -85,11 +120,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when no brokers are found in CC", func() {
 			BeforeEach(func() {
-				ccResponse = cfclient.ServiceBrokerResponse{
-					Count:     0,
-					Pages:     1,
-					Resources: []cfclient.ServiceBrokerResource{},
-				}
+				ccResponse = ccBrokersResponse()
 				ccResponseCode = http.StatusOK
 			})
 
@@ -104,30 +135,25 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when brokers exist in CC", func() {
 			BeforeEach(func() {
-				ccResponse = cfclient.ServiceBrokerResponse{
-					Count: 1,
-					Pages: 1,
-					Resources: []cfclient.ServiceBrokerResource{
-						{
-							Meta: cfclient.Meta{
-								Guid: testBroker.GUID,
-							},
-							Entity: cfclient.ServiceBroker{
-								Name:      testBroker.Name,
-								BrokerURL: testBroker.BrokerURL,
-								Username:  brokerUsername,
-							},
-						},
-					},
-				}
 				ccResponseCode = http.StatusOK
 			})
 
 			It("returns all of the brokers", func() {
+				ccResponse = ccBrokersResponse(ccGlobalBroker)
 				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				assertBrokersFoundMatchTestBroker(1, brokers...)
+			})
+
+			Context("space-scoped broker exists", func() {
+				It("returns only the global brokers", func() {
+					ccResponse = ccBrokersResponse(ccGlobalBroker, ccSpaceScopedBroker)
+					brokers, err := client.GetBrokers(ctx)
+
+					Expect(err).ShouldNot(HaveOccurred())
+					assertBrokersFoundMatchTestBroker(1, brokers...)
+				})
 			})
 		})
 	})
@@ -167,11 +193,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when a broker with the specified name does not exist in CC", func() {
 			BeforeEach(func() {
-				ccResponse = cfclient.ServiceBrokerResponse{
-					Count:     0,
-					Pages:     1,
-					Resources: []cfclient.ServiceBrokerResource{},
-				}
+				ccResponse = ccBrokersResponse()
 				ccResponseCode = http.StatusOK
 			})
 
@@ -184,22 +206,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when a broker with the specified name exists in CC", func() {
 			BeforeEach(func() {
-				ccResponse = cfclient.ServiceBrokerResponse{
-					Count: 1,
-					Pages: 1,
-					Resources: []cfclient.ServiceBrokerResource{
-						{
-							Meta: cfclient.Meta{
-								Guid: testBroker.GUID,
-							},
-							Entity: cfclient.ServiceBroker{
-								Name:      brokerName,
-								BrokerURL: testBroker.BrokerURL,
-								Username:  brokerUsername,
-							},
-						},
-					},
-				}
+				ccResponse = ccBrokersResponse(ccGlobalBroker)
 				ccResponseCode = http.StatusOK
 			})
 
@@ -208,6 +215,21 @@ var _ = Describe("Client ServiceBroker", func() {
 
 				Expect(err).ShouldNot(HaveOccurred())
 				assertBrokersFoundMatchTestBroker(1, broker)
+			})
+
+			Context("when the broker is space-scoped", func() {
+				BeforeEach(func() {
+					ccResponse = ccBrokersResponse(ccSpaceScopedBroker)
+					ccResponseCode = http.StatusOK
+				})
+
+				It("returns an error", func() {
+					_, err := client.GetBrokerByName(ctx, ccSpaceScopedBroker.Name)
+
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal(fmt.Sprintf("service broker with name %s, GUID %s and URL %s is space-scoped",
+						ccSpaceScopedBroker.Name, ccSpaceScopedBroker.Guid, ccSpaceScopedBroker.BrokerURL)))
+				})
 			})
 		})
 

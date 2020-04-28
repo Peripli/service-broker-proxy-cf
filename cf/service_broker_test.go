@@ -14,6 +14,9 @@ import (
 )
 
 var _ = Describe("Client ServiceBroker", func() {
+
+	const cfSpaceGUID = "cf-space-guid"
+
 	var (
 		client              *cf.PlatformClient
 		ccServer            *ghttp.Server
@@ -72,7 +75,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			Guid:      testBroker.GUID + spaceScopedSuffix,
 			Name:      testBroker.Name + spaceScopedSuffix,
 			BrokerURL: testBroker.BrokerURL + spaceScopedSuffix,
-			SpaceGUID: "cf-space-guid",
+			SpaceGUID: cfSpaceGUID,
 		}
 
 		ccServer = fakeCCServer(false)
@@ -225,8 +228,8 @@ var _ = Describe("Client ServiceBroker", func() {
 					_, err := client.GetBrokerByName(ctx, ccSpaceScopedBroker.Name)
 
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal(fmt.Sprintf("service broker with name %s, GUID %s and URL %s is space-scoped",
-						ccSpaceScopedBroker.Name, ccSpaceScopedBroker.Guid, ccSpaceScopedBroker.BrokerURL)))
+					Expect(err.Error()).To(Equal(fmt.Sprintf("service broker with name %s and GUID %s is scoped to a space with GUID %s",
+						ccSpaceScopedBroker.Name, ccSpaceScopedBroker.Guid, cfSpaceGUID)))
 				})
 			})
 		})

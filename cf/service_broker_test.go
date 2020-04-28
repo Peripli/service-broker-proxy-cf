@@ -206,24 +206,22 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when a broker with the specified name exists in CC", func() {
 			BeforeEach(func() {
-				ccResponse = ccBrokersResponse(ccGlobalBroker)
 				ccResponseCode = http.StatusOK
 			})
 
-			It("returns the broker", func() {
-				broker, err := client.GetBrokerByName(ctx, brokerName)
+			Context("when the broker is global", func() {
+				It("returns the broker", func() {
+					ccResponse = ccBrokersResponse(ccGlobalBroker)
+					broker, err := client.GetBrokerByName(ctx, brokerName)
 
-				Expect(err).ShouldNot(HaveOccurred())
-				assertBrokersFoundMatchTestBroker(1, broker)
+					Expect(err).ShouldNot(HaveOccurred())
+					assertBrokersFoundMatchTestBroker(1, broker)
+				})
 			})
 
 			Context("when the broker is space-scoped", func() {
-				BeforeEach(func() {
-					ccResponse = ccBrokersResponse(ccSpaceScopedBroker)
-					ccResponseCode = http.StatusOK
-				})
-
 				It("returns an error", func() {
+					ccResponse = ccBrokersResponse(ccSpaceScopedBroker)
 					_, err := client.GetBrokerByName(ctx, ccSpaceScopedBroker.Name)
 
 					Expect(err).To(HaveOccurred())

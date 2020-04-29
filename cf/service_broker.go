@@ -31,14 +31,17 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 
 	var clientBrokers []*platform.ServiceBroker
 	for _, broker := range brokers {
-		serviceBroker := &platform.ServiceBroker{
-			GUID:      broker.Guid,
-			Name:      broker.Name,
-			BrokerURL: broker.BrokerURL,
+		if broker.SpaceGUID == "" {
+			serviceBroker := &platform.ServiceBroker{
+				GUID:      broker.Guid,
+				Name:      broker.Name,
+				BrokerURL: broker.BrokerURL,
+			}
+			clientBrokers = append(clientBrokers, serviceBroker)
 		}
-		clientBrokers = append(clientBrokers, serviceBroker)
 	}
 
+	logger.Infof("Filtered out %d space-scoped brokers", len(brokers)-len(clientBrokers))
 	return clientBrokers, nil
 }
 
@@ -51,6 +54,10 @@ func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*pl
 	}
 	log.C(ctx).Infof("Retrieved service broker with name %s, GUID %s and URL %s",
 		broker.Name, broker.Guid, broker.BrokerURL)
+
+	if broker.SpaceGUID != "" {
+		return nil, fmt.Errorf("service broker with name %s and GUID %s is scoped to a space with GUID %s", broker.Name, broker.Guid, broker.SpaceGUID)
+	}
 
 	return &platform.ServiceBroker{
 		GUID:      broker.Guid,

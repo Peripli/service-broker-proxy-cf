@@ -54,11 +54,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "00ac7556e0910a3eb3c77ac0b8710dbeef55b6b1"
-  version = "v0.9.4"
+  revision = "46e9bc3c10bd7cb8966e142559d24d7c433d3e4b"
+  version = "v0.9.5"
 
 [[projects]]
-  digest = "1:9286362b0c74a295bdd0899a841dfdcc03fb6deadbfab76b40dbb9730c38dbb0"
+  digest = "1:65872c3a58cbec8dc8ff162cab87fa648df5002b935f7703cff37aa60b8195c4"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -104,8 +104,7 @@
     "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "c683e1cb21d4ded9d07be28038d49b92d6094a12"
-  version = "v0.13.1"
+  revision = "0.13.3"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -357,7 +356,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:f3a05c32f5eebc442957b3df07af3325ddc763fc69326bb8730ea6ab8d2751f0"
+  digest = "1:11f7523ba27687a2a160fa513e08351ab0ebecf7e8303f8ca6bbd9eb286f2dbb"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -375,8 +374,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "6be6c439588487cd908a3a700795660c2a16dfec"
-  version = "v1.9.0"
+  revision = "1a3d249459a44387a05ca2d2c2b3d5f3db596dcb"
+  version = "v1.10.0"
 
 [[projects]]
   digest = "1:1d835d5c3153aceef96c2d58866edde1aa70e25339831cff07b1e47456410e5c"

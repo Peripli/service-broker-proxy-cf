@@ -24,4 +24,7 @@
 .vscode/
 /.idea
 
+# Pipeline specific
+.pipeline/
+
 main

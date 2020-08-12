@@ -48,7 +48,7 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:ba42a4012b913c700a505baeee9f2ebe53cd784ac5a05785b671fd6cf79a45de"
+  digest = "1:beb9dda49b3b4929b5ab931b1dcefd2f0a8d85fc06c8c98f41b029f4473f49f7"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -62,11 +62,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "fa7a69954bd899a59f10391314933ffaeba21515"
-  version = "v0.11.2"
+  revision = "91111f6dbeedead8e52a35c57f07a50bcbf74d51"
+  version = "v0.11.3"
 
 [[projects]]
-  digest = "1:48305831ce38b1959273dc0ec3ff1afb2d0831f56a435b96d1d81e60f9390de3"
+  digest = "1:f8958b082098676f55537df428bd0a4a6088ca099a2ca835470d1e94646e221f"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -113,8 +113,8 @@
     "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "17caa69d4ddc67623030237c00dcc9a02a828190"
-  version = "v0.15.2"
+  revision = "4a19d22dea243315424e9f975c1eb2727efc7a42"
+  version = "v0.16.0"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -424,15 +424,15 @@
   version = "v1.4.1"
 
 [[projects]]
-  digest = "1:ef433ff3fe7a464ceb7c7d1654ac9c7ae8d379d0ed83a69a7d263e4cc78b1a5c"
+  digest = "1:5ad8413f4c2ad0d2caca2eed04f2f0c011503f048a3d9d7e87d8c80a805b0d70"
   name = "github.com/spf13/afero"
   packages = [
     ".",
     "mem",
   ]
   pruneopts = "UT"
-  revision = "5d9e780691031108454ca1486803a187e1ab02f1"
-  version = "v1.3.2"
+  revision = "799ff74c0fd7e7df974e6ffa1c94e3d206f5673b"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:516e71bed754268937f57d4ecb190e01958452336fa73dbac880894164e91c1f"
@@ -540,14 +540,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4196f59cc34072808c8e7c23c6ce2fffa50d9eff217e2feb734f4b08369a3bf1"
+  digest = "1:62268e4fac0a3c01179e7a8ce8a3db467cacc31577cb6e1b93e39bad84cd5eef"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
     "unix",
   ]
   pruneopts = "UT"
-  revision = "3e129f6d46b10b0e1da36b3deffcb55e09631b64"
+  revision = "1b9f1253b3ed7b65abba1a5ee3f58da72dae0ab7"
 
 [[projects]]
   digest = "1:517b82807b3218687e9eb32fe11de9cb07a38d06554d04cd1965c0441360c0b3"
@@ -589,7 +589,7 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "9bdfabe68543c54f90421aeb9a60ef8061b5b544"
+  revision = "5ec99f83aff198f5fbd629d6c8d8eb38a04218ca"
 
 [[projects]]
   digest = "1:15bbb120d95283019f8891f2762fab3e735075b2cf9b378497277d2fe6c4abca"

@@ -62,11 +62,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "91111f6dbeedead8e52a35c57f07a50bcbf74d51"
-  version = "v0.11.3"
+  revision = "b95a599c07a48834ee72045b6ed8eab5dc25018d"
+  version = "v0.11.4"
 
 [[projects]]
-  digest = "1:f8958b082098676f55537df428bd0a4a6088ca099a2ca835470d1e94646e221f"
+  digest = "1:4417c0e3df62555b7944bb78b769dcb4f0a260736a078f52fe11295fcc8e3e77"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -113,8 +113,8 @@
     "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "4a19d22dea243315424e9f975c1eb2727efc7a42"
-  version = "v0.16.0"
+  revision = "3a56b1bb2fe747c7aa0ce7deab0c29344cc234fb"
+  version = "v0.16.2"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -290,7 +290,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d27eedd7296593e6ea74aed67aa0d04d97305c860209b0d4996a8aa2eac7fd0b"
+  digest = "1:58fddde837732f152d80db3772714542a6cfe97fbc716eedcc912b6f0c70d1b5"
   name = "github.com/lib/pq"
   packages = [
     ".",
@@ -298,15 +298,15 @@
     "scram",
   ]
   pruneopts = "UT"
-  revision = "e7751f584844fbf92a5a18b13a0af1c855e34460"
+  revision = "083382b7e6fc78cc91eb57afab268fe2f1b6ed6d"
 
 [[projects]]
-  digest = "1:5a0ef768465592efca0412f7e838cdc0826712f8447e70e6ccc52eb441e9ab13"
+  digest = "1:7d2baa3cbd4a9afd35b7b9b18de1b14540f64086b14ed1cf01cdfc49a70c35d0"
   name = "github.com/magiconair/properties"
   packages = ["."]
   pruneopts = "UT"
-  revision = "de8848e004dd33dc07a2947b3d76f618a7fc7ef1"
-  version = "v1.8.1"
+  revision = "fb997392a7e693835970429956b62f6bbf19b3fd"
+  version = "v1.8.2"
 
 [[projects]]
   digest = "1:aff0e9185b5df855488a42e064cb479e994636d3cefa47d053495123d086add4"
@@ -339,7 +339,7 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:e114df9f39b26463cbbdc288fd788136d8c8a095e4f92d75e78592fa0eab307b"
+  digest = "1:e6097a089184d8efef123f5c66dc543069f2273806ba552e6d214294cfb7615a"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -363,11 +363,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "9c254cb251dc962dc20ca91d0279c870095cfcf9"
-  version = "v1.14.0"
+  revision = "6d83527acb3f6cda405ce47a475d480117098381"
+  version = "v1.14.1"
 
 [[projects]]
-  digest = "1:a303770fe031353d4342a9d35158772145cb099ea607036c78787258346945db"
+  digest = "1:672d50c3efeb7349084b56f032e5516c2bf3925b276cd13907b496c7ed45ed25"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -385,8 +385,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "904ac6ab26e9a888bdff3467eea03b6122a1c027"
-  version = "v1.10.1"
+  revision = "d7eb503b14592ef8cefacd3c9589398c7decaf23"
+  version = "v1.10.2"
 
 [[projects]]
   digest = "1:53aab5f59edb1cd47773bbbb5b1b6d0b76b0c9e31cfac670a0bb7ccc917e98a3"
@@ -406,14 +406,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:bd9efe4e0b0f768302a1e2f0c22458149278de533e521206e5ddc71848c269a0"
+  digest = "1:81b35b58acae11cd7d1076ddfe830d2a3c906f6674d7659e672820c24cc4a20f"
   name = "github.com/pquerna/cachecontrol"
   packages = [
     ".",
     "cacheobject",
   ]
   pruneopts = "UT"
-  revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
+  revision = "67c6ae64274f94504771263b85e5a38700cbf31e"
 
 [[projects]]
   digest = "1:fd61cf4ae1953d55df708acb6b91492d538f49c305b364a014049914495db426"
@@ -424,15 +424,15 @@
   version = "v1.4.1"
 
 [[projects]]
-  digest = "1:5ad8413f4c2ad0d2caca2eed04f2f0c011503f048a3d9d7e87d8c80a805b0d70"
+  digest = "1:951fcde0e99119656cba0bbb6d79b087dda52a72eeff75ac086ac3fa9cd05a21"
   name = "github.com/spf13/afero"
   packages = [
     ".",
     "mem",
   ]
   pruneopts = "UT"
-  revision = "799ff74c0fd7e7df974e6ffa1c94e3d206f5673b"
-  version = "v1.3.4"
+  revision = "27c9ee049885de0846b9326ffe09d128a545a323"
+  version = "v1.3.5"
 
 [[projects]]
   digest = "1:516e71bed754268937f57d4ecb190e01958452336fa73dbac880894164e91c1f"
@@ -467,12 +467,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:358f9a53d3bb46b9dd07b4490f9b30f9f85218b41f6bbb48d6503668a45721a6"
+  digest = "1:ba1f9f7c24257683efc7f6fe8336340fb861751aa1eda0c17ed4a9723a8fe0be"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f042915ca17de35980544c91ab2c8ceb73b682f2"
-  version = "v1.6.0"
+  revision = "45d8d3b98f86305c48ae80455ebd56773195ec72"
+  version = "v1.6.1"
 
 [[projects]]
   digest = "1:8453ddbed197809ee8ca28b06bd04e127bec9912deb4ba451fea7a1eca578328"
@@ -487,8 +487,8 @@
   name = "github.com/tidwall/pretty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b2475501f89994f7ea30b3c94ba86b49079961fe"
-  version = "v1.0.1"
+  revision = "ef453c788d6a371829f4f9967b014b2b81856df5"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:d6144d834c1d542969d499093cb6df7e0dbaebfb510bdda5648fd35ea4aee7c3"
@@ -510,7 +510,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "123391ffb6de907695e1066dc40c1ff09322aeb6"
+  revision = "5c72a883971a4325f8c62bf07b6d38c20ea47a6a"
 
 [[projects]]
   branch = "master"
@@ -524,11 +524,11 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "ab34263943818b32f575efc978a3d24e80b04bd7"
+  revision = "62affa334b73ec65ed44a326519ac12c421905e3"
 
 [[projects]]
   branch = "master"
-  digest = "1:f1d392a89dc9b0d4556b368faa99438ac2dd443fa4d8a6f1742acb3c41f78d1f"
+  digest = "1:5a06bbce7c926af80323ed601df7425c153700796d5122a69d59db6ed1fe763c"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -536,18 +536,18 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "bf48bf16ab8d622ce64ec6ce98d2c98f916b6303"
+  revision = "5d25da1a8d43b66f2898c444f899c7bcfd6a407e"
 
 [[projects]]
   branch = "master"
-  digest = "1:62268e4fac0a3c01179e7a8ce8a3db467cacc31577cb6e1b93e39bad84cd5eef"
+  digest = "1:f06d4a65885227119a36889e5b1f415d76f80a2b03b301603909e7c5e4c5f3ca"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
     "unix",
   ]
   pruneopts = "UT"
-  revision = "1b9f1253b3ed7b65abba1a5ee3f58da72dae0ab7"
+  revision = "eff7692f900947b7d782d16af70ca32cc40774f0"
 
 [[projects]]
   digest = "1:517b82807b3218687e9eb32fe11de9cb07a38d06554d04cd1965c0441360c0b3"

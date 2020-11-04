@@ -14,7 +14,7 @@ const (
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
-	client       cfclient.CloudFoundryClient
+	client       *cfclient.Client
 	settings     *Settings
 	planResolver *cfmodel.PlanResolver
 }

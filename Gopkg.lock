@@ -130,7 +130,7 @@
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "18981bf12b4b9d07a2ec9dafa272ac6c70662705"
+  revision = "e8daddee3a9746c5155f0fc5b1e1a223c078dd08"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"

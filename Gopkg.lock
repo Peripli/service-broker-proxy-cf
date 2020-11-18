@@ -48,7 +48,7 @@
   version = "v3.1.0"
 
 [[projects]]
-  digest = "1:178dc9954fcdeb04f9675ceed1da4882cd590ef40fa198bc4b6dd3a8ae91a998"
+  digest = "1:dc6e1319d402018e1efe5280442d6fdba20077bb27a6075ec4c8923a3f90a36e"
   name = "github.com/Peripli/service-broker-proxy"
   packages = [
     "pkg/authn",
@@ -62,11 +62,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "5e2c68c1552d7e14ebdbeb29a86b7b7f6f13d650"
-  version = "v0.11.8"
+  revision = "4d133a7929063afdb519cb78b0a2d2be179b8efc"
+  version = "v0.11.10"
 
 [[projects]]
-  digest = "1:7d2073da0064fbc7b639726dbda96a6cd156608da38643ef00a26615dabef163"
+  digest = "1:58982e950cf68569dfe35e49783290e4aaeb3eb23bb4a276685c85c97069fd21"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -113,8 +113,8 @@
     "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "700d4b92ac9159ce165c6faea87a1fd5009f75c8"
-  version = "v0.16.10"
+  revision = "5f130a0cd920ff5235a772256a50359221781ac9"
+  version = "v0.16.11"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -126,11 +126,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:36ddacb429540217a57622efe70ea8101cf15ae300a24bf2dd44f9659622e195"
+  digest = "1:819b18110730f4b873e537a12a98d3cc5627f692aa8c94a632395e5bebc257ea"
   name = "github.com/cloudfoundry-community/go-cfclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e8daddee3a9746c5155f0fc5b1e1a223c078dd08"
+  revision = "20b092cb2a3d49f608ee3eb80c2d3e90e394cc7d"
 
 [[projects]]
   digest = "1:d5fa6328bd281ac91e7b5d3f45b49f8ac36c30b6a530f633d91c6eaef50cd137"
@@ -467,12 +467,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:ba1f9f7c24257683efc7f6fe8336340fb861751aa1eda0c17ed4a9723a8fe0be"
+  digest = "1:b1d385674ad9e7c0a8f42129978ae6205befb277fc1750582beab3c3e41ba0a0"
   name = "github.com/tidwall/gjson"
   packages = ["."]
   pruneopts = "UT"
-  revision = "45d8d3b98f86305c48ae80455ebd56773195ec72"
-  version = "v1.6.1"
+  revision = "5100d6926a4bea3753fc72352fca70654f04cedc"
+  version = "v1.6.3"
 
 [[projects]]
   digest = "1:eed1c98b70dcc500db2484f998bf64ae5ec159d95fd412ba6833a65081d8b4d5"
@@ -499,6 +499,19 @@
   version = "v1.1.2"
 
 [[projects]]
+  digest = "1:46b32b8bb81eff9edd36937c2f7e486221fd3f93f17045385971f966e697f971"
+  name = "github.com/ulule/limiter"
+  packages = [
+    ".",
+    "drivers/middleware/stdlib",
+    "drivers/store/common",
+    "drivers/store/memory",
+  ]
+  pruneopts = "UT"
+  revision = "38b2a440be905c8be884fd5e114dc893a64e5d81"
+  version = "v2.2.2"
+
+[[projects]]
   branch = "master"
   digest = "1:6d1e6b1279da86043098d6b35e4e84f5ace42c7a3a8936025a843619b02253ea"
   name = "golang.org/x/crypto"
@@ -510,7 +523,7 @@
     "pbkdf2",
   ]
   pruneopts = "UT"
-  revision = "9e8e0b390897c84cad53ebe9ed2d1d331a5394d9"
+  revision = "c1f2f97bffc9c53fc40a1a28a5b460094c0050d9"
 
 [[projects]]
   branch = "master"
@@ -524,7 +537,7 @@
     "html/charset",
   ]
   pruneopts = "UT"
-  revision = "ff519b6c91021e6316e1df005bc19f266994ddda"
+  revision = "69a78807bb2bb6d1599c68698c6b009505012083"
 
 [[projects]]
   branch = "master"
@@ -536,11 +549,11 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "5d25da1a8d43b66f2898c444f899c7bcfd6a407e"
+  revision = "9fd604954f58d391cab0f7f49affb0a6aa864086"
 
 [[projects]]
   branch = "master"
-  digest = "1:fdd727a34d34afc6babb44f3e499f1b26574c96e05984e106986e2a3f1055c37"
+  digest = "1:8ee84194b98ddbde6c7818c53922352a90c542575e412300104b5496634c0869"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -548,7 +561,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "da207088b7d1961c44ec61e9dc15a73745693ab6"
+  revision = "ba5294a509c715d7fea0f9022a3d0ca21f64942a"
 
 [[projects]]
   digest = "1:1d72a86125e33573d9bdfa6d2fb8ec16020dbdc4e82d2f88440fbd4015ddfbac"

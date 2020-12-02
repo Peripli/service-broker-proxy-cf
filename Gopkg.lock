@@ -62,11 +62,11 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "4d133a7929063afdb519cb78b0a2d2be179b8efc"
-  version = "v0.11.10"
+  revision = "79a66cc25e01056a7401a04e3fbd044c9b2d0722"
+  version = "v0.11.11"
 
 [[projects]]
-  digest = "1:58982e950cf68569dfe35e49783290e4aaeb3eb23bb4a276685c85c97069fd21"
+  digest = "1:1d7ce97bae31e7807e7931b2aa98081a476a660ab18802e35027ee70f8f4ec5f"
   name = "github.com/Peripli/service-manager"
   packages = [
     "api",
@@ -113,8 +113,8 @@
     "test/testutil",
   ]
   pruneopts = "UT"
-  revision = "5f130a0cd920ff5235a772256a50359221781ac9"
-  version = "v0.16.11"
+  revision = "7d6d894b80e7ccbf92e1d23e954c5b8899589b81"
+  version = "v0.18.0"
 
 [[projects]]
   digest = "1:3076a0751f5648f3ab1838abfba18bc5bf514cde7e3957500b62fba90633479a"
@@ -553,12 +553,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8ee84194b98ddbde6c7818c53922352a90c542575e412300104b5496634c0869"
+  digest = "1:9a9dc02aee4fb5c43b17d3349577c77e1838d16473f6caf7bade035d3b1dc89a"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
     "unix",
-    "windows",
   ]
   pruneopts = "UT"
   revision = "ba5294a509c715d7fea0f9022a3d0ca21f64942a"

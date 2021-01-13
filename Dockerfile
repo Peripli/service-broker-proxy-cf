@@ -7,14 +7,14 @@ FROM golang:1.11.13-alpine3.10 AS builder
 
 # We need so that dep can fetch it's dependencies
 RUN apk --no-cache add git
-RUN go get github.com/golang/dep/cmd/dep
 
 # Directory in workspace
 WORKDIR "/go/src/github.com/Peripli/service-broker-proxy-cf"
 
 # Copy dep files only and ensure dependencies are satisfied
-COPY Gopkg.lock Gopkg.toml ./
-RUN dep ensure --vendor-only -v
+COPY go.mod ./
+ENV GO111MODULE=on
+RUN go mod vendor
 
 # Copy and build source code
 COPY . ./

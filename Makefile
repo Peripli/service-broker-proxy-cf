@@ -39,13 +39,13 @@ GO_BUILD = env CGO_ENABLED=0 GOOS=$(PLATFORM) GOARCH=$(ARCH) \
 #dep-vendor: dep-check
 #	@dep ensure --vendor-only -v
 
+#dep-reload: dep-check clean-vendor dep
+
 build: .init gomod-vendor cf-sbproxy
 
 gomod-vendor:
 	@go mod vendor
-
-dep-reload: dep-check clean-vendor dep
-
+	
 cf-sbproxy: $(BINDIR)/cf-sbproxy
 
 # Build cf service-broker-proxy under ./bin/cf-sbproxy

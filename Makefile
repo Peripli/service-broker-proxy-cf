@@ -61,4 +61,4 @@ clean-coverage:
 
 clean-vendor:
 	rm -rf vendor
-	@echo > Gopkg.lock
+	@echo > go.sum

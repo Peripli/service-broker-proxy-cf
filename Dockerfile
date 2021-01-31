@@ -13,7 +13,6 @@ WORKDIR "/go/src/github.com/Peripli/service-broker-proxy-cf"
 # Copy and build source code
 ENV GO111MODULE=on
 COPY . ./
-RUN go mod vendor
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /main main.go
 
 ########################################################

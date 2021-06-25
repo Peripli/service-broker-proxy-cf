@@ -3,8 +3,8 @@ module github.com/Peripli/service-broker-proxy-cf
 go 1.14
 
 require (
-	github.com/Peripli/service-broker-proxy v0.11.16
-	github.com/Peripli/service-manager v0.19.1
+	github.com/Peripli/service-broker-proxy v0.11.18
+	github.com/Peripli/service-manager v0.20.0
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20201123235753-4f46d6348a05
 	github.com/cloudfoundry-community/go-cfenv v1.18.0

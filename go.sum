@@ -59,6 +59,8 @@ github.com/Peripli/service-broker-proxy v0.11.16 h1:WHuILdSHakFXOYNd75VlXPMebNDS
 github.com/Peripli/service-broker-proxy v0.11.16/go.mod h1:Fl+lHMSW2xO6zFTlYmfHTHvkSJHAhQgz4v0Q6Eo2cxE=
 github.com/Peripli/service-broker-proxy v0.11.18 h1:yoLKWfXxemW39Mo6MIWB/Qw7Yf2r+py1Sa04tbO6FBg=
 github.com/Peripli/service-broker-proxy v0.11.18/go.mod h1:HiTwE3phOxSDHVWHwCt0duDuftn0PlygfG/v9zAGvws=
+github.com/Peripli/service-broker-proxy v0.11.19 h1:WrhvHVvcgLzyZxQ95Vunq6/0A4awSAq/868KahU+pgE=
+github.com/Peripli/service-broker-proxy v0.11.19/go.mod h1:FSdnVVrB4Hdt7AZTL0fvi9jGS3yBDoHID/w9L6HRVYg=
 github.com/Peripli/service-manager v0.18.7-0.20210131140341-a199050d9407/go.mod h1:FtRJlibH3yLD1v/JCp6yTBx+m2GDpodxnwmawl756Fo=
 github.com/Peripli/service-manager v0.18.7 h1:MOVMIpEUA+D32OwkrNw/xJoVq6WdqpQ9sbE5DhiKW3s=
 github.com/Peripli/service-manager v0.18.7/go.mod h1:FtRJlibH3yLD1v/JCp6yTBx+m2GDpodxnwmawl756Fo=
@@ -68,6 +70,8 @@ github.com/Peripli/service-manager v0.19.1 h1:Jbx737i7ePZ4K+XxK7r4p2b6HLZxTzMvti
 github.com/Peripli/service-manager v0.19.1/go.mod h1:FtRJlibH3yLD1v/JCp6yTBx+m2GDpodxnwmawl756Fo=
 github.com/Peripli/service-manager v0.20.0 h1:VlUTtkhq97ph/QvoHHCVEjskvHq8pEnvBA4bZ8xssc8=
 github.com/Peripli/service-manager v0.20.0/go.mod h1:FtRJlibH3yLD1v/JCp6yTBx+m2GDpodxnwmawl756Fo=
+github.com/Peripli/service-manager v0.20.4 h1:eYSD+o2LYENDGOOQdRMU8aYrKzJKqT9sl7N4SEQPqLY=
+github.com/Peripli/service-manager v0.20.4/go.mod h1:FtRJlibH3yLD1v/JCp6yTBx+m2GDpodxnwmawl756Fo=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=

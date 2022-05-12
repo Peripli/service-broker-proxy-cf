@@ -54,6 +54,8 @@ github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugX
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/Peripli/service-broker-proxy v0.11.24 h1:3GDXJrWwNnxd0m8ru9yg84ZWNwH7EROsr501bH62Bl0=
 github.com/Peripli/service-broker-proxy v0.11.24/go.mod h1:dWblp8ORB2M+xm8lcNBMgYCjdgg4J666IFYebL68UMI=
+github.com/Peripli/service-broker-proxy v0.11.25 h1:8Oe8DSvunahGMOHwTPtDh+LbuzAIjfMjEVDay/G22no=
+github.com/Peripli/service-broker-proxy v0.11.25/go.mod h1:dWblp8ORB2M+xm8lcNBMgYCjdgg4J666IFYebL68UMI=
 github.com/Peripli/service-manager v0.23.2 h1:3YBMFUokTa8b5sNsWc9Pfz6g2dQcec78zNKMnsjAG3E=
 github.com/Peripli/service-manager v0.23.2/go.mod h1:BORpNM8+9Mvqy2stSFyY/c9sW8r7NlAiwG63kNbvm5Y=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=

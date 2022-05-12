@@ -3,7 +3,7 @@ module github.com/Peripli/service-broker-proxy-cf
 go 1.14
 
 require (
-	github.com/Peripli/service-broker-proxy v0.11.24
+	github.com/Peripli/service-broker-proxy v0.11.25
 	github.com/Peripli/service-manager v0.23.2
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20201123235753-4f46d6348a05
 	github.com/cloudfoundry-community/go-cfenv v1.18.0

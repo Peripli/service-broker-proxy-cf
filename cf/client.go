@@ -1,10 +1,16 @@
 package cf
 
 import (
-	"github.com/cloudfoundry-community/go-cfclient"
-
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-manager/pkg/log"
+	"github.com/cloudfoundry-community/go-cfclient"
+	"io/ioutil"
+	"net/http"
 )
 
 const (
@@ -32,6 +38,46 @@ func (pc *PlatformClient) Visibility() platform.VisibilityClient {
 // CatalogFetcher returns platform client which can perform refetching of service broker catalogs
 func (pc *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
 	return pc
+}
+
+func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) (interface{}, error) {
+	var request *cfclient.Request
+
+	if body != nil {
+		buf := bytes.NewBuffer(nil)
+		err := json.NewEncoder(buf).Encode(body[0])
+		if err != nil {
+			return nil, err
+		}
+		request = pc.client.NewRequestWithBody(method, path, buf)
+	} else {
+		request = pc.client.NewRequest(method, path)
+	}
+
+	response, err := pc.client.DoRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode >= http.StatusBadRequest {
+		return nil, fmt.Errorf("CF API %s %s returned status code %d", method, path, response.StatusCode)
+	}
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.C(ctx).Debug("unable to close response body stream:", err)
+		}
+	}()
+	if err != nil {
+		return nil, err
+	}
+	var result interface{}
+	err = json.Unmarshal(responseBody, result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // NewClient creates a new CF cf client from the specified configuration.

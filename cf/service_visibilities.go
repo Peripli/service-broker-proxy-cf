@@ -2,6 +2,7 @@ package cf
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -163,7 +164,10 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planG
 		return nil, err
 	}
 
-	servicePlanVisibilitiesResp = resp.(ServicePlanVisibilitiesResponse)
+	err = json.Unmarshal(resp, &servicePlanVisibilitiesResp)
+	if err != nil {
+		return nil, err
+	}
 	if servicePlanVisibilitiesResp.Type != string(VisibilityType.ORGANIZATION) {
 		return []ServicePlanVisibility{}, nil
 	}

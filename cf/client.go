@@ -40,7 +40,7 @@ func (pc *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
 	return pc
 }
 
-func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) (interface{}, error) {
+func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) ([]byte, error) {
 	var request *cfclient.Request
 
 	if body != nil {
@@ -58,26 +58,22 @@ func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path str
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.C(ctx).Warn("unable to close response body stream:", err)
+		}
+	}()
 	if response.StatusCode >= http.StatusBadRequest {
-		return nil, fmt.Errorf("CF API %s %s returned status code %d", method, path, response.StatusCode)
+		log.C(ctx).Error(fmt.Errorf("CF API %s %s returned status code %d", method, path, response.StatusCode), err)
+		return nil, err
 	}
 
 	responseBody, err := ioutil.ReadAll(response.Body)
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			log.C(ctx).Debug("unable to close response body stream:", err)
-		}
-	}()
-	if err != nil {
-		return nil, err
-	}
-	var result interface{}
-	err = json.Unmarshal(responseBody, result)
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return responseBody, nil
 }
 
 // NewClient creates a new CF cf client from the specified configuration.

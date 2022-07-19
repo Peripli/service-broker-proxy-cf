@@ -2,12 +2,12 @@ package cf_test
 
 import (
 	"context"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
@@ -32,6 +32,8 @@ var _ = Describe("Cache", func() {
 		brokersRequest, servicesRequest, plansRequest, visibilitiesRequest *http.Request
 
 		broker1, broker2 brokerData
+
+		requestPlanIds []string
 	)
 
 	recordRequest := func(r **http.Request) http.HandlerFunc {
@@ -75,6 +77,9 @@ var _ = Describe("Cache", func() {
 		servicesResponse.Count = len(servicesResponse.Resources)
 		plansResponse.Count = len(plansResponse.Resources)
 
+		visibilitiesRequestPath := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
+		planIdExtractor := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
+
 		ccServer.RouteToHandler(http.MethodGet, "/v2/service_brokers",
 			ghttp.CombineHandlers(
 				recordRequest(&brokersRequest),
@@ -93,13 +98,16 @@ var _ = Describe("Cache", func() {
 				ghttp.RespondWithJSONEncoded(http.StatusOK, plansResponse),
 			),
 		)
-		ccServer.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities",
+		ccServer.RouteToHandler(http.MethodGet, visibilitiesRequestPath,
 			ghttp.CombineHandlers(
 				recordRequest(&visibilitiesRequest),
 				ghttp.RespondWithJSONEncoded(http.StatusOK, cfclient.ServicePlanVisibilitiesResponse{
 					Count: 0,
 					Pages: 0,
 				}),
+				func(writer http.ResponseWriter, request *http.Request) {
+					requestPlanIds = append(requestPlanIds, planIdExtractor.Replace(request.RequestURI))
+				},
 			),
 		)
 	}
@@ -117,8 +125,9 @@ var _ = Describe("Cache", func() {
 	}
 
 	getPlanGUIDS := func() []string {
+		requestPlanIds = nil
 		client.GetVisibilitiesByBrokers(ctx, []string{"broker1", "broker2"})
-		return getRequestGUIDS(visibilitiesRequest, "service_plan_guid")
+		return requestPlanIds
 	}
 
 	clearRequests := func() {
@@ -203,7 +212,6 @@ var _ = Describe("Cache", func() {
 			setupCCRoutes(broker1, broker2)
 
 			Expect(client.ResetCache(ctx)).To(Succeed())
-
 			Expect(getPlanGUIDS()).To(ConsistOf([]string{
 				"broker1-service1-plan1-guid",
 				"broker1-service2-plan1-guid",

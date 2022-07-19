@@ -5,37 +5,87 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/Peripli/service-manager/pkg/log"
+	"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
-
-	"github.com/Peripli/service-manager/pkg/log"
-
-	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
 )
+
+const (
+	brokersPerPage = "per_page"
+)
+
+type NextUrl struct {
+	Href string `json:"href"`
+}
+
+type Pagination struct {
+	Count   int     `json:"total_results"`
+	Pages   int     `json:"total_pages"`
+	NextUrl NextUrl `json:"next"`
+}
+
+type ServiceBrokerResponse struct {
+	Page      Pagination              `json:"pagination"`
+	Resources []ServiceBrokerResource `json:"resources"`
+}
+
+type Data struct {
+	Guid string `json:"guid"`
+}
+
+type Space struct {
+	Data Data `json:"data"`
+}
+
+type Relationships struct {
+	Space Space `json:"space"`
+}
+
+type ServiceBrokerResource struct {
+	Guid          string        `json:"guid"`
+	Url           string        `json:"Url"`
+	Name          string        `json:"name"`
+	CreatedAt     string        `json:"created_at"`
+	UpdatedAt     string        `json:"updated_at"`
+	Relationships Relationships `json:"relationships"`
+}
+
+type ServiceBrokerList struct {
+	Guid      string `json:"guid"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	BrokerURL string `json:"broker_url"`
+	Username  string `json:"auth_username"`
+	Password  string `json:"auth_password"`
+	SpaceGUID string `json:"space_guid,omitempty"`
+}
 
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered in CF
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBroker, error) {
 	logger := log.C(ctx)
-	logger.Info("Fetching service brokers from CF...")
-	brokers, err := pc.client.ListServiceBrokersByQuery(url.Values{
-		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
+	logger.Info("Fetching service brokers from CF V3 API...")
+	brokers, err := pc.ListServiceBrokers(ctx, url.Values{
+		brokersPerPage: []string{strconv.Itoa(pc.settings.CF.PageSize)},
 	})
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("Fetched %d service brokers from CF", len(brokers))
+	logger.Infof("Fetched %d service brokers from CF V3 API", len(brokers))
 
 	var clientBrokers []*platform.ServiceBroker
 	for _, broker := range brokers {
-		if broker.SpaceGUID == "" {
+		if broker.Relationships.Space.Data.Guid == "" {
 			serviceBroker := &platform.ServiceBroker{
 				GUID:      broker.Guid,
 				Name:      broker.Name,
-				BrokerURL: broker.BrokerURL,
+				BrokerURL: broker.Url,
 			}
 			clientBrokers = append(clientBrokers, serviceBroker)
 		}
@@ -134,7 +184,7 @@ func (pc *PlatformClient) updateBroker(ctx context.Context, r *platform.UpdateSe
 	if err != nil {
 		return nil, err
 	}
-	path := fmt.Sprintf("/v2/service_brokers/%s", r.GUID)
+	path := fmt.Sprintf("/v3/service_brokers/%s", r.GUID)
 	req := pc.client.NewRequestWithBody("PUT", path, buf)
 	resp, err := pc.client.DoRequest(req)
 	if err != nil {
@@ -166,4 +216,45 @@ func (pc *PlatformClient) updateBroker(ctx context.Context, r *platform.UpdateSe
 	}
 
 	return response, nil
+}
+
+func (pc *PlatformClient) ListServiceBrokers(ctx context.Context, query url.Values) ([]ServiceBrokerResource, error) {
+	var sbs []ServiceBrokerResource
+	requestUrl := "/v3/service_brokers?" + query.Encode()
+
+	for {
+		serviceBrokerResp, err := pc.getServiceBrokerResponse(ctx, requestUrl)
+		if err != nil {
+			return []ServiceBrokerResource{}, err
+		}
+		for _, sb := range serviceBrokerResp.Resources {
+			//sb.Guid = sb.Guid
+			//sb.CreatedAt = sb.CreatedAt
+			//sb.UpdatedAt = sb.UpdatedAt
+			sbs = append(sbs, sb)
+		}
+		requestUrl = serviceBrokerResp.Page.NextUrl.Href
+		if requestUrl == "" {
+			break
+		}
+	}
+	return sbs, nil
+}
+
+func (pc *PlatformClient) getServiceBrokerResponse(ctx context.Context, requestUrl string) (ServiceBrokerResponse, error) {
+	var serviceBrokerResp ServiceBrokerResponse
+
+	resp, err := pc.DoRequest(ctx, http.MethodGet, requestUrl)
+	if err != nil {
+		return ServiceBrokerResponse{}, err
+	}
+	if err != nil {
+		return ServiceBrokerResponse{}, errors.Wrap(err, "Error requesting Service Brokers")
+	}
+
+	err = json.Unmarshal(resp, &serviceBrokerResp)
+	if err != nil {
+		return ServiceBrokerResponse{}, errors.Wrap(err, "Error unmarshalling Service Broker")
+	}
+	return serviceBrokerResp, nil
 }

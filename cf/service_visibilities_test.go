@@ -404,64 +404,67 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 		})
 
-		// Context("but a single broker", func() {
-		// 	It("should return the correct visibilities", func() {
-		// 		for _, generatedCFBroker := range generatedCFBrokers {
-		// 			brokerGUID := generatedCFBroker.Guid
-		// 			platformVisibilities, err := getVisibilitiesByBrokers(ctx, []string{
-		// 				generatedCFBroker.Name,
-		// 			})
-		// 			Expect(err).ShouldNot(HaveOccurred())
-		//
-		// 			for _, service := range generatedCFServices[brokerGUID] {
-		// 				serviceGUID := service.Guid
-		// 				for _, plan := range generatedCFPlans[serviceGUID] {
-		// 					planGUID := plan.Guid
-		// 					expectedVis := expectedCFVisibilities[planGUID]
-		// 					Expect(platformVisibilities).Should(ContainElement(expectedVis))
-		// 				}
-		// 			}
-		// 		}
-		// 	})
-		// })
+		Context("but a single broker", func() {
+			It("should return the correct visibilities", func() {
+				for _, generatedCFBroker := range generatedCFBrokers {
+					brokerGUID := generatedCFBroker.Guid
+					platformVisibilities, err := getVisibilitiesByBrokers(ctx, []string{
+						generatedCFBroker.Name,
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+
+					for _, service := range generatedCFServices[brokerGUID] {
+						serviceGUID := service.Guid
+						for _, plan := range generatedCFPlans[serviceGUID] {
+							planGUID := plan.Guid
+							expectedVis := expectedCFVisibilities[planGUID]
+							for _, expectedCFVisibility := range expectedVis {
+								Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
+							}
+						}
+					}
+				}
+			})
+		})
 	})
 
-	// Describe("Get visibilities when cloud controller is not working", func() {
-	// 	Context("for getting services", func() {
-	// 		BeforeEach(func() {
-	// 			ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-	// 			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
-	// 		})
-	//
-	// 		It("should return error", func() {
-	// 			_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-	// 			Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
-	// 		})
-	// 	})
-	//
-	// 	Context("for getting plans", func() {
-	// 		BeforeEach(func() {
-	// 			ccServer = createCCServer(generatedCFBrokers, generatedCFServices, nil, nil)
-	// 			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
-	// 		})
-	//
-	// 		It("should return error", func() {
-	// 			_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-	// 			Expect(err).To(MatchError(MatchRegexp("Error requesting service plans.*Expected")))
-	// 		})
-	// 	})
-	//
-	// 	Context("for getting visibilities", func() {
-	// 		BeforeEach(func() {
-	// 			ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, nil)
-	// 			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
-	// 		})
-	//
-	// 		It("should return error", func() {
-	// 			_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-	// 			Expect(err).To(HaveOccurred())
-	// 			Expect(logInterceptor.String()).To(MatchRegexp("Error requesting service plan visibilities.*Expected"))
-	// 		})
-	// 	})
-	// })
+	Describe("Get visibilities when cloud controller is not working", func() {
+		Context("for getting services", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should return error", func() {
+				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
+				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+			})
+		})
+
+		Context("for getting plans", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, nil, nil)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should return error", func() {
+				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
+				Expect(err).To(MatchError(MatchRegexp("Error requesting service plans.*Expected")))
+			})
+		})
+
+		Context("for getting visibilities", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, nil)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should return error", func() {
+				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
+				Expect(err).To(HaveOccurred())
+				k := logInterceptor.String()
+				Expect(k).To(MatchRegexp("Error requesting service plan visibilities."))
+			})
+		})
+	})
 })

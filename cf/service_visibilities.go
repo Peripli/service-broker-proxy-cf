@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"sync"
 
@@ -161,7 +162,7 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planG
 
 	resp, err := pc.DoRequest(ctx, http.MethodGet, path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error requesting service plan visibilities")
 	}
 
 	err = json.Unmarshal(resp, &servicePlanVisibilitiesResp)

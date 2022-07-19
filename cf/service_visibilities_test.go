@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -20,7 +21,12 @@ import (
 )
 
 var _ = Describe("Client Service Plan Visibilities", func() {
-	const orgGUID = "testorgguid"
+	const (
+		org1Guid = "testorgguid1"
+		org2Guid = "testorgguid2"
+		org1Name = "org1Name"
+		org2Name = "org2Name"
+	)
 
 	var (
 		ccServer                *ghttp.Server
@@ -29,8 +35,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		generatedCFBrokers      []*cfclient.ServiceBroker
 		generatedCFServices     map[string][]*cfclient.Service
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
-		generatedCFVisibilities map[string]*cfclient.ServicePlanVisibility
-		expectedCFVisibilities  map[string]*platform.Visibility
+		generatedCFVisibilities map[string]*cf.ServicePlanVisibilitiesResponse
+		expectedCFVisibilities  map[string][]*platform.Visibility
 
 		maxAllowedParallelRequests int
 		parallelRequestsCounter    int
@@ -99,12 +105,11 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		return plans
 	}
 
-	generateCFVisibilities := func(plansMap map[string][]*cfclient.ServicePlan) (map[string]*cfclient.ServicePlanVisibility, map[string]*platform.Visibility) {
-		visibilities := make(map[string]*cfclient.ServicePlanVisibility)
-		expectedVisibilities := make(map[string]*platform.Visibility, 0)
+	generateCFVisibilities := func(plansMap map[string][]*cfclient.ServicePlan) (map[string]*cf.ServicePlanVisibilitiesResponse, map[string][]*platform.Visibility) {
+		visibilities := make(map[string]*cf.ServicePlanVisibilitiesResponse)
+		expectedVisibilities := make(map[string][]*platform.Visibility, 0)
 		for _, plans := range plansMap {
 			for _, plan := range plans {
-				visibilityGuid := "cfVisibilityForPlan_" + plan.Guid
 				var brokerName string
 				for _, services := range generatedCFServices {
 					for _, service := range services {
@@ -121,27 +126,46 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				Expect(brokerName).ToNot(BeEmpty())
 
 				if !plan.Public {
-					visibilities[plan.Guid] = &cfclient.ServicePlanVisibility{
-						ServicePlanGuid:  plan.Guid,
-						ServicePlanUrl:   "http://example.com",
-						Guid:             visibilityGuid,
-						OrganizationGuid: orgGUID,
+					visibilities[plan.Guid] = &cf.ServicePlanVisibilitiesResponse{
+						Type: string(cf.VisibilityType.ORGANIZATION),
+						Organizations: []cf.Organization{
+							{
+								Guid: org1Guid,
+								Name: org1Name,
+							},
+							{
+								Guid: org2Guid,
+								Name: org2Name,
+							},
+						},
 					}
 
-					expectedVisibilities[plan.Guid] = &platform.Visibility{
-						Public:             false,
-						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: brokerName,
-						Labels: map[string]string{
-							client.VisibilityScopeLabelKey(): orgGUID,
+					expectedVisibilities[plan.Guid] = []*platform.Visibility{
+						{
+							Public:             false,
+							CatalogPlanID:      plan.UniqueId,
+							PlatformBrokerName: brokerName,
+							Labels: map[string]string{
+								client.VisibilityScopeLabelKey(): org1Guid,
+							},
+						},
+						{
+							Public:             false,
+							CatalogPlanID:      plan.UniqueId,
+							PlatformBrokerName: brokerName,
+							Labels: map[string]string{
+								client.VisibilityScopeLabelKey(): org2Guid,
+							},
 						},
 					}
 				} else {
-					expectedVisibilities[plan.Guid] = &platform.Visibility{
-						Public:             true,
-						CatalogPlanID:      plan.UniqueId,
-						PlatformBrokerName: brokerName,
-						Labels:             make(map[string]string),
+					expectedVisibilities[plan.Guid] = []*platform.Visibility{
+						{
+							Public:             true,
+							CatalogPlanID:      plan.UniqueId,
+							PlatformBrokerName: brokerName,
+							Labels:             make(map[string]string),
+						},
 					}
 				}
 			}
@@ -215,6 +239,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		rw.Write([]byte(`{"description": "Expected"}`))
 	}
 
+	// TODO replace with V3
 	setCCBrokersResponse := func(server *ghttp.Server, cfBrokers []*cfclient.ServiceBroker) {
 		if cfBrokers == nil {
 			server.RouteToHandler(http.MethodGet, "/v2/service_brokers", parallelRequestsChecker(badRequestHandler))
@@ -242,6 +267,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
+	// TODO replace with V3
 	setCCServicesResponse := func(server *ghttp.Server, cfServices map[string][]*cfclient.Service) {
 		if cfServices == nil {
 			server.RouteToHandler(http.MethodGet, "/v2/services", parallelRequestsChecker(badRequestHandler))
@@ -271,6 +297,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
+	// TODO replace with V3
 	setCCPlansResponse := func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
 		if cfPlans == nil {
 			server.RouteToHandler(http.MethodGet, "/v2/service_plans", parallelRequestsChecker(badRequestHandler))
@@ -300,35 +327,23 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
-	setCCVisibilitiesResponse := func(server *ghttp.Server, cfVisibilities map[string]*cfclient.ServicePlanVisibility) {
-		if cfVisibilities == nil {
-			server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", parallelRequestsChecker(badRequestHandler))
+	setCCVisibilitiesResponse := func(server *ghttp.Server, cfVisibilitiesByPlanId map[string]*cf.ServicePlanVisibilitiesResponse) {
+		r := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
+		path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
+		if cfVisibilitiesByPlanId == nil {
+			server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(badRequestHandler))
 			return
 		}
-		server.RouteToHandler(http.MethodGet, "/v2/service_plan_visibilities", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
-			reqPlans := parseFilterQuery(req.URL.Query().Get("q"), "service_plan_guid")
-			Expect(reqPlans).ToNot(BeEmpty())
-			visibilityResources := make([]cfclient.ServicePlanVisibilityResource, 0, len(reqPlans))
-			for visibilityGuid, visibility := range cfVisibilities {
-				if reqPlans[visibility.ServicePlanGuid] {
-					visibilityResources = append(visibilityResources, cfclient.ServicePlanVisibilityResource{
-						Entity: *visibility,
-						Meta: cfclient.Meta{
-							Guid: visibilityGuid,
-						},
-					})
-				}
-			}
-			servicePlanResponse := cfclient.ServicePlanVisibilitiesResponse{
-				Count:     len(visibilityResources),
-				Pages:     1,
-				Resources: visibilityResources,
-			}
-			writeJSONResponse(servicePlanResponse, rw)
+		server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+
+			planId := r.Replace(req.RequestURI)
+			visibilitiesResponse, _ := cfVisibilitiesByPlanId[planId]
+
+			writeJSONResponse(visibilitiesResponse, rw)
 		}))
 	}
 
-	createCCServer := func(brokers []*cfclient.ServiceBroker, cfServices map[string][]*cfclient.Service, cfPlans map[string][]*cfclient.ServicePlan, cfVisibilities map[string]*cfclient.ServicePlanVisibility) *ghttp.Server {
+	createCCServer := func(brokers []*cfclient.ServiceBroker, cfServices map[string][]*cfclient.Service, cfPlans map[string][]*cfclient.ServicePlan, cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse) *ghttp.Server {
 		server := fakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
 		setCCServicesResponse(server, cfServices)
@@ -381,8 +396,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				platformVisibilities, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).ShouldNot(HaveOccurred())
 
-				for _, expectedCFVisibility := range expectedCFVisibilities {
-					Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
+				for _, expectedCFVisibilities := range expectedCFVisibilities {
+					for _, expectedCFVisibility := range expectedCFVisibilities {
+						Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
+					}
 				}
 			})
 		})
@@ -401,7 +418,9 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 						for _, plan := range generatedCFPlans[serviceGUID] {
 							planGUID := plan.Guid
 							expectedVis := expectedCFVisibilities[planGUID]
-							Expect(platformVisibilities).Should(ContainElement(expectedVis))
+							for _, expectedCFVisibility := range expectedVis {
+								Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
+							}
 						}
 					}
 				}
@@ -443,7 +462,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			It("should return error", func() {
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).To(HaveOccurred())
-				Expect(logInterceptor.String()).To(MatchRegexp("Error requesting service plan visibilities.*Expected"))
+				k := logInterceptor.String()
+				Expect(k).To(MatchRegexp("Error requesting service plan visibilities."))
 			})
 		})
 	})

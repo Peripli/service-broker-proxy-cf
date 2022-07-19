@@ -2,18 +2,49 @@ package cf
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
+	"net/http"
 	"sync"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/Peripli/service-manager/pkg/log"
-	"github.com/cloudfoundry-community/go-cfclient"
 )
 
 // OrgLabelKey label key for CF organization visibilities
 const OrgLabelKey = "organization_guid"
+
+var VisibilityType = struct {
+	PUBLIC       VisibilityTypeValue
+	ADMIN        VisibilityTypeValue
+	ORGANIZATION VisibilityTypeValue
+	SPACE        VisibilityTypeValue
+}{
+	PUBLIC:       "public",
+	ADMIN:        "admin",
+	ORGANIZATION: "organization",
+	SPACE:        "space",
+}
+
+type VisibilityTypeValue string
+
+type ServicePlanVisibilitiesResponse struct {
+	Type          string         `json:"type"`
+	Organizations []Organization `json:"organizations"`
+}
+
+type Organization struct {
+	Guid string `json:"guid"`
+	Name string `json:"name"`
+}
+
+type ServicePlanVisibility struct {
+	ServicePlanGuid  string
+	OrganizationGuid string
+}
 
 // VisibilityScopeLabelKey returns key to be used when scoping visibilities
 func (pc *PlatformClient) VisibilityScopeLabelKey() string {
@@ -76,8 +107,8 @@ func getPlanGUIDs(plans cfmodel.PlanMap) []string {
 	return guids
 }
 
-func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []string) ([]cfclient.ServicePlanVisibility, error) {
-	var result []cfclient.ServicePlanVisibility
+func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []string) ([]ServicePlanVisibility, error) {
+	var result []ServicePlanVisibility
 	var mutex sync.Mutex // protects result
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 
@@ -85,7 +116,7 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 	for _, chunk := range chunks {
 		chunk := chunk // copy for goroutine
 		err := scheduler.Schedule(func(ctx context.Context) error {
-			visibilities, err := pc.getPlanVisibilitiesByPlanGUID(ctx, chunk)
+			visibilities, err := pc.getPlansVisibilitiesByPlanIds(ctx, chunk)
 			if err != nil {
 				return err
 			}
@@ -106,15 +137,50 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 	return result, nil
 }
 
-func (pc *PlatformClient) getPlanVisibilitiesByPlanGUID(ctx context.Context, plansGUID []string) ([]cfclient.ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlansVisibilitiesByPlanIds(ctx context.Context, plansGUID []string) ([]ServicePlanVisibility, error) {
 	logger := log.C(ctx)
 	logger.Infof("Loading visibilities for service plans with GUIDs %v from Cloud Foundry...", plansGUID)
-	vis, err := pc.client.ListServicePlanVisibilitiesByQuery(
-		pc.buildQuery("service_plan_guid", plansGUID...))
-	if err == nil {
-		logger.Infof("Loaded %d visibilities from Cloud Foundry", len(vis))
+
+	var servicePlansVisibilities []ServicePlanVisibility
+	for _, planGUID := range plansGUID {
+		servicePlanVisibilities, err := pc.getPlanVisibilitiesByPlanId(ctx, planGUID)
+		if err != nil {
+			return nil, err
+		}
+
+		servicePlansVisibilities = append(servicePlansVisibilities, servicePlanVisibilities...)
 	}
-	return vis, err
+
+	logger.Infof("Loaded %d visibilities from Cloud Foundry", len(servicePlansVisibilities))
+	return servicePlansVisibilities, nil
+}
+
+func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planGUID string) ([]ServicePlanVisibility, error) {
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
+	var servicePlanVisibilitiesResp ServicePlanVisibilitiesResponse
+	var servicePlanVisibilities []ServicePlanVisibility
+
+	resp, err := pc.DoRequest(ctx, http.MethodGet, path)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error requesting service plan visibilities")
+	}
+
+	err = json.Unmarshal(resp, &servicePlanVisibilitiesResp)
+	if err != nil {
+		return nil, err
+	}
+	if servicePlanVisibilitiesResp.Type != string(VisibilityType.ORGANIZATION) {
+		return []ServicePlanVisibility{}, nil
+	}
+
+	for _, org := range servicePlanVisibilitiesResp.Organizations {
+		servicePlanVisibilities = append(servicePlanVisibilities, ServicePlanVisibility{
+			ServicePlanGuid:  planGUID,
+			OrganizationGuid: org.Guid,
+		})
+	}
+
+	return servicePlanVisibilities, nil
 }
 
 func splitStringsIntoChunks(names []string, maxChunkLength int) [][]string {

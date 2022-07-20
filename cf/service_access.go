@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 
@@ -37,6 +38,7 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 }
 
 func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, isEnabled bool) error {
+	logger := log.C(ctx)
 	if request == nil {
 		return errors.Errorf("modify plan access request cannot be nil")
 	}
@@ -48,11 +50,21 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	}
 
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
+
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
 		log.C(ctx).Infof("Updating access for plan with catalog id %s in %d organizations ...",
 			plan.CatalogPlanID, len(orgGUIDs))
+
+		if plan.Public {
+			logger.Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
+				"visibility for orgs with GUID %s will be ignored", plan.GUID, strings.Join(orgGUIDs, ", "))
+		}
+
+		if isEnabled {
+			pc.applyOrgsVisibilityForPlan(ctx, plan, orgGUIDs)
+		}
 		for _, orgGUID := range orgGUIDs {
-			pc.scheduleUpdateOrgVisibilityForPlan(ctx, request, scheduler, plan, isEnabled, orgGUID)
+			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan, orgGUID)
 		}
 	} else {
 		pc.scheduleUpdatePlan(ctx, request, scheduler, plan, isEnabled)
@@ -65,9 +77,9 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	return nil
 }
 
-func (pc *PlatformClient) scheduleUpdateOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isEnabled bool, orgGUID string) {
+func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, orgGUID string) {
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-		return pc.updateOrgVisibilityForPlan(ctx, plan, isEnabled, orgGUID)
+		return pc.deleteOrgVisibilityForPlan(ctx, plan, orgGUID)
 	}); schedulerErr != nil {
 		log.C(ctx).WithError(schedulerErr).
 			Errorf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
@@ -82,24 +94,22 @@ func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platf
 	}
 }
 
-func (pc *PlatformClient) updateOrgVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, isEnabled bool, orgGUID string) error {
+func (pc *PlatformClient) applyOrgsVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, orgsGUID []string) error {
 	logger := log.C(ctx)
-	switch {
-	case plan.Public:
-		logger.Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
-			"visibility for org with GUID %s will be ignored", plan.GUID, orgGUID)
-	case isEnabled:
-		if _, err := pc.client.CreateServicePlanVisibility(plan.GUID, orgGUID); err != nil {
-			return fmt.Errorf("could not enable access for plan with GUID %s in organization with GUID %s: %v",
-				plan.GUID, orgGUID, err)
-		}
-		logger.Infof("Enabled access for plan with GUID %s in organization with GUID %s",
-			plan.GUID, orgGUID)
-	case !isEnabled:
-		query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
-		if err := pc.deleteAccessVisibilities(ctx, query); err != nil {
-			return err
-		}
+	if _, err := pc.ApplyServicePlanVisibility(ctx, plan.GUID, orgsGUID); err != nil {
+		return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s: %v",
+			plan.GUID, strings.Join(orgsGUID, ", "), err)
+	}
+	logger.Infof("Enabled access for plan with GUID %s in organizations with GUID %s",
+		plan.GUID, strings.Join(orgsGUID, ", "))
+
+	return nil
+}
+
+func (pc *PlatformClient) deleteOrgVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, orgGUID string) error {
+	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
+	if err := pc.deleteAccessVisibilities(ctx, query); err != nil {
+		return err
 	}
 
 	return nil

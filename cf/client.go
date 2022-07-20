@@ -40,6 +40,7 @@ func (pc *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
 	return pc
 }
 
+// DoRequest requests CF API and returns response body in []byte or error if response from CF api >= 400
 func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) ([]byte, error) {
 	var request *cfclient.Request
 

@@ -43,6 +43,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		parallelRequestsMutex      sync.Mutex
 	)
 
+	r := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
+
 	generateCFBrokers := func(count int) []*cfclient.ServiceBroker {
 		brokers := make([]*cfclient.ServiceBroker, 0)
 		for i := 0; i < count; i++ {
@@ -327,15 +329,13 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
-	setCCVisibilitiesResponse := func(server *ghttp.Server, cfVisibilitiesByPlanId map[string]*cf.ServicePlanVisibilitiesResponse) {
-		r := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
+	setCCVisibilitiesGetResponse := func(server *ghttp.Server, cfVisibilitiesByPlanId map[string]*cf.ServicePlanVisibilitiesResponse) {
 		path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 		if cfVisibilitiesByPlanId == nil {
 			server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(badRequestHandler))
 			return
 		}
 		server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
-
 			planId := r.Replace(req.RequestURI)
 			visibilitiesResponse, _ := cfVisibilitiesByPlanId[planId]
 
@@ -343,12 +343,31 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
-	createCCServer := func(brokers []*cfclient.ServiceBroker, cfServices map[string][]*cfclient.Service, cfPlans map[string][]*cfclient.ServicePlan, cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse) *ghttp.Server {
+	setCCVisibilitiesApplyResponse := func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
+		path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
+		if cfPlans == nil {
+			server.RouteToHandler(http.MethodPost, path, parallelRequestsChecker(badRequestHandler))
+			return
+		}
+		server.RouteToHandler(http.MethodPost, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+			writeJSONResponse(cf.ApplyServicePlanVisibilitiesResponse{
+				Type: string(cf.VisibilityType.ORGANIZATION),
+			}, rw)
+		}))
+	}
+
+	createCCServer := func(
+		brokers []*cfclient.ServiceBroker,
+		cfServices map[string][]*cfclient.Service,
+		cfPlans map[string][]*cfclient.ServicePlan,
+		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
+	) *ghttp.Server {
 		server := fakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
 		setCCServicesResponse(server, cfServices)
 		setCCPlansResponse(server, cfPlans)
-		setCCVisibilitiesResponse(server, cfVisibilities)
+		setCCVisibilitiesGetResponse(server, cfVisibilities)
+		setCCVisibilitiesApplyResponse(server, cfPlans)
 
 		return server
 	}
@@ -358,6 +377,19 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			return nil, err
 		}
 		return client.GetVisibilitiesByBrokers(ctx, brokerNames)
+	}
+
+	applyVisibilities := func(ctx context.Context, planGUID string, organizationsGUID []string) (cf.ApplyServicePlanVisibilitiesResponse, error) {
+		if err := client.ResetCache(ctx); err != nil {
+			return cf.ApplyServicePlanVisibilitiesResponse{}, err
+		}
+
+		response, err := client.ApplyServicePlanVisibility(ctx, planGUID, organizationsGUID)
+		if err != nil {
+			return cf.ApplyServicePlanVisibilitiesResponse{}, err
+		}
+
+		return response, nil
 	}
 
 	AfterEach(func() {
@@ -467,4 +499,34 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 		})
 	})
+
+	Describe("Apply service plan visibilities", func() {
+		servicePlanGuid, _ := uuid.NewV4()
+		Context("when service plan is not available", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should return error", func() {
+
+				_, err := applyVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+			})
+		})
+
+		Context("when service plan and org available", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should return ApplyServicePlanVisibilitiesResponse", func() {
+				resp, err := applyVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(resp.Type).To(Equal(string(cf.VisibilityType.ORGANIZATION)))
+			})
+		})
+	})
+
 })

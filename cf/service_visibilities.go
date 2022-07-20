@@ -36,6 +36,19 @@ type ServicePlanVisibilitiesResponse struct {
 	Organizations []Organization `json:"organizations"`
 }
 
+type ApplyServicePlanVisibilitiesResponse struct {
+	Type string `json:"type"`
+}
+
+type UpdateServicePlanVisibilitiesRequest struct {
+	Type          string             `json:"type"`
+	Organizations []OrganizationGuid `json:"organizations"`
+}
+
+type OrganizationGuid struct {
+	Guid string `json:"guid"`
+}
+
 type Organization struct {
 	Guid string `json:"guid"`
 	Name string `json:"name"`
@@ -89,8 +102,30 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	return result, nil
 }
 
+func (pc *PlatformClient) ApplyServicePlanVisibility(ctx context.Context, planGUID string, organizationsGUID []string) (ApplyServicePlanVisibilitiesResponse, error) {
+	var applyServicePlanVisibilitiesResp ApplyServicePlanVisibilitiesResponse
+
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
+	body := UpdateServicePlanVisibilitiesRequest{
+		Type:          string(VisibilityType.ORGANIZATION),
+		Organizations: newOrganizations(organizationsGUID),
+	}
+
+	resp, err := pc.DoRequest(ctx, http.MethodPost, path, body)
+	if err != nil {
+		return ApplyServicePlanVisibilitiesResponse{}, errors.Wrapf(err, "Error applying service plan visibility.")
+	}
+
+	err = json.Unmarshal(resp, &applyServicePlanVisibilitiesResp)
+	if err != nil {
+		return ApplyServicePlanVisibilitiesResponse{}, err
+	}
+
+	return applyServicePlanVisibilitiesResp, nil
+}
+
 func filterPublicPlans(plans cfmodel.PlanMap) []cfmodel.PlanData {
-	publicPlans := []cfmodel.PlanData{}
+	var publicPlans []cfmodel.PlanData
 	for _, plan := range plans {
 		if plan.Public {
 			publicPlans = append(publicPlans, plan)
@@ -156,10 +191,10 @@ func (pc *PlatformClient) getPlansVisibilitiesByPlanIds(ctx context.Context, pla
 }
 
 func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planGUID string) ([]ServicePlanVisibility, error) {
-	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
 	var servicePlanVisibilitiesResp ServicePlanVisibilitiesResponse
 	var servicePlanVisibilities []ServicePlanVisibility
 
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
 	resp, err := pc.DoRequest(ctx, http.MethodGet, path)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error requesting service plan visibilities")
@@ -199,4 +234,15 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func newOrganizations(orgsGUID []string) []OrganizationGuid {
+	var organizations []OrganizationGuid
+	for _, g := range orgsGUID {
+		organizations = append(organizations, OrganizationGuid{
+			Guid: g,
+		})
+	}
+
+	return organizations
 }

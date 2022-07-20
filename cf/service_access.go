@@ -15,7 +15,7 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/pkg/errors"
 )
 

@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"io/ioutil"
-	"net/http"
 )
 
 const (
@@ -23,6 +21,12 @@ type PlatformClient struct {
 	client       *cfclient.Client
 	settings     *Settings
 	planResolver *cfmodel.PlanResolver
+}
+
+// PlatformClientResponse provides generic response model from CF API
+type PlatformClientResponse struct {
+	StatusCode int
+	Body       []byte
 }
 
 // Broker returns platform client which can perform platform broker operations
@@ -41,8 +45,9 @@ func (pc *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
 }
 
 // DoRequest requests CF API and returns response body in []byte or error if response from CF api >= 400
-func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) ([]byte, error) {
+func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) (*PlatformClientResponse, error) {
 	var request *cfclient.Request
+	var result *PlatformClientResponse
 
 	if body != nil {
 		buf := bytes.NewBuffer(nil)
@@ -59,22 +64,24 @@ func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path str
 	if err != nil {
 		return nil, err
 	}
+
+	result = &PlatformClientResponse{
+		StatusCode: response.StatusCode,
+		Body:       nil,
+	}
 	defer func() {
 		if err := response.Body.Close(); err != nil {
 			log.C(ctx).Warn("unable to close response body stream:", err)
 		}
 	}()
-	if response.StatusCode >= http.StatusBadRequest {
-		log.C(ctx).Error(fmt.Errorf("CF API %s %s returned status code %d", method, path, response.StatusCode), err)
-		return nil, err
-	}
 
 	responseBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return responseBody, nil
+	result.Body = responseBody
+	return result, nil
 }
 
 // NewClient creates a new CF cf client from the specified configuration.

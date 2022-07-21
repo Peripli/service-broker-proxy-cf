@@ -58,13 +58,15 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 		if plan.Public {
 			logger.Warnf("Plan with GUID %s is already public and therefore attempt to update access "+
 				"visibility for orgs with GUID %s will be ignored", plan.GUID, strings.Join(orgGUIDs, ", "))
+			return nil
 		}
 
 		if isEnabled {
-			pc.applyOrgsVisibilityForPlan(ctx, plan, orgGUIDs)
-		}
-		for _, orgGUID := range orgGUIDs {
-			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan, orgGUID)
+			pc.applyOrgsVisibilityForPlan(ctx, plan.GUID, orgGUIDs)
+		} else {
+			for _, orgGUID := range orgGUIDs {
+				pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, orgGUID)
+			}
 		}
 	} else {
 		pc.scheduleUpdatePlan(ctx, request, scheduler, plan, isEnabled)
@@ -77,16 +79,28 @@ func (pc *PlatformClient) updateAccessForPlan(ctx context.Context, request *plat
 	return nil
 }
 
-func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, orgGUID string) {
+func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
+	ctx context.Context,
+	request *platform.ModifyPlanAccessRequest,
+	scheduler *reconcile.TaskScheduler,
+	planGuid string,
+	orgGUID string) {
+
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-		return pc.deleteOrgVisibilityForPlan(ctx, plan, orgGUID)
+		return pc.DeleteServicePlanVisibility(ctx, planGuid, orgGUID)
 	}); schedulerErr != nil {
 		log.C(ctx).WithError(schedulerErr).
 			Errorf("Could not schedule task for update plan with catalog id %s", request.CatalogPlanID)
 	}
 }
 
-func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platform.ModifyPlanAccessRequest, scheduler *reconcile.TaskScheduler, plan cfmodel.PlanData, isPublic bool) {
+func (pc *PlatformClient) scheduleUpdatePlan(
+	ctx context.Context,
+	request *platform.ModifyPlanAccessRequest,
+	scheduler *reconcile.TaskScheduler,
+	plan cfmodel.PlanData,
+	isPublic bool) {
+
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		return pc.updatePlan(ctx, plan, isPublic)
 	}); schedulerErr != nil {
@@ -94,23 +108,14 @@ func (pc *PlatformClient) scheduleUpdatePlan(ctx context.Context, request *platf
 	}
 }
 
-func (pc *PlatformClient) applyOrgsVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, orgsGUID []string) error {
+func (pc *PlatformClient) applyOrgsVisibilityForPlan(ctx context.Context, planGuid string, orgsGUID []string) error {
 	logger := log.C(ctx)
-	if _, err := pc.ApplyServicePlanVisibility(ctx, plan.GUID, orgsGUID); err != nil {
+	if _, err := pc.ApplyServicePlanVisibility(ctx, planGuid, orgsGUID); err != nil {
 		return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s: %v",
-			plan.GUID, strings.Join(orgsGUID, ", "), err)
+			planGuid, strings.Join(orgsGUID, ", "), err)
 	}
 	logger.Infof("Enabled access for plan with GUID %s in organizations with GUID %s",
-		plan.GUID, strings.Join(orgsGUID, ", "))
-
-	return nil
-}
-
-func (pc *PlatformClient) deleteOrgVisibilityForPlan(ctx context.Context, plan cfmodel.PlanData, orgGUID string) error {
-	query := url.Values{"q": []string{fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", plan.GUID, orgGUID)}}
-	if err := pc.deleteAccessVisibilities(ctx, query); err != nil {
-		return err
-	}
+		planGuid, strings.Join(orgsGUID, ", "))
 
 	return nil
 }

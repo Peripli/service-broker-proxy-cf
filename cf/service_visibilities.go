@@ -116,12 +116,30 @@ func (pc *PlatformClient) ApplyServicePlanVisibility(ctx context.Context, planGU
 		return ApplyServicePlanVisibilitiesResponse{}, errors.Wrapf(err, "Error applying service plan visibility.")
 	}
 
-	err = json.Unmarshal(resp, &applyServicePlanVisibilitiesResp)
+	if resp.StatusCode != http.StatusOK {
+		return ApplyServicePlanVisibilitiesResponse{}, errors.Wrapf(err, "Error applying service plan visibility, response code: %d", resp.StatusCode)
+	}
+
+	err = json.Unmarshal(resp.Body, &applyServicePlanVisibilitiesResp)
 	if err != nil {
 		return ApplyServicePlanVisibilitiesResponse{}, err
 	}
 
 	return applyServicePlanVisibilitiesResp, nil
+}
+
+func (pc *PlatformClient) DeleteServicePlanVisibility(ctx context.Context, planGUID string, organizationGUID string) error {
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility/%s", planGUID, organizationGUID)
+	resp, err := pc.DoRequest(ctx, http.MethodDelete, path)
+	if err != nil {
+		return errors.Wrapf(err, "Error deleting service plan visibility.")
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return errors.Wrapf(err, "Error deleting service plan visibility, response code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func filterPublicPlans(plans cfmodel.PlanMap) []cfmodel.PlanData {
@@ -200,7 +218,7 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planG
 		return nil, errors.Wrap(err, "Error requesting service plan visibilities")
 	}
 
-	err = json.Unmarshal(resp, &servicePlanVisibilitiesResp)
+	err = json.Unmarshal(resp.Body, &servicePlanVisibilitiesResp)
 	if err != nil {
 		return nil, err
 	}

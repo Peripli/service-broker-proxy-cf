@@ -356,6 +356,17 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
+	setCCVisibilitiesDeleteResponse := func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
+		path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility/(?P<organization_guid>[A-Za-z0-9_-]+)`)
+		if cfPlans == nil {
+			server.RouteToHandler(http.MethodDelete, path, parallelRequestsChecker(badRequestHandler))
+			return
+		}
+		server.RouteToHandler(http.MethodDelete, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+			rw.WriteHeader(http.StatusNoContent)
+		}))
+	}
+
 	createCCServer := func(
 		brokers []*cfclient.ServiceBroker,
 		cfServices map[string][]*cfclient.Service,
@@ -368,6 +379,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		setCCPlansResponse(server, cfPlans)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
 		setCCVisibilitiesApplyResponse(server, cfPlans)
+		setCCVisibilitiesDeleteResponse(server, cfPlans)
 
 		return server
 	}
@@ -390,6 +402,14 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}
 
 		return response, nil
+	}
+
+	deleteVisibilities := func(ctx context.Context, planGUID string, organizationsGUID string) error {
+		if err := client.ResetCache(ctx); err != nil {
+			return err
+		}
+
+		return client.DeleteServicePlanVisibility(ctx, planGUID, organizationsGUID)
 	}
 
 	AfterEach(func() {
@@ -509,7 +529,6 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 
 			It("should return error", func() {
-
 				_, err := applyVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
 				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
 			})
@@ -525,6 +544,33 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				resp, err := applyVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(resp.Type).To(Equal(string(cf.VisibilityType.ORGANIZATION)))
+			})
+		})
+	})
+
+	Describe("Delete service plan visibilities by organization guid", func() {
+		servicePlanGuid, _ := uuid.NewV4()
+		Context("when service plan is not available", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should return error", func() {
+				err := deleteVisibilities(ctx, servicePlanGuid.String(), org1Guid)
+				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+			})
+		})
+
+		Context("when service plan and org available", func() {
+			BeforeEach(func() {
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
+				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			})
+
+			It("should delete visibility successfully", func() {
+				err := deleteVisibilities(ctx, servicePlanGuid.String(), org1Guid)
+				Expect(err).ShouldNot(HaveOccurred())
 			})
 		})
 	})

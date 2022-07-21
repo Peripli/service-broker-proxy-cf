@@ -304,7 +304,7 @@ var _ = Describe("Client", func() {
 				It("returns CF response", func() {
 					var appResponse cfclient.AppResponse
 					resp, err := cl.DoRequest(ctx, http.MethodGet, requestPath)
-					json.Unmarshal(resp, &appResponse)
+					json.Unmarshal(resp.Body, &appResponse)
 
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(appResponse).To(Equal(response))
@@ -347,7 +347,7 @@ var _ = Describe("Client", func() {
 				It("returns CF response", func() {
 					var appResponse cfclient.AppResponse
 					resp, err := cl.DoRequest(ctx, http.MethodPost, requestPath, requestBody)
-					json.Unmarshal(resp, &appResponse)
+					json.Unmarshal(resp.Body, &appResponse)
 
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(appResponse).To(Equal(response))

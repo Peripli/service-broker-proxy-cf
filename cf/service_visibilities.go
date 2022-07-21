@@ -36,13 +36,13 @@ type ServicePlanVisibilitiesResponse struct {
 	Organizations []Organization `json:"organizations"`
 }
 
-type ApplyServicePlanVisibilitiesResponse struct {
-	Type string `json:"type"`
-}
-
-type UpdateServicePlanVisibilitiesRequest struct {
+type UpdateOrganizationVisibilitiesRequest struct {
 	Type          string             `json:"type"`
 	Organizations []OrganizationGuid `json:"organizations"`
+}
+
+type UpdateVisibilitiesRequest struct {
+	Type string `json:"type"`
 }
 
 type OrganizationGuid struct {
@@ -102,33 +102,22 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	return result, nil
 }
 
-func (pc *PlatformClient) ApplyServicePlanVisibility(ctx context.Context, planGUID string, organizationsGUID []string) (ApplyServicePlanVisibilitiesResponse, error) {
-	var applyServicePlanVisibilitiesResp ApplyServicePlanVisibilitiesResponse
-
-	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
-	body := UpdateServicePlanVisibilitiesRequest{
-		Type:          string(VisibilityType.ORGANIZATION),
-		Organizations: newOrganizations(organizationsGUID),
-	}
-
-	resp, err := pc.DoRequest(ctx, http.MethodPost, path, body)
-	if err != nil {
-		return ApplyServicePlanVisibilitiesResponse{}, errors.Wrapf(err, "Error applying service plan visibility.")
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return ApplyServicePlanVisibilitiesResponse{}, errors.Wrapf(err, "Error applying service plan visibility, response code: %d", resp.StatusCode)
-	}
-
-	err = json.Unmarshal(resp.Body, &applyServicePlanVisibilitiesResp)
-	if err != nil {
-		return ApplyServicePlanVisibilitiesResponse{}, err
-	}
-
-	return applyServicePlanVisibilitiesResp, nil
+// UpdateServicePlanVisibility updates service plan visibility type
+func (pc *PlatformClient) UpdateServicePlanVisibility(ctx context.Context, planGUID string, visibilityType VisibilityTypeValue) error {
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, planGUID, visibilityType)
 }
 
-func (pc *PlatformClient) DeleteServicePlanVisibility(ctx context.Context, planGUID string, organizationGUID string) error {
+// AddOrganizationVisibilities appends organization visibilities to the existing list of the organizations
+func (pc *PlatformClient) AddOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUIDs []string) error {
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPost, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs)
+}
+
+// ReplaceOrganizationVisibilities replaces existing list of organizations
+func (pc *PlatformClient) ReplaceOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUIDs []string) error {
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs)
+}
+
+func (pc *PlatformClient) DeleteOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUID string) error {
 	path := fmt.Sprintf("/v3/service_plans/%s/visibility/%s", planGUID, organizationGUID)
 	resp, err := pc.DoRequest(ctx, http.MethodDelete, path)
 	if err != nil {
@@ -162,7 +151,8 @@ func getPlanGUIDs(plans cfmodel.PlanMap) []string {
 
 func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []string) ([]ServicePlanVisibility, error) {
 	var result []ServicePlanVisibility
-	var mutex sync.Mutex // protects result
+	// protects result
+	var mutex sync.Mutex
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 
 	chunks := splitStringsIntoChunks(planIDs, pc.settings.CF.ChunkSize)
@@ -234,6 +224,39 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planG
 	}
 
 	return servicePlanVisibilities, nil
+}
+
+func (pc *PlatformClient) updateServicePlanVisibilities(
+	ctx context.Context,
+	requestMethod string,
+	planGUID string,
+	visibilityType VisibilityTypeValue,
+	organizationGUIDs ...[]string) error {
+
+	var requestBody interface{}
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
+
+	if visibilityType == VisibilityType.ORGANIZATION {
+		requestBody = UpdateOrganizationVisibilitiesRequest{
+			Type:          string(visibilityType),
+			Organizations: newOrganizations(organizationGUIDs[0]),
+		}
+	} else {
+		requestBody = UpdateVisibilitiesRequest{
+			Type: string(visibilityType),
+		}
+	}
+
+	resp, err := pc.DoRequest(ctx, requestMethod, path, requestBody)
+	if err != nil {
+		return errors.Wrapf(err, "Error updating service plan visibility.")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.Wrapf(err, "Error updating service plan visibility, response code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
 
 func splitStringsIntoChunks(names []string, maxChunkLength int) [][]string {

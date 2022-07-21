@@ -343,16 +343,17 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		}))
 	}
 
-	setCCVisibilitiesApplyResponse := func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
+	setCCVisibilitiesUpdateResponse := func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
 		path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 		if cfPlans == nil {
 			server.RouteToHandler(http.MethodPost, path, parallelRequestsChecker(badRequestHandler))
 			return
 		}
 		server.RouteToHandler(http.MethodPost, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
-			writeJSONResponse(cf.ApplyServicePlanVisibilitiesResponse{
-				Type: string(cf.VisibilityType.ORGANIZATION),
-			}, rw)
+			rw.WriteHeader(http.StatusOK)
+		}))
+		server.RouteToHandler(http.MethodPatch, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+			rw.WriteHeader(http.StatusOK)
 		}))
 	}
 
@@ -378,7 +379,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		setCCServicesResponse(server, cfServices)
 		setCCPlansResponse(server, cfPlans)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
-		setCCVisibilitiesApplyResponse(server, cfPlans)
+		setCCVisibilitiesUpdateResponse(server, cfPlans)
 		setCCVisibilitiesDeleteResponse(server, cfPlans)
 
 		return server
@@ -391,17 +392,43 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		return client.GetVisibilitiesByBrokers(ctx, brokerNames)
 	}
 
-	applyVisibilities := func(ctx context.Context, planGUID string, organizationsGUID []string) (cf.ApplyServicePlanVisibilitiesResponse, error) {
+	updateVisibility := func(ctx context.Context, planGUID string, visibilityType cf.VisibilityTypeValue) error {
 		if err := client.ResetCache(ctx); err != nil {
-			return cf.ApplyServicePlanVisibilitiesResponse{}, err
+			return err
 		}
 
-		response, err := client.ApplyServicePlanVisibility(ctx, planGUID, organizationsGUID)
+		err := client.UpdateServicePlanVisibility(ctx, planGUID, visibilityType)
 		if err != nil {
-			return cf.ApplyServicePlanVisibilitiesResponse{}, err
+			return err
 		}
 
-		return response, nil
+		return nil
+	}
+
+	addVisibilities := func(ctx context.Context, planGUID string, organizationsGUID []string) error {
+		if err := client.ResetCache(ctx); err != nil {
+			return err
+		}
+
+		err := client.AddOrganizationVisibilities(ctx, planGUID, organizationsGUID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	replaceVisibilities := func(ctx context.Context, planGUID string, organizationsGUID []string) error {
+		if err := client.ResetCache(ctx); err != nil {
+			return err
+		}
+
+		err := client.ReplaceOrganizationVisibilities(ctx, planGUID, organizationsGUID)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	deleteVisibilities := func(ctx context.Context, planGUID string, organizationsGUID string) error {
@@ -409,7 +436,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			return err
 		}
 
-		return client.DeleteServicePlanVisibility(ctx, planGUID, organizationsGUID)
+		return client.DeleteOrganizationVisibilities(ctx, planGUID, organizationsGUID)
 	}
 
 	AfterEach(func() {
@@ -520,7 +547,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		})
 	})
 
-	Describe("Apply service plan visibilities", func() {
+	Describe("Modify service plan visibilities", func() {
 		servicePlanGuid, _ := uuid.NewV4()
 		Context("when service plan is not available", func() {
 			BeforeEach(func() {
@@ -528,35 +555,22 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
-			It("should return error", func() {
-				_, err := applyVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+			It("updateVisibility should return error", func() {
+				err := updateVisibility(ctx, servicePlanGuid.String(), cf.VisibilityType.PUBLIC)
 				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
 			})
-		})
 
-		Context("when service plan and org available", func() {
-			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			It("addVisibilities should return error", func() {
+				err := addVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
 			})
 
-			It("should return ApplyServicePlanVisibilitiesResponse", func() {
-				resp, err := applyVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(resp.Type).To(Equal(string(cf.VisibilityType.ORGANIZATION)))
-			})
-		})
-	})
-
-	Describe("Delete service plan visibilities by organization guid", func() {
-		servicePlanGuid, _ := uuid.NewV4()
-		Context("when service plan is not available", func() {
-			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			It("replaceVisibilities should return error", func() {
+				err := replaceVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
 			})
 
-			It("should return error", func() {
+			It("deleteVisibilities should return error", func() {
 				err := deleteVisibilities(ctx, servicePlanGuid.String(), org1Guid)
 				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
 			})
@@ -568,7 +582,22 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
-			It("should delete visibility successfully", func() {
+			It("updateVisibility should not return error", func() {
+				err := updateVisibility(ctx, servicePlanGuid.String(), cf.VisibilityType.PUBLIC)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("addVisibilities should not return error", func() {
+				err := addVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("replaceVisibilities should not return error", func() {
+				err := replaceVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("deleteVisibilities should not return error", func() {
 				err := deleteVisibilities(ctx, servicePlanGuid.String(), org1Guid)
 				Expect(err).ShouldNot(HaveOccurred())
 			})

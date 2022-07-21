@@ -23,7 +23,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		getVisibilitiesResponse  cfclient.ServicePlanVisibilitiesResponse
 		createVisibilityRequest  map[string]string
 		createVisibilityResponse *cfclient.ServicePlanVisibilityResource
-		updatePlanRequest        *cf.ServicePlanRequest
 		updatePlanResponse       *cfclient.ServicePlanResource
 	}
 
@@ -64,9 +63,6 @@ var _ = Describe("Client Service Plan Access", func() {
 
 		postVisibilityForLimitedPlanRequest map[string]string
 		postVisibilityForPrivatePlanRequest map[string]string
-
-		updatePlanToPublicRequest    cf.ServicePlanRequest
-		updatePlanToNonPublicRequest cf.ServicePlanRequest
 
 		updatedPublicPlanToPrivateResponse cfclient.ServicePlanResource
 		updatedPrivatePlanToPublicResponse cfclient.ServicePlanResource
@@ -205,14 +201,6 @@ var _ = Describe("Client Service Plan Access", func() {
 			"organization_guid": orgGUID,
 		}
 
-		updatePlanToPublicRequest = cf.ServicePlanRequest{
-			Public: true,
-		}
-
-		updatePlanToNonPublicRequest = cf.ServicePlanRequest{
-			Public: false,
-		}
-
 		updatedPublicPlanToPrivateResponse = cfclient.ServicePlanResource{
 			Meta: cfclient.Meta{
 				Guid: publicPlan.Meta.Guid,
@@ -265,7 +253,6 @@ var _ = Describe("Client Service Plan Access", func() {
 			planResource:            publicPlan,
 			visibilityResource:      visibilityForPublicPlan,
 			getVisibilitiesResponse: getVisibilitiesForPublicPlanResponse,
-			updatePlanRequest:       &updatePlanToNonPublicRequest,
 			updatePlanResponse:      &updatedPublicPlanToPrivateResponse,
 			// createVisibilityRequest remains unset as we do not perform creating of visibility for public plans
 			// createVisibilityResponse remains unset as we do not perform creating of visibility for public plans
@@ -277,7 +264,6 @@ var _ = Describe("Client Service Plan Access", func() {
 			getVisibilitiesResponse:  getVisibilitiesForPrivatePlanResponse,
 			createVisibilityRequest:  postVisibilityForPrivatePlanRequest,
 			createVisibilityResponse: &visibilityForPrivatePlan,
-			updatePlanRequest:        &updatePlanToPublicRequest,
 			updatePlanResponse:       &updatedPrivatePlanToPublicResponse,
 		}
 
@@ -287,7 +273,6 @@ var _ = Describe("Client Service Plan Access", func() {
 			getVisibilitiesResponse:  getVisibilitiesForLimitedPlanResponse,
 			createVisibilityRequest:  postVisibilityForLimitedPlanRequest,
 			createVisibilityResponse: &visibilityForLimitedPlan,
-			updatePlanRequest:        &updatePlanToPublicRequest,
 			updatePlanResponse:       &updatedLimitedPlanToPublicResponse,
 		}
 
@@ -439,21 +424,6 @@ var _ = Describe("Client Service Plan Access", func() {
 			reaction: reactionResponse{
 				Code: http.StatusCreated,
 				Body: planDetails[planGUID].createVisibilityResponse,
-			},
-		}
-		return route
-	}
-
-	prepareUpdatePlanRoute := func(planGUID string) mockRoute {
-		route := mockRoute{
-			requestChecks: expectedRequest{
-				Method: http.MethodPut,
-				Path:   fmt.Sprintf("/v2/service_plans/%s", planGUID),
-				Body:   planDetails[planGUID].updatePlanRequest,
-			},
-			reaction: reactionResponse{
-				Code: http.StatusCreated,
-				Body: planDetails[planGUID].updatePlanResponse,
 			},
 		}
 		return route
@@ -714,7 +684,6 @@ var _ = Describe("Client Service Plan Access", func() {
 				if planGUID != privatePlanGUID {
 					deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
 				}
-				updatePlanRoute = prepareUpdatePlanRoute(planGUID)
 
 				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute, &updatePlanRoute)
 			}
@@ -951,7 +920,6 @@ var _ = Describe("Client Service Plan Access", func() {
 				if planGUID != privatePlanGUID {
 					deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
 				}
-				updatePlanRoute = prepareUpdatePlanRoute(planGUID)
 
 				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute, &updatePlanRoute)
 			}
@@ -1055,80 +1023,80 @@ var _ = Describe("Client Service Plan Access", func() {
 		})
 	})
 
-	Describe("updateServicePlan", func() {
-		var (
-			planGUID    string
-			requestBody cf.ServicePlanRequest
-			updatePlan  mockRoute
-		)
-
-		BeforeEach(func() {
-			planGUID = publicPlanGUID
-			requestBody = *planDetails[planGUID].updatePlanRequest
-			updatePlan = mockRoute{
-				requestChecks: expectedRequest{
-					Method: http.MethodPut,
-					Path:   fmt.Sprintf("/v2/service_plans/%s", planGUID),
-					Body:   requestBody,
-				},
-			}
-
-			routes = append(routes, &updatePlan)
-		})
-
-		Context("when an error status code is returned by CC", func() {
-			BeforeEach(func() {
-				updatePlan.reaction.Error = ccResponseErrBody
-				updatePlan.reaction.Code = ccResponseErrCode
-			})
-
-			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
-
-				assertCFError(err, ccResponseErrBody)
-
-			})
-		})
-
-		Context("when an unexpected status code is returned by CC", func() {
-			BeforeEach(func() {
-				updatePlan.reaction.Body = planDetails[planGUID].updatePlanResponse
-				updatePlan.reaction.Code = http.StatusOK
-			})
-
-			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
-
-				Expect(err).Should(HaveOccurred())
-
-			})
-		})
-
-		Context("when response body is invalid", func() {
-			BeforeEach(func() {
-				updatePlan.reaction.Body = InvalidJSON
-				updatePlan.reaction.Code = http.StatusCreated
-			})
-
-			It("returns an error", func() {
-				_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
-
-				Expect(err).Should(HaveOccurred())
-			})
-		})
-
-		Context("when no error occurs", func() {
-			BeforeEach(func() {
-				updatePlan.reaction.Body = planDetails[planGUID].updatePlanResponse
-				updatePlan.reaction.Code = http.StatusCreated
-			})
-
-			It("returns the updated service plan", func() {
-				plan, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
-
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(plan).Should(BeEquivalentTo(planDetails[planGUID].updatePlanResponse.Entity))
-			})
-		})
-	})
+	// Describe("updateServicePlan", func() {
+	// 	var (
+	// 		planGUID    string
+	// 		requestBody cf.ServicePlanRequest
+	// 		updatePlan  mockRoute
+	// 	)
+	//
+	// 	BeforeEach(func() {
+	// 		planGUID = publicPlanGUID
+	// 		requestBody = *planDetails[planGUID].updatePlanRequest
+	// 		updatePlan = mockRoute{
+	// 			requestChecks: expectedRequest{
+	// 				Method: http.MethodPut,
+	// 				Path:   fmt.Sprintf("/v2/service_plans/%s", planGUID),
+	// 				Body:   requestBody,
+	// 			},
+	// 		}
+	//
+	// 		routes = append(routes, &updatePlan)
+	// 	})
+	//
+	// 	Context("when an error status code is returned by CC", func() {
+	// 		BeforeEach(func() {
+	// 			updatePlan.reaction.Error = ccResponseErrBody
+	// 			updatePlan.reaction.Code = ccResponseErrCode
+	// 		})
+	//
+	// 		It("returns an error", func() {
+	// 			_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
+	//
+	// 			assertCFError(err, ccResponseErrBody)
+	//
+	// 		})
+	// 	})
+	//
+	// 	Context("when an unexpected status code is returned by CC", func() {
+	// 		BeforeEach(func() {
+	// 			updatePlan.reaction.Body = planDetails[planGUID].updatePlanResponse
+	// 			updatePlan.reaction.Code = http.StatusOK
+	// 		})
+	//
+	// 		It("returns an error", func() {
+	// 			_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
+	//
+	// 			Expect(err).Should(HaveOccurred())
+	//
+	// 		})
+	// 	})
+	//
+	// 	Context("when response body is invalid", func() {
+	// 		BeforeEach(func() {
+	// 			updatePlan.reaction.Body = InvalidJSON
+	// 			updatePlan.reaction.Code = http.StatusCreated
+	// 		})
+	//
+	// 		It("returns an error", func() {
+	// 			_, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
+	//
+	// 			Expect(err).Should(HaveOccurred())
+	// 		})
+	// 	})
+	//
+	// 	Context("when no error occurs", func() {
+	// 		BeforeEach(func() {
+	// 			updatePlan.reaction.Body = planDetails[planGUID].updatePlanResponse
+	// 			updatePlan.reaction.Code = http.StatusCreated
+	// 		})
+	//
+	// 		It("returns the updated service plan", func() {
+	// 			plan, err := client.UpdateServicePlan(ctx, planGUID, requestBody)
+	//
+	// 			Expect(err).ShouldNot(HaveOccurred())
+	// 			Expect(plan).Should(BeEquivalentTo(planDetails[planGUID].updatePlanResponse.Entity))
+	// 		})
+	// 	})
+	// })
 })

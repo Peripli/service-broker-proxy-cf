@@ -2,7 +2,6 @@ package cf_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -253,7 +252,7 @@ var _ = Describe("Client", func() {
 		})
 	})
 
-	Describe("DoRequest", func() {
+	Describe("MakeRequest", func() {
 		BeforeEach(func() {
 			ccServer = fakeCCServer(false)
 			_, cl = ccClientWithThrottling(ccServer.URL(), 50)
@@ -284,7 +283,11 @@ var _ = Describe("Client", func() {
 				})
 
 				It("returns an error", func() {
-					_, err := cl.DoRequest(ctx, http.MethodGet, requestPath)
+					_, err := cl.MakeRequest(cf.PlatformClientRequest{
+						CTX:    ctx,
+						URL:    requestPath,
+						Method: http.MethodGet,
+					})
 
 					assertCFError(err, responseErr)
 				})
@@ -303,8 +306,12 @@ var _ = Describe("Client", func() {
 
 				It("returns CF response", func() {
 					var appResponse cfclient.AppResponse
-					resp, err := cl.DoRequest(ctx, http.MethodGet, requestPath)
-					json.Unmarshal(resp.Body, &appResponse)
+					_, err := cl.MakeRequest(cf.PlatformClientRequest{
+						CTX:          ctx,
+						URL:          requestPath,
+						Method:       http.MethodGet,
+						ResponseBody: &appResponse,
+					})
 
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(appResponse).To(Equal(response))
@@ -346,8 +353,13 @@ var _ = Describe("Client", func() {
 
 				It("returns CF response", func() {
 					var appResponse cfclient.AppResponse
-					resp, err := cl.DoRequest(ctx, http.MethodPost, requestPath, requestBody)
-					json.Unmarshal(resp.Body, &appResponse)
+					_, err := cl.MakeRequest(cf.PlatformClientRequest{
+						CTX:          ctx,
+						URL:          requestPath,
+						Method:       http.MethodPost,
+						RequestBody:  requestBody,
+						ResponseBody: &appResponse,
+					})
 
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(appResponse).To(Equal(response))

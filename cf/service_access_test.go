@@ -3,8 +3,6 @@ package cf_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
@@ -13,21 +11,22 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"net/http"
 )
 
 var _ = Describe("Client Service Plan Access", func() {
 
 	type planRouteDetails struct {
-		planResource             cfclient.ServicePlanResource
-		visibilityResource       cfclient.ServicePlanVisibilityResource
-		getVisibilitiesResponse  cfclient.ServicePlanVisibilitiesResponse
-		createVisibilityRequest  map[string]string
-		createVisibilityResponse *cfclient.ServicePlanVisibilityResource
-		updatePlanResponse       *cfclient.ServicePlanResource
+		// TODO migrate to V3
+		planResource            cfclient.ServicePlanResource
+		visibilityResource      cf.ServicePlanVisibility
+		getVisibilitiesResponse cf.ServicePlanVisibilitiesResponse
+		addVisibilityRequest    cf.UpdateOrganizationVisibilitiesRequest
 	}
 
 	const (
 		orgGUID                      = "orgGUID"
+		orgName                      = "orgName"
 		serviceGUID                  = "serviceGUID"
 		brokerGUIDForPublicPlan      = "publicBrokerGUID"
 		publicPlanGUID               = "publicPlanGUID"
@@ -49,24 +48,19 @@ var _ = Describe("Client Service Plan Access", func() {
 		ccResponseErrBody cfclient.CloudFoundryError
 		ccResponseErrCode int
 
+		// TODO migrate to V3 Plan
 		publicPlan  cfclient.ServicePlanResource
 		privatePlan cfclient.ServicePlanResource
 		limitedPlan cfclient.ServicePlanResource
 
-		visibilityForLimitedPlan cfclient.ServicePlanVisibilityResource
-		visibilityForPublicPlan  cfclient.ServicePlanVisibilityResource
-		visibilityForPrivatePlan cfclient.ServicePlanVisibilityResource
+		visibilityForLimitedPlan cf.ServicePlanVisibility
+		visibilityForPublicPlan  cf.ServicePlanVisibility
+		visibilityForPrivatePlan cf.ServicePlanVisibility
 
-		getVisibilitiesForPublicPlanResponse  cfclient.ServicePlanVisibilitiesResponse
-		getVisibilitiesForLimitedPlanResponse cfclient.ServicePlanVisibilitiesResponse
-		getVisibilitiesForPrivatePlanResponse cfclient.ServicePlanVisibilitiesResponse
+		getOrgVisibilitiesResponse cf.ServicePlanVisibilitiesResponse
 
-		postVisibilityForLimitedPlanRequest map[string]string
-		postVisibilityForPrivatePlanRequest map[string]string
-
-		updatedPublicPlanToPrivateResponse cfclient.ServicePlanResource
-		updatedPrivatePlanToPublicResponse cfclient.ServicePlanResource
-		updatedLimitedPlanToPublicResponse cfclient.ServicePlanResource
+		postVisibilityForLimitedPlanRequest cf.UpdateOrganizationVisibilitiesRequest
+		postVisibilityForPrivatePlanRequest cf.UpdateOrganizationVisibilitiesRequest
 
 		planDetails map[string]*planRouteDetails
 		routes      []*mockRoute
@@ -81,7 +75,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		getVisibilitiesRoute  mockRoute
 		createVisibilityRoute mockRoute
 		deleteVisibilityRoute mockRoute
-		updatePlanRoute       mockRoute
 
 		ctx context.Context
 	)
@@ -147,98 +140,35 @@ var _ = Describe("Client Service Plan Access", func() {
 			},
 		}
 
-		visibilityForLimitedPlan = cfclient.ServicePlanVisibilityResource{
-			Meta: cfclient.Meta{
-				Guid: visibilityForLimitedPlanGUID,
-				Url:  "http://example.com",
-			},
-			Entity: cfclient.ServicePlanVisibility{
-				ServicePlanGuid:  limitedPlanGUID,
-				OrganizationGuid: orgGUID,
-				ServicePlanUrl:   "http://example.com",
-				OrganizationUrl:  "http://example.com",
+		visibilityForLimitedPlan = cf.ServicePlanVisibility{
+			ServicePlanGuid:  limitedPlanGUID,
+			OrganizationGuid: orgGUID,
+		}
+
+		visibilityForPublicPlan = cf.ServicePlanVisibility{
+			ServicePlanGuid:  publicPlanGUID,
+			OrganizationGuid: orgGUID,
+		}
+
+		getOrgVisibilitiesResponse = cf.ServicePlanVisibilitiesResponse{
+			Type: string(cf.VisibilityType.ORGANIZATION),
+			Organizations: []cf.Organization{
+				{
+					Guid: orgGUID,
+					Name: orgName,
+				},
 			},
 		}
 
-		visibilityForPublicPlan = cfclient.ServicePlanVisibilityResource{
-			Meta: cfclient.Meta{
-				Guid: visibilityForPublicPlanGUID,
-				Url:  "http://example.com",
-			},
-			Entity: cfclient.ServicePlanVisibility{
-				ServicePlanGuid: publicPlanGUID,
-				ServicePlanUrl:  "http://example.com",
-			},
-		}
-
-		getVisibilitiesForPublicPlanResponse = cfclient.ServicePlanVisibilitiesResponse{
-			Count: 1,
-			Pages: 1,
-			Resources: []cfclient.ServicePlanVisibilityResource{
-				visibilityForPublicPlan,
-			},
-		}
-		getVisibilitiesForLimitedPlanResponse = cfclient.ServicePlanVisibilitiesResponse{
-			Count: 1,
-			Pages: 1,
-			Resources: []cfclient.ServicePlanVisibilityResource{
-				visibilityForLimitedPlan,
-			},
-		}
-		getVisibilitiesForPrivatePlanResponse = cfclient.ServicePlanVisibilitiesResponse{
-			Count:     0,
-			Pages:     1,
-			Resources: []cfclient.ServicePlanVisibilityResource{},
-		}
-
-		postVisibilityForLimitedPlanRequest = map[string]string{
-			"service_plan_guid": limitedPlanGUID,
-			"organization_guid": orgGUID,
-		}
-
-		postVisibilityForPrivatePlanRequest = map[string]string{
-			"service_plan_guid": privatePlanGUID,
-			"organization_guid": orgGUID,
-		}
-
-		updatedPublicPlanToPrivateResponse = cfclient.ServicePlanResource{
-			Meta: cfclient.Meta{
-				Guid: publicPlan.Meta.Guid,
-				Url:  publicPlan.Meta.Url,
-			},
-			Entity: cfclient.ServicePlan{
-				Guid:        publicPlan.Meta.Guid,
-				Name:        publicPlan.Entity.Name,
-				Public:      !publicPlan.Entity.Public,
-				ServiceGuid: publicPlan.Entity.ServiceGuid,
-			},
-		}
-
-		updatedPrivatePlanToPublicResponse = cfclient.ServicePlanResource{
-			Meta: cfclient.Meta{
-				Guid: privatePlan.Meta.Guid,
-				Url:  privatePlan.Meta.Url,
-			},
-			Entity: cfclient.ServicePlan{
-				Guid:        privatePlan.Meta.Guid,
-				Name:        privatePlan.Entity.Name,
-				Public:      !privatePlan.Entity.Public,
-				ServiceGuid: privatePlan.Entity.ServiceGuid,
-			},
-		}
-
-		updatedLimitedPlanToPublicResponse = cfclient.ServicePlanResource{
-			Meta: cfclient.Meta{
-				Guid: limitedPlan.Meta.Guid,
-				Url:  limitedPlan.Meta.Url,
-			},
-			Entity: cfclient.ServicePlan{
-				Guid:        limitedPlan.Meta.Guid,
-				Name:        limitedPlan.Entity.Name,
-				Public:      !limitedPlan.Entity.Public,
-				ServiceGuid: limitedPlan.Entity.ServiceGuid,
-			},
-		}
+		// postVisibilityForLimitedPlanRequest = map[string]string{
+		// 	"service_plan_guid": limitedPlanGUID,
+		// 	"organization_guid": orgGUID,
+		// }
+		//
+		// postVisibilityForPrivatePlanRequest = map[string]string{
+		// 	"service_plan_guid": privatePlanGUID,
+		// 	"organization_guid": orgGUID,
+		// }
 
 		ccResponseErrBody = cfclient.CloudFoundryError{
 			Code:        1009,
@@ -250,30 +180,25 @@ var _ = Describe("Client Service Plan Access", func() {
 		planDetails = make(map[string]*planRouteDetails, 3)
 
 		planDetails[publicPlanGUID] = &planRouteDetails{
-			planResource:            publicPlan,
-			visibilityResource:      visibilityForPublicPlan,
-			getVisibilitiesResponse: getVisibilitiesForPublicPlanResponse,
-			updatePlanResponse:      &updatedPublicPlanToPrivateResponse,
-			// createVisibilityRequest remains unset as we do not perform creating of visibility for public plans
-			// createVisibilityResponse remains unset as we do not perform creating of visibility for public plans
+			planResource:       publicPlan,
+			visibilityResource: visibilityForPublicPlan,
+			getVisibilitiesResponse: cf.ServicePlanVisibilitiesResponse{
+				Type: string(cf.VisibilityType.PUBLIC),
+			},
 		}
 
 		planDetails[privatePlanGUID] = &planRouteDetails{
-			planResource:             privatePlan,
-			visibilityResource:       visibilityForPrivatePlan,
-			getVisibilitiesResponse:  getVisibilitiesForPrivatePlanResponse,
-			createVisibilityRequest:  postVisibilityForPrivatePlanRequest,
-			createVisibilityResponse: &visibilityForPrivatePlan,
-			updatePlanResponse:       &updatedPrivatePlanToPublicResponse,
+			planResource:            privatePlan,
+			visibilityResource:      visibilityForPrivatePlan,
+			addVisibilityRequest:    postVisibilityForPrivatePlanRequest,
+			getVisibilitiesResponse: getOrgVisibilitiesResponse,
 		}
 
 		planDetails[limitedPlanGUID] = &planRouteDetails{
-			planResource:             limitedPlan,
-			visibilityResource:       visibilityForLimitedPlan,
-			getVisibilitiesResponse:  getVisibilitiesForLimitedPlanResponse,
-			createVisibilityRequest:  postVisibilityForLimitedPlanRequest,
-			createVisibilityResponse: &visibilityForLimitedPlan,
-			updatePlanResponse:       &updatedLimitedPlanToPublicResponse,
+			planResource:            limitedPlan,
+			visibilityResource:      visibilityForLimitedPlan,
+			addVisibilityRequest:    postVisibilityForLimitedPlanRequest,
+			getVisibilitiesResponse: getOrgVisibilitiesResponse,
 		}
 
 		routes = make([]*mockRoute, 0)
@@ -282,9 +207,9 @@ var _ = Describe("Client Service Plan Access", func() {
 		getVisibilitiesRoute = mockRoute{}
 		createVisibilityRoute = mockRoute{}
 		deleteVisibilityRoute = mockRoute{}
-		updatePlanRoute = mockRoute{}
 	})
 
+	// TODO migrate to V3
 	prepareGetBrokersRoute := func() mockRoute {
 		return mockRoute{
 			requestChecks: expectedRequest{
@@ -313,6 +238,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		}
 	}
 
+	// TODO migrate to V3
 	prepareGetServicesRoute := func() mockRoute {
 		route := mockRoute{
 			requestChecks: expectedRequest{
@@ -380,18 +306,11 @@ var _ = Describe("Client Service Plan Access", func() {
 	}
 
 	prepareGetVisibilitiesRoute := func(planGUID, orgGUID string) mockRoute {
-		var query string
 		Expect(planGUID).ShouldNot(BeEmpty())
-		if orgGUID != "" {
-			query = fmt.Sprintf("service_plan_guid:%s;organization_guid:%s", planGUID, orgGUID)
-		} else {
-			query = fmt.Sprintf("service_plan_guid:%s", planGUID)
-		}
 		route := mockRoute{
 			requestChecks: expectedRequest{
-				Method:   http.MethodGet,
-				Path:     "/v2/service_plan_visibilities",
-				RawQuery: encodeQuery(query),
+				Method: http.MethodGet,
+				Path:   fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID),
 			},
 			reaction: reactionResponse{
 				Code: http.StatusOK,
@@ -403,9 +322,11 @@ var _ = Describe("Client Service Plan Access", func() {
 	prepareDeleteVisibilityRoute := func(planGUID string) mockRoute {
 		route := mockRoute{
 			requestChecks: expectedRequest{
-				Method:   http.MethodDelete,
-				Path:     fmt.Sprintf("/v2/service_plan_visibilities/%s", planDetails[planGUID].visibilityResource.Meta.Guid),
-				RawQuery: "async=false",
+				Method: http.MethodDelete,
+				Path: fmt.Sprintf(
+					"/v3/service_plans/%s/visibility/%s",
+					planDetails[planGUID].visibilityResource.ServicePlanGuid,
+					planDetails[planGUID].visibilityResource.OrganizationGuid),
 			},
 			reaction: reactionResponse{
 				Code: http.StatusNoContent,
@@ -414,16 +335,16 @@ var _ = Describe("Client Service Plan Access", func() {
 		return route
 	}
 
-	prepareCreateVisibilityRoute := func(planGUID string) mockRoute {
+	prepareAddVisibilityRoute := func(planGUID string) mockRoute {
 		route := mockRoute{
 			requestChecks: expectedRequest{
 				Method: http.MethodPost,
-				Path:   "/v2/service_plan_visibilities",
-				Body:   planDetails[planGUID].createVisibilityRequest,
+				Path:   fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID),
+				Body:   planDetails[planGUID].addVisibilityRequest,
 			},
 			reaction: reactionResponse{
 				Code: http.StatusCreated,
-				Body: planDetails[planGUID].createVisibilityResponse,
+				Body: planDetails[planGUID].addVisibilityRequest,
 			},
 		}
 		return route
@@ -499,25 +420,6 @@ var _ = Describe("Client Service Plan Access", func() {
 
 				It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, &ccResponseErrBody))
 			})
-		})
-	}
-
-	verifyBehaviourUpdateAccessFailsWhenUpdateServicePlanFails := func(assertFunc func(data *types.Labels, planGUID, brokerGUID *string, expectedError ...error) func()) {
-		Context("when updateServicePlan fails", func() {
-			BeforeEach(func() {
-				updatePlanRoute.reaction.Error = ccResponseErrBody
-				updatePlanRoute.reaction.Code = ccResponseErrCode
-			})
-
-			It("attempts to update plan", func() {
-				assertFunc(&orgData, &planGUID, &brokerGUID)()
-
-				verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-				verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
-				verifyRouteHits(ccServer, 1, &updatePlanRoute)
-			})
-
-			It("returns an error", assertFunc(&orgData, &planGUID, &brokerGUID, &ccResponseErrBody))
 		})
 	}
 
@@ -625,8 +527,6 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        validOrgData,
 					})
 
-					// verifyRouteHits(ccServer, 0, &getBrokersRoute)
-					verifyRouteHits(ccServer, 0, &getVisibilitiesRoute)
 					verifyRouteHits(ccServer, 0, &deleteVisibilityRoute)
 				})
 
@@ -672,119 +572,119 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 		})
 
-		Context("when disabling access for single plan for all orgs", func() {
-			setupRoutes := func(guid, brokerguid string) {
-				planGUID = guid
-				brokerGUID = brokerguid
-				orgData = emptyOrgData
-				getBrokersRoute = prepareGetBrokersRoute()
-				getServicesRoute = prepareGetServicesRoute()
-				getPlansRoute = prepareGetPlansRoute(planGUID)
-				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
-				if planGUID != privatePlanGUID {
-					deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
-				}
-
-				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute, &updatePlanRoute)
-			}
-
-			Context("when an API call fails", func() {
-				BeforeEach(func() {
-					setupRoutes(publicPlanGUID, brokerGUIDForPublicPlan)
-				})
-
-				verifyBehaviourUpdateAccessFailsWhenDeleteAccessVisibilitiesFails(assertDisableAccessForPlanReturnsErr)
-
-				verifyBehaviourUpdateAccessFailsWhenUpdateServicePlanFails(assertDisableAccessForPlanReturnsErr)
-			})
-
-			Context("when the plan is public", func() {
-				BeforeEach(func() {
-					setupRoutes(publicPlanGUID, brokerGUIDForPublicPlan)
-				})
-
-				It("deletes visibilities for the plan if any are found", func() {
-					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        emptyOrgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-					verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
-				})
-
-				It("updates the plan to private", func() {
-					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        emptyOrgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &updatePlanRoute)
-				})
-
-				It("returns no error", assertDisableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
-			})
-
-			Context("when the plan is limited", func() {
-				BeforeEach(func() {
-					setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
-				})
-
-				It("deletes visibilities for the plan if any are found", func() {
-					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        emptyOrgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-					verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
-				})
-
-				It("does not try to update the plan", func() {
-					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        emptyOrgData,
-					})
-
-					verifyRouteHits(ccServer, 0, &updatePlanRoute)
-				})
-
-				It("returns no error", assertDisableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
-			})
-
-			Context("when the plan is private", func() {
-				BeforeEach(func() {
-					setupRoutes(privatePlanGUID, brokerPrivateGUID)
-				})
-
-				It("does not delete visibilities as none are found", func() {
-					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        emptyOrgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-					verifyRouteHits(ccServer, 0, &deleteVisibilityRoute)
-				})
-
-				It("does not try to update the plan", func() {
-					disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        emptyOrgData,
-					})
-
-					verifyRouteHits(ccServer, 0, &updatePlanRoute)
-				})
-
-				It("returns no error", assertDisableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
-			})
-		})
+		// Context("when disabling access for single plan for all orgs", func() {
+		// 	setupRoutes := func(guid, brokerguid string) {
+		// 		planGUID = guid
+		// 		brokerGUID = brokerguid
+		// 		orgData = emptyOrgData
+		// 		getBrokersRoute = prepareGetBrokersRoute()
+		// 		getServicesRoute = prepareGetServicesRoute()
+		// 		getPlansRoute = prepareGetPlansRoute(planGUID)
+		// 		getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
+		// 		if planGUID != privatePlanGUID {
+		// 			deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
+		// 		}
+		//
+		// 		routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute, &updatePlanRoute)
+		// 	}
+		//
+		// 	Context("when an API call fails", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(publicPlanGUID, brokerGUIDForPublicPlan)
+		// 		})
+		//
+		// 		verifyBehaviourUpdateAccessFailsWhenDeleteAccessVisibilitiesFails(assertDisableAccessForPlanReturnsErr)
+		//
+		// 		verifyBehaviourUpdateAccessFailsWhenUpdateServicePlanFails(assertDisableAccessForPlanReturnsErr)
+		// 	})
+		//
+		// 	Context("when the plan is public", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(publicPlanGUID, brokerGUIDForPublicPlan)
+		// 		})
+		//
+		// 		It("deletes visibilities for the plan if any are found", func() {
+		// 			disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        emptyOrgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
+		// 			verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
+		// 		})
+		//
+		// 		It("updates the plan to private", func() {
+		// 			disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        emptyOrgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &updatePlanRoute)
+		// 		})
+		//
+		// 		It("returns no error", assertDisableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
+		// 	})
+		//
+		// 	Context("when the plan is limited", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
+		// 		})
+		//
+		// 		It("deletes visibilities for the plan if any are found", func() {
+		// 			disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        emptyOrgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
+		// 			verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
+		// 		})
+		//
+		// 		It("does not try to update the plan", func() {
+		// 			disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        emptyOrgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 0, &updatePlanRoute)
+		// 		})
+		//
+		// 		It("returns no error", assertDisableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
+		// 	})
+		//
+		// 	Context("when the plan is private", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(privatePlanGUID, brokerPrivateGUID)
+		// 		})
+		//
+		// 		It("does not delete visibilities as none are found", func() {
+		// 			disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        emptyOrgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
+		// 			verifyRouteHits(ccServer, 0, &deleteVisibilityRoute)
+		// 		})
+		//
+		// 		It("does not try to update the plan", func() {
+		// 			disableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        emptyOrgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 0, &updatePlanRoute)
+		// 		})
+		//
+		// 		It("returns no error", assertDisableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
+		// 	})
+		// })
 	})
 
 	Describe("EnableAccessForPlan", func() {
@@ -840,7 +740,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				getBrokersRoute = prepareGetBrokersRoute()
 				getServicesRoute = prepareGetServicesRoute()
 				getPlansRoute = prepareGetPlansRoute(planGUID)
-				createVisibilityRoute = prepareCreateVisibilityRoute(planGUID)
+				createVisibilityRoute = prepareAddVisibilityRoute(planGUID)
 
 				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &createVisibilityRoute)
 			}
@@ -908,119 +808,119 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 		})
 
-		Context("when enabling plan access for single plan for all orgs", func() {
-			setupRoutes := func(guid, brokerguid string) {
-				planGUID = guid
-				brokerGUID = brokerguid
-				orgData = emptyOrgData
-				getBrokersRoute = prepareGetBrokersRoute()
-				getServicesRoute = prepareGetServicesRoute()
-				getPlansRoute = prepareGetPlansRoute(planGUID)
-				getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
-				if planGUID != privatePlanGUID {
-					deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
-				}
-
-				routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute, &updatePlanRoute)
-			}
-
-			Context("when an API call fails", func() {
-				BeforeEach(func() {
-					setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
-				})
-
-				verifyBehaviourUpdateAccessFailsWhenDeleteAccessVisibilitiesFails(assertEnableAccessForPlanReturnsErr)
-
-				verifyBehaviourUpdateAccessFailsWhenUpdateServicePlanFails(assertEnableAccessForPlanReturnsErr)
-			})
-
-			Context("when the plan is public", func() {
-				BeforeEach(func() {
-					setupRoutes(publicPlanGUID, brokerGUIDForPublicPlan)
-				})
-
-				It("deletes visibilities if any are found", func() {
-					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        orgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-					verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
-				})
-
-				It("does not try to update the plan", func() {
-					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        orgData,
-					})
-
-					verifyRouteHits(ccServer, 0, &updatePlanRoute)
-				})
-
-				It("returns no error", assertEnableAccessForPlanReturnsNoErr(&orgData, &planGUID, &brokerGUID))
-			})
-
-			Context("when the plan is limited", func() {
-				BeforeEach(func() {
-					setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
-				})
-
-				It("updates the plan to public", func() {
-					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        orgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &updatePlanRoute)
-				})
-
-				It("deletes visibilities if any are found", func() {
-					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        orgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-					verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
-				})
-
-				It("returns no error", assertEnableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
-			})
-
-			Context("when the plan is private", func() {
-				BeforeEach(func() {
-					setupRoutes(privatePlanGUID, brokerPrivateGUID)
-				})
-
-				It("updates the plan to public", func() {
-					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        orgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &updatePlanRoute)
-				})
-
-				It("does not delete visibilities as none are found", func() {
-					enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
-						BrokerName:    brokerGUID,
-						CatalogPlanID: planGUID,
-						Labels:        orgData,
-					})
-
-					verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
-					verifyRouteHits(ccServer, 0, &deleteVisibilityRoute)
-				})
-
-				It("returns no error", assertEnableAccessForPlanReturnsNoErr(&orgData, &planGUID, &brokerGUID))
-			})
-		})
+		// Context("when enabling plan access for single plan for all orgs", func() {
+		// 	setupRoutes := func(guid, brokerguid string) {
+		// 		planGUID = guid
+		// 		brokerGUID = brokerguid
+		// 		orgData = emptyOrgData
+		// 		getBrokersRoute = prepareGetBrokersRoute()
+		// 		getServicesRoute = prepareGetServicesRoute()
+		// 		getPlansRoute = prepareGetPlansRoute(planGUID)
+		// 		getVisibilitiesRoute = prepareGetVisibilitiesRoute(planGUID, "")
+		// 		if planGUID != privatePlanGUID {
+		// 			deleteVisibilityRoute = prepareDeleteVisibilityRoute(planGUID)
+		// 		}
+		//
+		// 		routes = append(routes, &getBrokersRoute, &getServicesRoute, &getPlansRoute, &getVisibilitiesRoute, &deleteVisibilityRoute, &updatePlanRoute)
+		// 	}
+		//
+		// 	Context("when an API call fails", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
+		// 		})
+		//
+		// 		verifyBehaviourUpdateAccessFailsWhenDeleteAccessVisibilitiesFails(assertEnableAccessForPlanReturnsErr)
+		//
+		// 		verifyBehaviourUpdateAccessFailsWhenUpdateServicePlanFails(assertEnableAccessForPlanReturnsErr)
+		// 	})
+		//
+		// 	Context("when the plan is public", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(publicPlanGUID, brokerGUIDForPublicPlan)
+		// 		})
+		//
+		// 		It("deletes visibilities if any are found", func() {
+		// 			enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        orgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
+		// 			verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
+		// 		})
+		//
+		// 		It("does not try to update the plan", func() {
+		// 			enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        orgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 0, &updatePlanRoute)
+		// 		})
+		//
+		// 		It("returns no error", assertEnableAccessForPlanReturnsNoErr(&orgData, &planGUID, &brokerGUID))
+		// 	})
+		//
+		// 	Context("when the plan is limited", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(limitedPlanGUID, brokerGUIDForLimitedPlan)
+		// 		})
+		//
+		// 		It("updates the plan to public", func() {
+		// 			enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        orgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &updatePlanRoute)
+		// 		})
+		//
+		// 		It("deletes visibilities if any are found", func() {
+		// 			enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        orgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
+		// 			verifyRouteHits(ccServer, 1, &deleteVisibilityRoute)
+		// 		})
+		//
+		// 		It("returns no error", assertEnableAccessForPlanReturnsNoErr(&emptyOrgData, &planGUID, &brokerGUID))
+		// 	})
+		//
+		// 	Context("when the plan is private", func() {
+		// 		BeforeEach(func() {
+		// 			setupRoutes(privatePlanGUID, brokerPrivateGUID)
+		// 		})
+		//
+		// 		It("updates the plan to public", func() {
+		// 			enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        orgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &updatePlanRoute)
+		// 		})
+		//
+		// 		It("does not delete visibilities as none are found", func() {
+		// 			enableAccessForPlan(ctx, &platform.ModifyPlanAccessRequest{
+		// 				BrokerName:    brokerGUID,
+		// 				CatalogPlanID: planGUID,
+		// 				Labels:        orgData,
+		// 			})
+		//
+		// 			verifyRouteHits(ccServer, 1, &getVisibilitiesRoute)
+		// 			verifyRouteHits(ccServer, 0, &deleteVisibilityRoute)
+		// 		})
+		//
+		// 		It("returns no error", assertEnableAccessForPlanReturnsNoErr(&orgData, &planGUID, &brokerGUID))
+		// 	})
+		// })
 	})
 
 	// Describe("updateServicePlan", func() {

@@ -2,7 +2,6 @@ package cf
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"net/http"
@@ -119,7 +118,12 @@ func (pc *PlatformClient) ReplaceOrganizationVisibilities(ctx context.Context, p
 
 func (pc *PlatformClient) DeleteOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUID string) error {
 	path := fmt.Sprintf("/v3/service_plans/%s/visibility/%s", planGUID, organizationGUID)
-	resp, err := pc.DoRequest(ctx, http.MethodDelete, path)
+
+	resp, err := pc.MakeRequest(PlatformClientRequest{
+		CTX:    ctx,
+		Method: http.MethodDelete,
+		URL:    path,
+	})
 	if err != nil {
 		return errors.Wrapf(err, "Error deleting service plan visibility.")
 	}
@@ -203,15 +207,16 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planG
 	var servicePlanVisibilities []ServicePlanVisibility
 
 	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
-	resp, err := pc.DoRequest(ctx, http.MethodGet, path)
+	_, err := pc.MakeRequest(PlatformClientRequest{
+		CTX:          ctx,
+		Method:       http.MethodGet,
+		URL:          path,
+		ResponseBody: &servicePlanVisibilitiesResp,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "Error requesting service plan visibilities")
 	}
 
-	err = json.Unmarshal(resp.Body, &servicePlanVisibilitiesResp)
-	if err != nil {
-		return nil, err
-	}
 	if servicePlanVisibilitiesResp.Type != string(VisibilityType.ORGANIZATION) {
 		return []ServicePlanVisibility{}, nil
 	}
@@ -247,7 +252,12 @@ func (pc *PlatformClient) updateServicePlanVisibilities(
 		}
 	}
 
-	resp, err := pc.DoRequest(ctx, requestMethod, path, requestBody)
+	resp, err := pc.MakeRequest(PlatformClientRequest{
+		CTX:         ctx,
+		Method:      requestMethod,
+		URL:         path,
+		RequestBody: requestBody,
+	})
 	if err != nil {
 		return errors.Wrapf(err, "Error updating service plan visibility.")
 	}

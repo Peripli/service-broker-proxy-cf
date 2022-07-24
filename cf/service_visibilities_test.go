@@ -549,6 +549,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	Describe("Modify service plan visibilities", func() {
 		servicePlanGuid, _ := uuid.NewV4()
+
 		Context("when service plan is not available", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)

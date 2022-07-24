@@ -4,16 +4,25 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 )
 
 const (
 	cfPageSizeParam = "results-per-page"
 )
+
+// JobURL is the URL of the async response job
+type JobURL string
+
+// ResponseStatus is the response status code
+type ResponseStatus int
 
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
@@ -23,10 +32,20 @@ type PlatformClient struct {
 	planResolver *cfmodel.PlanResolver
 }
 
-// PlatformClientResponse provides generic response model from CF API
+// PlatformClientRequest provides generic request to CF API
+type PlatformClientRequest struct {
+	CTX          context.Context
+	URL          string
+	Method       string
+	QueryParams  url.Values
+	RequestBody  interface{}
+	ResponseBody interface{}
+}
+
+// PlatformClientResponse provides async job url (if response status was 202) and the status code
 type PlatformClientResponse struct {
+	JobURL     string
 	StatusCode int
-	Body       []byte
 }
 
 // Broker returns platform client which can perform platform broker operations
@@ -39,25 +58,29 @@ func (pc *PlatformClient) Visibility() platform.VisibilityClient {
 	return pc
 }
 
-// CatalogFetcher returns platform client which can perform refetching of service broker catalogs
+// CatalogFetcher returns platform client which can perform re-fetching of service broker catalogs
 func (pc *PlatformClient) CatalogFetcher() platform.CatalogFetcher {
 	return pc
 }
 
-// DoRequest requests CF API and returns response body in []byte or error if response from CF api >= 400
-func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path string, body ...interface{}) (*PlatformClientResponse, error) {
+// MakeRequest making request to CF API with the given request params
+func (pc *PlatformClient) MakeRequest(req PlatformClientRequest) (*PlatformClientResponse, error) {
+	logger := log.C(req.CTX)
 	var request *cfclient.Request
-	var result *PlatformClientResponse
 
-	if body != nil {
+	if req.QueryParams != nil {
+		req.URL = fmt.Sprintf("%s?%s", req.URL, req.QueryParams.Encode())
+	}
+
+	if req.RequestBody != nil {
 		buf := bytes.NewBuffer(nil)
-		err := json.NewEncoder(buf).Encode(body[0])
+		err := json.NewEncoder(buf).Encode(req.RequestBody)
 		if err != nil {
 			return nil, err
 		}
-		request = pc.client.NewRequestWithBody(method, path, buf)
+		request = pc.client.NewRequestWithBody(req.Method, req.URL, buf)
 	} else {
-		request = pc.client.NewRequest(method, path)
+		request = pc.client.NewRequest(req.Method, req.URL)
 	}
 
 	response, err := pc.client.DoRequest(request)
@@ -65,26 +88,40 @@ func (pc *PlatformClient) DoRequest(ctx context.Context, method string, path str
 		return nil, err
 	}
 
-	result = &PlatformClientResponse{
-		StatusCode: response.StatusCode,
-		Body:       nil,
+	if response.StatusCode >= http.StatusBadRequest {
+		return nil, fmt.Errorf("CF API %s %s returned status code %d", req.Method, req.URL, response.StatusCode)
 	}
+
+	result := &PlatformClientResponse{
+		JobURL:     response.Header.Get("Location"),
+		StatusCode: response.StatusCode,
+	}
+
+	if req.ResponseBody == nil {
+		return result, nil
+	}
+
 	defer func() {
 		if err := response.Body.Close(); err != nil {
-			log.C(ctx).Warn("unable to close response body stream:", err)
+			logger.Warn("unable to close response body stream:", err)
 		}
 	}()
-
 	responseBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
+		logger.Errorf("Error parsing response body for request %s %v", req.URL, err)
 		return nil, err
 	}
 
-	result.Body = responseBody
+	err = json.Unmarshal(responseBody, &req.ResponseBody)
+	if err != nil {
+		logger.Errorf("Error converting response json to given interface for request %s %v", req.URL, err)
+		return nil, err
+	}
+
 	return result, nil
 }
 
-// NewClient creates a new CF cf client from the specified configuration.
+// NewClient creates a new CF client from the specified configuration.
 func NewClient(config *Settings) (*PlatformClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err

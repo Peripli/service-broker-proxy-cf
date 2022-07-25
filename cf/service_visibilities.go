@@ -102,22 +102,22 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 }
 
 // UpdateServicePlanVisibilityType updates service plan visibility type
-func (pc *PlatformClient) UpdateServicePlanVisibilityType(ctx context.Context, catalogPlanId string, visibilityType VisibilityTypeValue) error {
-	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, catalogPlanId, visibilityType)
+func (pc *PlatformClient) UpdateServicePlanVisibilityType(ctx context.Context, planGUID string, visibilityType VisibilityTypeValue) error {
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, planGUID, visibilityType)
 }
 
 // AddOrganizationVisibilities appends organization visibilities to the existing list of the organizations
-func (pc *PlatformClient) AddOrganizationVisibilities(ctx context.Context, catalogPlanId string, organizationGUIDs []string) error {
-	return pc.updateServicePlanVisibilities(ctx, http.MethodPost, catalogPlanId, VisibilityType.ORGANIZATION, organizationGUIDs)
+func (pc *PlatformClient) AddOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUIDs []string) error {
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPost, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs)
 }
 
 // ReplaceOrganizationVisibilities replaces existing list of organizations
-func (pc *PlatformClient) ReplaceOrganizationVisibilities(ctx context.Context, catalogPlanId string, organizationGUIDs []string) error {
-	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, catalogPlanId, VisibilityType.ORGANIZATION, organizationGUIDs)
+func (pc *PlatformClient) ReplaceOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUIDs []string) error {
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs)
 }
 
-func (pc *PlatformClient) DeleteOrganizationVisibilities(ctx context.Context, catalogPlanId string, organizationGUID string) error {
-	path := fmt.Sprintf("/v3/service_plans/%s/visibility/%s", catalogPlanId, organizationGUID)
+func (pc *PlatformClient) DeleteOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUID string) error {
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility/%s", planGUID, organizationGUID)
 
 	resp, err := pc.MakeRequest(PlatformClientRequest{
 		CTX:    ctx,
@@ -153,13 +153,13 @@ func getPlanGUIDs(plans cfmodel.PlanMap) []string {
 	return guids
 }
 
-func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []string) ([]ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planGUIDs []string) ([]ServicePlanVisibility, error) {
 	var result []ServicePlanVisibility
 	// protects result
 	var mutex sync.Mutex
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 
-	chunks := splitStringsIntoChunks(planIDs, pc.settings.CF.ChunkSize)
+	chunks := splitStringsIntoChunks(planGUIDs, pc.settings.CF.ChunkSize)
 	for _, chunk := range chunks {
 		chunk := chunk // copy for goroutine
 		err := scheduler.Schedule(func(ctx context.Context) error {
@@ -184,12 +184,12 @@ func (pc *PlatformClient) getPlansVisibilities(ctx context.Context, planIDs []st
 	return result, nil
 }
 
-func (pc *PlatformClient) getPlansVisibilitiesByPlanIds(ctx context.Context, catalogPlanIds []string) ([]ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlansVisibilitiesByPlanIds(ctx context.Context, planGUIDs []string) ([]ServicePlanVisibility, error) {
 	logger := log.C(ctx)
-	logger.Infof("Loading visibilities for service plans with GUIDs %v from Cloud Foundry...", catalogPlanIds)
+	logger.Infof("Loading visibilities for service plans with GUIDs %v from Cloud Foundry...", planGUIDs)
 
 	var servicePlansVisibilities []ServicePlanVisibility
-	for _, planGUID := range catalogPlanIds {
+	for _, planGUID := range planGUIDs {
 		servicePlanVisibilities, err := pc.getPlanVisibilitiesByPlanId(ctx, planGUID)
 		if err != nil {
 			return nil, err
@@ -202,11 +202,11 @@ func (pc *PlatformClient) getPlansVisibilitiesByPlanIds(ctx context.Context, cat
 	return servicePlansVisibilities, nil
 }
 
-func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, catalogPlanId string) ([]ServicePlanVisibility, error) {
+func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, planGUID string) ([]ServicePlanVisibility, error) {
 	var servicePlanVisibilitiesResp ServicePlanVisibilitiesResponse
 	var servicePlanVisibilities []ServicePlanVisibility
 
-	path := fmt.Sprintf("/v3/service_plans/%s/visibility", catalogPlanId)
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
 	_, err := pc.MakeRequest(PlatformClientRequest{
 		CTX:          ctx,
 		Method:       http.MethodGet,
@@ -223,7 +223,7 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, catal
 
 	for _, org := range servicePlanVisibilitiesResp.Organizations {
 		servicePlanVisibilities = append(servicePlanVisibilities, ServicePlanVisibility{
-			ServicePlanGuid:  catalogPlanId,
+			ServicePlanGuid:  planGUID,
 			OrganizationGuid: org.Guid,
 		})
 	}
@@ -234,12 +234,12 @@ func (pc *PlatformClient) getPlanVisibilitiesByPlanId(ctx context.Context, catal
 func (pc *PlatformClient) updateServicePlanVisibilities(
 	ctx context.Context,
 	requestMethod string,
-	catalogPlanId string,
+	planGUID string,
 	visibilityType VisibilityTypeValue,
 	organizationGUIDs ...[]string) error {
 
 	var requestBody interface{}
-	path := fmt.Sprintf("/v3/service_plans/%s/visibility", catalogPlanId)
+	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
 
 	if visibilityType == VisibilityType.ORGANIZATION {
 		requestBody = UpdateOrganizationVisibilitiesRequest{

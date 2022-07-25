@@ -43,8 +43,8 @@ var _ = BeforeEach(func() {
 	logInterceptor.Reset()
 })
 
-// Context initialization methods
-var generateCFBrokers = func(count int) []*cfclient.ServiceBroker {
+// Test Context initialization methods
+func generateCFBrokers(count int) []*cfclient.ServiceBroker {
 	brokers := make([]*cfclient.ServiceBroker, 0)
 	for i := 0; i < count; i++ {
 		UUID, err := uuid.NewV4()
@@ -59,7 +59,7 @@ var generateCFBrokers = func(count int) []*cfclient.ServiceBroker {
 	return brokers
 }
 
-var generateCFServices = func(brokers []*cfclient.ServiceBroker, count int) map[string][]*cfclient.Service {
+func generateCFServices(brokers []*cfclient.ServiceBroker, count int) map[string][]*cfclient.Service {
 	services := make(map[string][]*cfclient.Service)
 	for _, broker := range brokers {
 		for i := 0; i < count; i++ {
@@ -76,7 +76,7 @@ var generateCFServices = func(brokers []*cfclient.ServiceBroker, count int) map[
 	return services
 }
 
-var generateCFPlans = func(
+func generateCFPlans(
 	servicesMap map[string][]*cfclient.Service,
 	plansToGenerate,
 	publicPlansToGenerate int,
@@ -110,7 +110,7 @@ var generateCFPlans = func(
 	return plans
 }
 
-var generateCFVisibilities = func(
+func generateCFVisibilities(
 	plansMap map[string][]*cfclient.ServicePlan,
 	organizations []cf.Organization,
 	services map[string][]*cfclient.Service,
@@ -174,7 +174,7 @@ var generateCFVisibilities = func(
 	return visibilities, expectedVisibilities
 }
 
-var parallelRequestsChecker = func(f http.HandlerFunc) http.HandlerFunc {
+func parallelRequestsChecker(f http.HandlerFunc) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		parallelRequestsMutex.Lock()
 		parallelRequestsCounter++
@@ -199,7 +199,7 @@ var parallelRequestsChecker = func(f http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-var parseFilterQuery = func(query, queryKey string) map[string]bool {
+func parseFilterQuery(query, queryKey string) map[string]bool {
 	if query == "" {
 		return nil
 	}
@@ -218,7 +218,7 @@ var parseFilterQuery = func(query, queryKey string) map[string]bool {
 	return result
 }
 
-var writeJSONResponse = func(respStruct interface{}, rw http.ResponseWriter) {
+func writeJSONResponse(respStruct interface{}, rw http.ResponseWriter) {
 	jsonResponse, err := json.Marshal(respStruct)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -226,7 +226,7 @@ var writeJSONResponse = func(respStruct interface{}, rw http.ResponseWriter) {
 	rw.Write(jsonResponse)
 }
 
-var getBrokerNames = func(cfBrokers []*cfclient.ServiceBroker) []string {
+func getBrokerNames(cfBrokers []*cfclient.ServiceBroker) []string {
 	names := make([]string, 0, len(cfBrokers))
 	for _, cfBroker := range cfBrokers {
 		names = append(names, cfBroker.Name)
@@ -234,7 +234,7 @@ var getBrokerNames = func(cfBrokers []*cfclient.ServiceBroker) []string {
 	return names
 }
 
-var filterPlans = func(plans []*cfclient.ServicePlan, isPublic bool) []*cfclient.ServicePlan {
+func filterPlans(plans []*cfclient.ServicePlan, isPublic bool) []*cfclient.ServicePlan {
 	var publicPlans []*cfclient.ServicePlan
 	for _, plan := range plans {
 		if plan.Public == isPublic {
@@ -251,7 +251,7 @@ var badRequestHandler = func(rw http.ResponseWriter, req *http.Request) {
 }
 
 // TODO replace with V3
-var setCCBrokersResponse = func(server *ghttp.Server, cfBrokers []*cfclient.ServiceBroker) {
+func setCCBrokersResponse(server *ghttp.Server, cfBrokers []*cfclient.ServiceBroker) {
 	if cfBrokers == nil {
 		server.RouteToHandler(http.MethodGet, "/v2/service_brokers", parallelRequestsChecker(badRequestHandler))
 		return
@@ -279,7 +279,7 @@ var setCCBrokersResponse = func(server *ghttp.Server, cfBrokers []*cfclient.Serv
 }
 
 // TODO replace with V3
-var setCCServicesResponse = func(server *ghttp.Server, cfServices map[string][]*cfclient.Service) {
+func setCCServicesResponse(server *ghttp.Server, cfServices map[string][]*cfclient.Service) {
 	if cfServices == nil {
 		server.RouteToHandler(http.MethodGet, "/v2/services", parallelRequestsChecker(badRequestHandler))
 		return
@@ -309,7 +309,7 @@ var setCCServicesResponse = func(server *ghttp.Server, cfServices map[string][]*
 }
 
 // TODO replace with V3
-var setCCPlansResponse = func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
+func setCCPlansResponse(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
 	if cfPlans == nil {
 		server.RouteToHandler(http.MethodGet, "/v2/service_plans", parallelRequestsChecker(badRequestHandler))
 		return
@@ -338,7 +338,7 @@ var setCCPlansResponse = func(server *ghttp.Server, cfPlans map[string][]*cfclie
 	}))
 }
 
-var setCCVisibilitiesGetResponse = func(server *ghttp.Server, cfVisibilitiesByPlanId map[string]*cf.ServicePlanVisibilitiesResponse) {
+func setCCVisibilitiesGetResponse(server *ghttp.Server, cfVisibilitiesByPlanId map[string]*cf.ServicePlanVisibilitiesResponse) {
 	r := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
 	path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 	if cfVisibilitiesByPlanId == nil {
@@ -353,7 +353,7 @@ var setCCVisibilitiesGetResponse = func(server *ghttp.Server, cfVisibilitiesByPl
 	}))
 }
 
-var setCCVisibilitiesUpdateResponse = func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan, simulateError bool) {
+func setCCVisibilitiesUpdateResponse(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan, simulateError bool) {
 	path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 	if cfPlans == nil || simulateError {
 		server.RouteToHandler(http.MethodPost, path, parallelRequestsChecker(badRequestHandler))
@@ -368,7 +368,7 @@ var setCCVisibilitiesUpdateResponse = func(server *ghttp.Server, cfPlans map[str
 	}))
 }
 
-var setCCVisibilitiesDeleteResponse = func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan, simulateError bool) {
+func setCCVisibilitiesDeleteResponse(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan, simulateError bool) {
 	path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility/(?P<organization_guid>[A-Za-z0-9_-]+)`)
 	if cfPlans == nil || simulateError {
 		server.RouteToHandler(http.MethodDelete, path, parallelRequestsChecker(badRequestHandler))

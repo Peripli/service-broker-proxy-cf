@@ -101,8 +101,8 @@ func (pc *PlatformClient) GetVisibilitiesByBrokers(ctx context.Context, brokerNa
 	return result, nil
 }
 
-// UpdateServicePlanVisibility updates service plan visibility type
-func (pc *PlatformClient) UpdateServicePlanVisibility(ctx context.Context, catalogPlanId string, visibilityType VisibilityTypeValue) error {
+// UpdateServicePlanVisibilityType updates service plan visibility type
+func (pc *PlatformClient) UpdateServicePlanVisibilityType(ctx context.Context, catalogPlanId string, visibilityType VisibilityTypeValue) error {
 	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, catalogPlanId, visibilityType)
 }
 

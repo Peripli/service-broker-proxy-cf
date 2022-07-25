@@ -57,7 +57,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			return err
 		}
 
-		err := client.UpdateServicePlanVisibility(ctx, planGUID, visibilityType)
+		err := client.UpdateServicePlanVisibilityType(ctx, planGUID, visibilityType)
 		if err != nil {
 			return err
 		}

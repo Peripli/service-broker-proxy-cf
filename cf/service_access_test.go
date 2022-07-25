@@ -10,7 +10,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"strings"
 )
 
 var _ = Describe("Client Service Plan Access", func() {
@@ -27,7 +26,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
 		generatedCFVisibilities map[string]*cf.ServicePlanVisibilitiesResponse
 		client                  *cf.PlatformClient
-		// expectedCFVisibilities  map[string][]*platform.Visibility
 	)
 
 	createCCServer := func(
@@ -101,9 +99,9 @@ var _ = Describe("Client Service Plan Access", func() {
 
 		Context("when invalid request", func() {
 			It("should return error if request is nil", func() {
-				error := enableAccessForPlan(ctx, nil)
+				err := enableAccessForPlan(ctx, nil)
 
-				Expect(error).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
+				Expect(err).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {
 				brokerName := generatedCFBrokers[0].Name
@@ -113,8 +111,8 @@ var _ = Describe("Client Service Plan Access", func() {
 					CatalogPlanID: catalogPlanId,
 					Labels:        types.Labels{},
 				}
-				error := enableAccessForPlan(ctx, &request)
-				Expect(error).To(MatchError(
+				err := enableAccessForPlan(ctx, &request)
+				Expect(err).To(MatchError(
 					MatchRegexp(fmt.Sprintf("No plan found with catalog id %s from service broker %s", catalogPlanId, brokerName))))
 			})
 			It("should return error if plan is public", func() {
@@ -126,8 +124,8 @@ var _ = Describe("Client Service Plan Access", func() {
 					Labels:        types.Labels{},
 				}
 
-				error := enableAccessForPlan(ctx, &request)
-				Expect(error).To(MatchError(
+				err := enableAccessForPlan(ctx, &request)
+				Expect(err).To(MatchError(
 					MatchRegexp(fmt.Sprintf("Plan with catalog id %s from service broker %s is already public", publicPlan.UniqueId, broker.Name))))
 			})
 		})
@@ -143,8 +141,8 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
 					}
 
-					error := enableAccessForPlan(ctx, &request)
-					Expect(error).ShouldNot(HaveOccurred())
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -160,8 +158,8 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
 					}
 
-					error := enableAccessForPlan(ctx, &request)
-					Expect(error).To(MatchError(
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err).To(MatchError(
 						MatchRegexp(fmt.Sprintf("could not enable access for plan with GUID %s in organizations with GUID %s:",
 							organizationPlan.Guid, fmt.Sprintf("%s, %s", org1Guid, org2Guid)))))
 				})
@@ -179,8 +177,8 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{},
 					}
 
-					error := enableAccessForPlan(ctx, &request)
-					Expect(error).ShouldNot(HaveOccurred())
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -196,8 +194,8 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{},
 					}
 
-					error := enableAccessForPlan(ctx, &request)
-					Expect(error).To(MatchError(
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err).To(MatchError(
 						MatchRegexp(fmt.Sprintf("could not enable public access for plan with GUID %s:", organizationPlan.Guid))))
 				})
 			})
@@ -212,9 +210,9 @@ var _ = Describe("Client Service Plan Access", func() {
 
 		Context("when invalid request", func() {
 			It("should return error if request is nil", func() {
-				error := disableAccessForPlan(ctx, nil)
+				err := disableAccessForPlan(ctx, nil)
 
-				Expect(error).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
+				Expect(err).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {
 				brokerName := generatedCFBrokers[0].Name
@@ -224,22 +222,22 @@ var _ = Describe("Client Service Plan Access", func() {
 					CatalogPlanID: catalogPlanId,
 					Labels:        types.Labels{},
 				}
-				error := disableAccessForPlan(ctx, &request)
-				Expect(error).To(MatchError(
+				err := disableAccessForPlan(ctx, &request)
+				Expect(err).To(MatchError(
 					MatchRegexp(fmt.Sprintf("No plan found with catalog id %s from service broker %s", catalogPlanId, brokerName))))
 			})
-			It("should return error if plan is public", func() {
+			It("should return an error if the plan is public and organizations were provided", func() {
 				broker := generatedCFBrokers[0]
 				publicPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], true)[0]
 				request := platform.ModifyPlanAccessRequest{
 					BrokerName:    broker.Name,
 					CatalogPlanID: publicPlan.UniqueId,
-					Labels:        types.Labels{},
+					Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
 				}
 
-				error := disableAccessForPlan(ctx, &request)
-				Expect(error).To(MatchError(
-					MatchRegexp(fmt.Sprintf("Plan with catalog id %s from service broker %s is already public", publicPlan.UniqueId, broker.Name))))
+				err := disableAccessForPlan(ctx, &request)
+				Expect(err).To(MatchError(
+					MatchRegexp(fmt.Sprintf("Plan with catalog id %s from service broker %s is public", publicPlan.UniqueId, broker.Name))))
 			})
 		})
 
@@ -254,8 +252,8 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
 					}
 
-					error := disableAccessForPlan(ctx, &request)
-					Expect(error).ShouldNot(HaveOccurred())
+					err := disableAccessForPlan(ctx, &request)
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -272,11 +270,11 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{"organization_guid": organizationGuids},
 					}
 
-					error := disableAccessForPlan(ctx, &request)
-					Expect(error).To(MatchError(
+					err := disableAccessForPlan(ctx, &request)
+					Expect(err).To(MatchError(
 						MatchRegexp(
-							fmt.Sprintf("failed to disable visibilities for plan with GUID %s for organizations: %s",
-								organizationPlan.Guid, strings.Join(organizationGuids, ",")))))
+							fmt.Sprintf("failed to disable visibilities for plan with GUID %s :",
+								organizationPlan.Guid))))
 				})
 			})
 		})
@@ -292,8 +290,8 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{},
 					}
 
-					error := disableAccessForPlan(ctx, &request)
-					Expect(error).ShouldNot(HaveOccurred())
+					err := disableAccessForPlan(ctx, &request)
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 
@@ -309,9 +307,9 @@ var _ = Describe("Client Service Plan Access", func() {
 						Labels:        types.Labels{},
 					}
 
-					error := disableAccessForPlan(ctx, &request)
-					Expect(error).To(MatchError(
-						MatchRegexp(fmt.Sprintf("could not remove organizatiuons visibilities for plan with GUID %s:", organizationPlan.Guid))))
+					err := disableAccessForPlan(ctx, &request)
+					Expect(err).To(MatchError(
+						MatchRegexp(fmt.Sprintf("could not disable access for plan with GUID %s:", organizationPlan.Guid))))
 				})
 			})
 		})

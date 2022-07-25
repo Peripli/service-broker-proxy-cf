@@ -31,7 +31,7 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-		err := pc.AddOrganizationVisibilities(ctx, plan.CatalogPlanID, orgGUIDs)
+		err := pc.AddOrganizationVisibilities(ctx, plan.GUID, orgGUIDs)
 		if err != nil {
 			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s: %v",
 				plan.GUID, strings.Join(orgGUIDs, ", "), err)
@@ -40,7 +40,7 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to make this plan to be Public
-		err := pc.UpdateServicePlanVisibilityType(ctx, plan.CatalogPlanID, VisibilityType.PUBLIC)
+		err := pc.UpdateServicePlanVisibilityType(ctx, plan.GUID, VisibilityType.PUBLIC)
 		if err != nil {
 			return fmt.Errorf("could not enable public access for plan with GUID %s: %v", plan.GUID, err)
 		}
@@ -70,7 +70,7 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 		}
 
 		for _, orgGUID := range orgGUIDs {
-			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.CatalogPlanID, orgGUID)
+			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, orgGUID)
 		}
 
 		if err := scheduler.Await(); err != nil {
@@ -82,7 +82,7 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to delete all visibilities of this plan
-		err := pc.ReplaceOrganizationVisibilities(ctx, plan.CatalogPlanID, []string{})
+		err := pc.ReplaceOrganizationVisibilities(ctx, plan.GUID, []string{})
 		if err != nil {
 			return fmt.Errorf("could not disable access for plan with GUID %s: %v", plan.GUID, err)
 		}
@@ -97,11 +97,11 @@ func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
 	ctx context.Context,
 	request *platform.ModifyPlanAccessRequest,
 	scheduler *reconcile.TaskScheduler,
-	catalogPlanId string,
+	planGUID string,
 	orgGUID string) {
 
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
-		err := pc.DeleteOrganizationVisibilities(ctx, catalogPlanId, orgGUID)
+		err := pc.DeleteOrganizationVisibilities(ctx, planGUID, orgGUID)
 		if err != nil {
 			return err
 		}

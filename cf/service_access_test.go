@@ -211,7 +211,6 @@ var _ = Describe("Client Service Plan Access", func() {
 		Context("when invalid request", func() {
 			It("should return error if request is nil", func() {
 				err := disableAccessForPlan(ctx, nil)
-
 				Expect(err).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {

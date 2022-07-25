@@ -368,9 +368,9 @@ var setCCVisibilitiesUpdateResponse = func(server *ghttp.Server, cfPlans map[str
 	}))
 }
 
-var setCCVisibilitiesDeleteResponse = func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan) {
+var setCCVisibilitiesDeleteResponse = func(server *ghttp.Server, cfPlans map[string][]*cfclient.ServicePlan, simulateError bool) {
 	path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility/(?P<organization_guid>[A-Za-z0-9_-]+)`)
-	if cfPlans == nil {
+	if cfPlans == nil || simulateError {
 		server.RouteToHandler(http.MethodDelete, path, parallelRequestsChecker(badRequestHandler))
 		return
 	}

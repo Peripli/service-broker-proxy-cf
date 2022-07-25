@@ -59,13 +59,18 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.CatalogPlanID, orgGUID)
 		}
 
+		if err := scheduler.Await(); err != nil {
+			return fmt.Errorf("failed to disable visibilities for plan with GUID %s for organizations: %s: %v",
+				plan.GUID, strings.Join(orgGUIDs, ","), err)
+		}
+
 		logger.Infof("Disabled access for plan with GUID %s in organizations with GUID %s",
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to delete all visibilities of this plan
 		err := pc.ReplaceOrganizationVisibilities(ctx, plan.CatalogPlanID, []string{})
 		if err != nil {
-			return fmt.Errorf("could not enable public access for plan with GUID %s: %v", plan.GUID, err)
+			return fmt.Errorf("could not remove organizatiuons visibilities for plan with GUID %s: %v", plan.GUID, err)
 		}
 
 		pc.planResolver.UpdatePlan(plan.CatalogPlanID, plan.BrokerName, true)
@@ -84,7 +89,7 @@ func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
 	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
 		err := pc.DeleteOrganizationVisibilities(ctx, catalogPlanId, orgGUID)
 		if err != nil {
-			return fmt.Errorf("could not enable access for plan with catalog id %s in organization with GUID %s: %v",
+			return fmt.Errorf("could not disable access for plan with catalog id %s in organization with GUID %s: %v",
 				catalogPlanId, orgGUID, err)
 		}
 

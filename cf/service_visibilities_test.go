@@ -40,7 +40,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		setCCPlansResponse(server, cfPlans)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
 		setCCVisibilitiesUpdateResponse(server, cfPlans, false)
-		setCCVisibilitiesDeleteResponse(server, cfPlans)
+		setCCVisibilitiesDeleteResponse(server, cfPlans, false)
 
 		return server
 	}
@@ -108,7 +108,6 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
-
 		generatedCFBrokers = generateCFBrokers(5)
 		generatedCFServices = generateCFServices(generatedCFBrokers, 10)
 		generatedCFPlans = generateCFPlans(generatedCFServices, 15, 2)

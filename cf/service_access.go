@@ -24,10 +24,8 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if plan.Public {
-		errorMessage := fmt.Sprintf("Plan with catalog id %s from service broker %s is already public",
+		return errors.Errorf("Plan with catalog id %s from service broker %s is already public",
 			request.CatalogPlanID, request.BrokerName)
-
-		return errors.Errorf(errorMessage)
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
@@ -63,10 +61,8 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
 		if plan.Public {
-			errorMessage := fmt.Sprintf("Plan with catalog id %s from service broker %s is public",
+			return errors.Errorf("Cannot disable plan access for orgs. Plan with catalog id %s from service broker %s is public",
 				request.CatalogPlanID, request.BrokerName)
-
-			return errors.Errorf(errorMessage)
 		}
 
 		for _, orgGUID := range orgGUIDs {

@@ -236,7 +236,8 @@ var _ = Describe("Client Service Plan Access", func() {
 
 				err := disableAccessForPlan(ctx, &request)
 				Expect(err).To(MatchError(
-					MatchRegexp(fmt.Sprintf("Plan with catalog id %s from service broker %s is public", publicPlan.UniqueId, broker.Name))))
+					MatchRegexp(fmt.Sprintf("Cannot disable plan access for orgs. Plan with catalog id %s from service broker %s is public",
+						publicPlan.UniqueId, broker.Name))))
 			})
 		})
 

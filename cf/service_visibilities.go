@@ -108,12 +108,12 @@ func (pc *PlatformClient) UpdateServicePlanVisibilityType(ctx context.Context, p
 
 // AddOrganizationVisibilities appends organization visibilities to the existing list of the organizations
 func (pc *PlatformClient) AddOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUIDs []string) error {
-	return pc.updateServicePlanVisibilities(ctx, http.MethodPost, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs)
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPost, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs...)
 }
 
 // ReplaceOrganizationVisibilities replaces existing list of organizations
 func (pc *PlatformClient) ReplaceOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUIDs []string) error {
-	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs)
+	return pc.updateServicePlanVisibilities(ctx, http.MethodPatch, planGUID, VisibilityType.ORGANIZATION, organizationGUIDs...)
 }
 
 func (pc *PlatformClient) DeleteOrganizationVisibilities(ctx context.Context, planGUID string, organizationGUID string) error {
@@ -236,15 +236,29 @@ func (pc *PlatformClient) updateServicePlanVisibilities(
 	requestMethod string,
 	planGUID string,
 	visibilityType VisibilityTypeValue,
-	organizationGUIDs ...[]string) error {
+	organizationGUIDs ...string) error {
 
 	var requestBody interface{}
 	path := fmt.Sprintf("/v3/service_plans/%s/visibility", planGUID)
 
+	switch visibilityType {
+	case VisibilityType.ORGANIZATION:
+		requestBody = UpdateOrganizationVisibilitiesRequest{
+			Type:          string(visibilityType),
+			Organizations: newOrganizations(organizationGUIDs),
+		}
+	case VisibilityType.PUBLIC:
+		requestBody = UpdateVisibilitiesRequest{
+			Type: string(visibilityType),
+		}
+	default:
+		return fmt.Errorf("update plan visibility to visibility type %s is not supported", visibilityType)
+	}
+
 	if visibilityType == VisibilityType.ORGANIZATION {
 		requestBody = UpdateOrganizationVisibilitiesRequest{
 			Type:          string(visibilityType),
-			Organizations: newOrganizations(organizationGUIDs[0]),
+			Organizations: newOrganizations(organizationGUIDs),
 		}
 	} else {
 		requestBody = UpdateVisibilitiesRequest{

@@ -18,12 +18,6 @@ const (
 	cfPageSizeParam = "results-per-page"
 )
 
-// JobURL is the URL of the async response job
-type JobURL string
-
-// ResponseStatus is the response status code
-type ResponseStatus int
-
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {

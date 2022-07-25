@@ -109,7 +109,7 @@ func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
 		return nil
 	}); schedulerErr != nil {
 		log.C(ctx).WithError(schedulerErr).
-			Errorf("Scheduler error on delete plan with catalog id %s and org with GUID %s", request.CatalogPlanID, orgGUID)
+			Errorf("Scheduler error on disable access for plan with catalog id %s and org with GUID %s", request.CatalogPlanID, orgGUID)
 	}
 }
 

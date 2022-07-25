@@ -1,6 +1,7 @@
 package cf_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -38,6 +39,16 @@ type mockRoute struct {
 	requestChecks expectedRequest
 	reaction      reactionResponse
 }
+
+var (
+	cl           *cf.PlatformClient
+	ccServer     *ghttp.Server
+	responseCode int
+	response     interface{}
+	requestPath  string
+	responseErr  cfclient.CloudFoundryError
+	ctx          context.Context
+)
 
 func appendRoutes(server *ghttp.Server, routes ...*mockRoute) {
 	for _, route := range routes {
@@ -237,6 +248,122 @@ var _ = Describe("Client", func() {
 				_, err := cf.NewClient(settings)
 
 				Expect(err).Should(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("MakeRequest", func() {
+		BeforeEach(func() {
+			ccServer = fakeCCServer(false)
+			_, cl = ccClientWithThrottling(ccServer.URL(), 50)
+			ctx = context.TODO()
+			requestPath = "/v2/some_route"
+		})
+
+		Describe("when a request does not contain body", func() {
+			BeforeEach(func() {
+				ccServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest(http.MethodGet, requestPath),
+						ghttp.RespondWithJSONEncodedPtr(&responseCode, &response),
+					),
+				)
+			})
+
+			Context("when an error status code is returned by CF Client", func() {
+				BeforeEach(func() {
+					responseErr = cfclient.CloudFoundryError{
+						Code:        1009,
+						ErrorCode:   "err",
+						Description: "test err",
+					}
+
+					response = responseErr
+					responseCode = http.StatusInternalServerError
+				})
+
+				It("returns an error", func() {
+					_, err := cl.MakeRequest(cf.PlatformClientRequest{
+						CTX:    ctx,
+						URL:    requestPath,
+						Method: http.MethodGet,
+					})
+
+					assertCFError(err, responseErr)
+				})
+			})
+
+			Context("when the request is successful", func() {
+				BeforeEach(func() {
+					responseCode = http.StatusOK
+					response = cfclient.AppResponse{
+						Count:     0,
+						Pages:     0,
+						NextUrl:   "",
+						Resources: []cfclient.AppResource{},
+					}
+				})
+
+				It("returns CF response", func() {
+					var appResponse cfclient.AppResponse
+					_, err := cl.MakeRequest(cf.PlatformClientRequest{
+						CTX:          ctx,
+						URL:          requestPath,
+						Method:       http.MethodGet,
+						ResponseBody: &appResponse,
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(appResponse).To(Equal(response))
+				})
+			})
+		})
+
+		Describe("when a request contains body", func() {
+			requestBody := struct {
+				Name      string `json:"name"`
+				BrokerURL string `json:"broker_url"`
+				Username  string `json:"auth_username,omitempty"`
+				Password  string `json:"auth_password,omitempty"`
+			}{
+				Name:      "",
+				BrokerURL: "",
+				Username:  "",
+				Password:  "",
+			}
+			BeforeEach(func() {
+				ccServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest(http.MethodPost, requestPath),
+						ghttp.VerifyJSONRepresenting(requestBody),
+						ghttp.RespondWithJSONEncodedPtr(&responseCode, &response),
+					),
+				)
+			})
+			Context("when the request is successful", func() {
+				BeforeEach(func() {
+					responseCode = http.StatusOK
+					response = cfclient.AppResponse{
+						Count:     2,
+						Pages:     2,
+						NextUrl:   "",
+						Resources: []cfclient.AppResource{},
+					}
+				})
+
+				It("returns CF response", func() {
+					var appResponse cfclient.AppResponse
+					_, err := cl.MakeRequest(cf.PlatformClientRequest{
+						CTX:          ctx,
+						URL:          requestPath,
+						Method:       http.MethodPost,
+						RequestBody:  requestBody,
+						ResponseBody: &appResponse,
+					})
+
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(appResponse).To(Equal(response))
+				})
 			})
 		})
 	})

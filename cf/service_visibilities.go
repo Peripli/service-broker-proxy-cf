@@ -255,17 +255,6 @@ func (pc *PlatformClient) updateServicePlanVisibilities(
 		return fmt.Errorf("update plan visibility to visibility type %s is not supported", visibilityType)
 	}
 
-	if visibilityType == VisibilityType.ORGANIZATION {
-		requestBody = UpdateOrganizationVisibilitiesRequest{
-			Type:          string(visibilityType),
-			Organizations: newOrganizations(organizationGUIDs),
-		}
-	} else {
-		requestBody = UpdateVisibilitiesRequest{
-			Type: string(visibilityType),
-		}
-	}
-
 	resp, err := pc.MakeRequest(PlatformClientRequest{
 		CTX:         ctx,
 		Method:      requestMethod,

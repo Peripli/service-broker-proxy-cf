@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"strings"
 )
 
 var _ = Describe("Client Service Plan Access", func() {
@@ -264,15 +265,18 @@ var _ = Describe("Client Service Plan Access", func() {
 
 					broker := generatedCFBrokers[0]
 					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationGuids := []string{org1Guid, org2Guid}
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
-						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
+						Labels:        types.Labels{"organization_guid": organizationGuids},
 					}
 
 					error := disableAccessForPlan(ctx, &request)
 					Expect(error).To(MatchError(
-						MatchRegexp(fmt.Sprintf("failed to disable visibilities for plan with GUID %s for organizations: testorgguid1,testorgguid2", organizationPlan.Guid))))
+						MatchRegexp(
+							fmt.Sprintf("failed to disable visibilities for plan with GUID %s for organizations: %s",
+								organizationPlan.Guid, strings.Join(organizationGuids, ",")))))
 				})
 			})
 		})

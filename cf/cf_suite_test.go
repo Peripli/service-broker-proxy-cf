@@ -269,12 +269,12 @@ func setCCBrokersResponse(server *ghttp.Server, cfBrokers []*cfclient.ServiceBro
 				})
 			}
 		}
-		response := cfclient.ServiceBrokerResponse{
+		resp := cfclient.ServiceBrokerResponse{
 			Count:     len(result),
 			Pages:     1,
 			Resources: result,
 		}
-		writeJSONResponse(response, rw)
+		writeJSONResponse(resp, rw)
 	}))
 }
 
@@ -376,5 +376,24 @@ func setCCVisibilitiesDeleteResponse(server *ghttp.Server, cfPlans map[string][]
 	}
 	server.RouteToHandler(http.MethodDelete, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusNoContent)
+	}))
+}
+
+func setCCJobResponse(server *ghttp.Server, simulateError bool, jobState cf.JobStateValue) {
+	r := strings.NewReplacer("/v3/jobs/", "")
+	path := regexp.MustCompile(`/v3/jobs/(?P<guid>[A-Za-z0-9_-]+)`)
+	if simulateError {
+		server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(badRequestHandler))
+		return
+	}
+
+	server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+		jobGuid := r.Replace(req.RequestURI)
+		writeJSONResponse(cf.Job{
+			RawErrors: []cf.JobErrorDetails{},
+			GUID:      jobGuid,
+			State:     jobState,
+			Warnings:  []cf.JobWarning{},
+		}, rw)
 	}))
 }

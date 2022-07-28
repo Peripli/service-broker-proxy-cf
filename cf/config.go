@@ -27,8 +27,10 @@ type Config struct {
 type ClientConfiguration struct {
 	cfclient.Config `mapstructure:",squash"`
 
-	PageSize  int `mapstructure:"page_size"`
-	ChunkSize int `mapstructure:"chunk_size"`
+	PageSize        int `mapstructure:"page_size"`
+	ChunkSize       int `mapstructure:"chunk_size"`
+	JobPollTimeout  int `mapstructure:"job_poll_timeout"`
+	JobPollInterval int `mapstructure:"job_poll_interval"`
 }
 
 // Settings type wraps the CF client configuration

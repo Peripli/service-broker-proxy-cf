@@ -14,10 +14,6 @@ import (
 	"net/url"
 )
 
-const (
-	cfPageSizeParam = "results-per-page"
-)
-
 // PlatformClient provides an implementation of the service-broker-proxy/pkg/cf/Client interface.
 // It is used to call into the cf that the proxy deployed at.
 type PlatformClient struct {
@@ -40,6 +36,41 @@ type PlatformClientRequest struct {
 type PlatformClientResponse struct {
 	JobURL     string
 	StatusCode int
+}
+
+// CCData CF CC relationship object
+type CCData struct {
+	GUID string `json:"guid"`
+}
+
+// CCRelationship CF CC relationship object
+type CCRelationship struct {
+	Data CCData `json:"data"`
+}
+
+// CCLinkObject is the pagination link object of CF CC V3
+type CCLinkObject struct {
+	Href   string `json:"href"`
+	Method string `json:"method"`
+}
+
+// CCPagination is the pagination object of CF CC V3
+type CCPagination struct {
+	TotalResults int          `json:"total_results"`
+	TotalPages   int          `json:"total_pages"`
+	First        CCLinkObject `json:"first"`
+	Last         CCLinkObject `json:"last"`
+	Next         CCLinkObject `json:"next"`
+	Previous     string       `json:"previous"`
+}
+
+// CCQueryParams CF API query params
+var CCQueryParams = struct {
+	PageSize string
+	Names    string
+}{
+	PageSize: "per_page",
+	Names:    "names",
 }
 
 // Broker returns platform client which can perform platform broker operations

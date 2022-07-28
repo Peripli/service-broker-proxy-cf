@@ -16,13 +16,32 @@ import (
 	"github.com/cloudfoundry-community/go-cfclient"
 )
 
+// CCListServiceBrokersResponse CF CC pagination response for SB list
+type CCListServiceBrokersResponse struct {
+	Pagination CCPagination      `json:"pagination"`
+	Resources  []CCServiceBroker `json:"resources"`
+}
+
+// CCBrokerRelationships CF CC Service Broker relationships object
+type CCBrokerRelationships struct {
+	Space CCRelationship `json:"space"`
+}
+
+// CCServiceBroker CF CC partial Service Broker object
+type CCServiceBroker struct {
+	GUID          string                `json:"guid"`
+	Name          string                `json:"name"`
+	URL           string                `json:"url"`
+	Relationships CCBrokerRelationships `json:"relationships"`
+}
+
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
 // obtaining the brokers that are already registered in CF
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBroker, error) {
 	logger := log.C(ctx)
 	logger.Info("Fetching service brokers from CF...")
-	brokers, err := pc.client.ListServiceBrokersByQuery(url.Values{
-		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
+	brokers, err := pc.listServiceBrokersByQuery(ctx, url.Values{
+		CCQueryParams.PageSize: []string{strconv.Itoa(pc.settings.CF.PageSize)},
 	})
 	if err != nil {
 		return nil, err
@@ -31,11 +50,11 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 
 	var clientBrokers []*platform.ServiceBroker
 	for _, broker := range brokers {
-		if broker.SpaceGUID == "" {
+		if broker.Relationships.Space.Data.GUID == "" {
 			serviceBroker := &platform.ServiceBroker{
-				GUID:      broker.Guid,
+				GUID:      broker.GUID,
 				Name:      broker.Name,
-				BrokerURL: broker.BrokerURL,
+				BrokerURL: broker.URL,
 			}
 			clientBrokers = append(clientBrokers, serviceBroker)
 		}
@@ -48,28 +67,32 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 // GetBrokerByName implements service-broker-proxy/pkg/cf/Client.GetBrokerByName and provides logic for getting a broker by name
 // that is already registered in CF
 func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*platform.ServiceBroker, error) {
-	broker, err := pc.client.GetServiceBrokerByName(name)
-	if err != nil {
+	brokers, err := pc.listServiceBrokersByQuery(ctx, url.Values{
+		CCQueryParams.Names: []string{name},
+	})
+	if err != nil || len(brokers) == 0 {
 		return nil, fmt.Errorf("could not retrieve service broker with name %s: %v", name, err)
 	}
-	log.C(ctx).Infof("Retrieved service broker with name %s, GUID %s and URL %s",
-		broker.Name, broker.Guid, broker.BrokerURL)
 
-	if broker.SpaceGUID != "" {
-		return nil, fmt.Errorf("service broker with name %s and GUID %s is scoped to a space with GUID %s", broker.Name, broker.Guid, broker.SpaceGUID)
+	broker := brokers[0]
+	log.C(ctx).Infof("Retrieved service broker with name %s, GUID %s and URL %s",
+		broker.Name, broker.GUID, broker.URL)
+
+	if broker.Relationships.Space.Data.GUID != "" {
+		return nil, fmt.Errorf("service broker with name %s and GUID %s is scoped to a space with GUID %s",
+			broker.Name, broker.GUID, broker.Relationships.Space.Data.GUID)
 	}
 
 	return &platform.ServiceBroker{
-		GUID:      broker.Guid,
+		GUID:      broker.GUID,
 		Name:      broker.Name,
-		BrokerURL: broker.BrokerURL,
+		BrokerURL: broker.URL,
 	}, nil
 }
 
 // CreateBroker implements service-broker-proxy/pkg/cf/Client.CreateBroker and provides logic for
 // registering a new broker in CF
 func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
-
 	request := cfclient.CreateServiceBrokerRequest{
 		Username:  r.Username,
 		Password:  r.Password,
@@ -166,4 +189,30 @@ func (pc *PlatformClient) updateBroker(ctx context.Context, r *platform.UpdateSe
 	}
 
 	return response, nil
+}
+
+func (pc *PlatformClient) listServiceBrokersByQuery(ctx context.Context, query url.Values) ([]CCServiceBroker, error) {
+	var serviceBrokers []CCServiceBroker
+	var serviceBrokersResponse CCListServiceBrokersResponse
+	request := PlatformClientRequest{
+		CTX:          ctx,
+		URL:          "/v3/service_brokers?" + query.Encode(),
+		Method:       http.MethodGet,
+		ResponseBody: &serviceBrokersResponse,
+	}
+
+	for {
+		_, err := pc.MakeRequest(request)
+		if err != nil {
+			return []CCServiceBroker{}, err
+		}
+
+		serviceBrokers = append(serviceBrokers, serviceBrokersResponse.Resources...)
+		request.URL = serviceBrokersResponse.Pagination.Next.Href
+		if request.URL == "" {
+			break
+		}
+	}
+
+	return serviceBrokers, nil
 }

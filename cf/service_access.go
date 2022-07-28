@@ -29,7 +29,7 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-		err := pc.AddOrganizationVisibilities(ctx, plan.GUID, orgGUIDs)
+		err = pc.AddOrganizationVisibilities(ctx, plan.GUID, orgGUIDs)
 		if err != nil {
 			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s: %v",
 				plan.GUID, strings.Join(orgGUIDs, ", "), err)
@@ -38,7 +38,7 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to make this plan to be Public
-		err := pc.UpdateServicePlanVisibilityType(ctx, plan.GUID, VisibilityType.PUBLIC)
+		err = pc.UpdateServicePlanVisibilityType(ctx, plan.GUID, VisibilityType.PUBLIC)
 		if err != nil {
 			return fmt.Errorf("could not enable public access for plan with GUID %s: %v", plan.GUID, err)
 		}
@@ -69,7 +69,7 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, orgGUID)
 		}
 
-		if err := scheduler.Await(); err != nil {
+		if err = scheduler.Await(); err != nil {
 			return fmt.Errorf("failed to disable visibilities for plan with GUID %s : %v",
 				plan.GUID, err)
 		}
@@ -78,7 +78,7 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to delete all visibilities of this plan
-		err := pc.ReplaceOrganizationVisibilities(ctx, plan.GUID, []string{})
+		err = pc.ReplaceOrganizationVisibilities(ctx, plan.GUID, []string{})
 		if err != nil {
 			return fmt.Errorf("could not disable access for plan with GUID %s: %v", plan.GUID, err)
 		}
@@ -111,7 +111,7 @@ func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
 
 func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlanAccessRequest) (*cfmodel.PlanData, error) {
 	if request == nil {
-		return nil, errors.Errorf("Enable plan access request cannot be nil")
+		return nil, errors.Errorf("Modify plan access request cannot be nil")
 	}
 
 	plan, found := pc.planResolver.GetPlan(request.CatalogPlanID, request.BrokerName)

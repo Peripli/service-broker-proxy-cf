@@ -26,6 +26,7 @@ var (
 	logInterceptor             *testutil.LogInterceptor
 	maxAllowedParallelRequests int
 	parallelRequestsCounter    int
+	JobPollTimeout             int
 )
 
 func TestCF(t *testing.T) {

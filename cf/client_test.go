@@ -152,7 +152,7 @@ func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Set
 	config := &cf.Config{
 		ClientConfiguration: &cf.ClientConfiguration{
 			Config:          cfConfig,
-			JobPollTimeout:  2,
+			JobPollTimeout:  JobPollTimeout,
 			JobPollInterval: 1,
 			PageSize:        100,
 			ChunkSize:       10,

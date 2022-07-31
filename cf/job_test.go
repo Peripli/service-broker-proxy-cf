@@ -11,11 +11,11 @@ import (
 )
 
 var _ = Describe("job", func() {
-
 	var (
-		client  *cf.PlatformClient
-		jobGUID uuid.UUID
-		err     error
+		client   *cf.PlatformClient
+		jobGUID  uuid.UUID
+		jobError *cf.JobError
+		err      error
 	)
 
 	createCCServer := func() *ghttp.Server {
@@ -31,6 +31,7 @@ var _ = Describe("job", func() {
 
 		parallelRequestsCounter = 0
 		maxAllowedParallelRequests = 3
+		JobPollTimeout = 2
 		ccServer = createCCServer()
 		_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 	})
@@ -41,12 +42,44 @@ var _ = Describe("job", func() {
 		}
 	})
 	Describe("PollJob", func() {
-		Context("when job success", func() {
+		Context("when the job succeeded", func() {
 			It("shouldn't return error", func() {
 				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				_, err = client.PollJob(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
+				_, jobError = client.PollJob(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
 
 				Expect(err).ShouldNot(HaveOccurred())
+			})
+		})
+
+		Context("when the job takes to long", func() {
+			It("should return error", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.PROCESSING)
+				_, jobError = client.PollJob(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
+
+				Expect(jobError.FailureStatus).To(Equal(cf.JobFailure.TIMEOUT))
+				Expect(jobError.Error).To(MatchError(
+					MatchRegexp(fmt.Sprintf("the job with GUID %s is finished with timeout: %d seconds",
+						jobGUID, JobPollTimeout))))
+			})
+		})
+
+		Context("when the job failed", func() {
+			It("should return error", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.FAILED)
+				_, jobError = client.PollJob(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
+
+				Expect(jobError.FailureStatus).To(Equal(cf.JobFailure.STATUS))
+				Expect(jobError.Error).To(MatchError(
+					MatchRegexp(fmt.Sprintf("the job with GUID %s is failed with the error:", jobGUID))))
+			})
+		})
+
+		Context("when the get job request failed", func() {
+			It("should return error", func() {
+				setCCJobResponse(ccServer, true, cf.JobState.FAILED)
+				_, jobError = client.PollJob(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
+
+				Expect(jobError.FailureStatus).To(Equal(cf.JobFailure.REQUEST))
 			})
 		})
 	})

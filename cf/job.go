@@ -2,13 +2,17 @@ package cf
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
+	"github.com/Peripli/service-manager/pkg/log"
 	"net/http"
+	"strings"
 	"time"
 )
 
 type JobStateValue string
+type Warnings []string
+type JobFailureValue string
 
 // JobState is the current state of a job.
 var JobState = struct {
@@ -27,12 +31,22 @@ var JobState = struct {
 	POLLING:    "POLLING",
 }
 
-// JobWarning a warnings returned during the job polling execution.
-type JobWarning struct {
-	Detail string `json:"detail"`
+// JobFailure reason.
+var JobFailure = struct {
+	// REQUEST is when the job request failed.
+	REQUEST JobFailureValue
+	// STATUS is when the job finished with the status FAILED.
+	STATUS JobFailureValue
+	// TIMEOUT is when the job polling timeout has been occurred.
+	TIMEOUT JobFailureValue
+	// UNKNOWN any other unknown reason
+	UNKNOWN JobFailureValue
+}{
+	REQUEST: "REQUEST",
+	STATUS:  "STATUS",
+	TIMEOUT: "TIMEOUT",
+	UNKNOWN: "UNKNOWN",
 }
-
-type Warnings []string
 
 type Job struct {
 	// RawErrors is a list of errors that occurred while processing the job.
@@ -43,6 +57,16 @@ type Job struct {
 	State JobStateValue `json:"state"`
 	// Warnings are the warnings emitted by the job during its processing.
 	Warnings []JobWarning `json:"warnings"`
+}
+
+type JobError struct {
+	FailureStatus JobFailureValue
+	Error         error
+}
+
+// JobWarning a warnings returned during the job polling execution.
+type JobWarning struct {
+	Detail string `json:"detail"`
 }
 
 // JobErrorDetails provides information regarding a job's error.
@@ -58,12 +82,11 @@ type JobErrorDetails struct {
 // PollJob - keep polling the given job until the job has terminated, an
 // error is encountered, or config.OverallPollingTimeout is reached. In the
 // last case, a JobTimeoutError is returned.
-func (pc *PlatformClient) PollJob(ctx context.Context, jobURL string) (Warnings, error) {
+func (pc *PlatformClient) PollJob(ctx context.Context, jobURL string) (Warnings, *JobError) {
 	var (
-		err         error
-		warnings    Warnings
-		job         Job
-		errorString []byte
+		err      error
+		warnings Warnings
+		job      Job
 	)
 
 	jobPollTimeout := float64(pc.settings.CF.JobPollTimeout)
@@ -81,22 +104,64 @@ func (pc *PlatformClient) PollJob(ctx context.Context, jobURL string) (Warnings,
 		}
 
 		if err != nil {
-			return warnings, err
+			return warnings, &JobError{
+				FailureStatus: JobFailure.REQUEST,
+				Error:         err,
+			}
 		}
 
 		switch job.State {
 		case JobState.COMPLETE:
 			return warnings, nil
 		case JobState.FAILED:
-			if errorString, err = json.Marshal(job.RawErrors); err != nil {
-				return warnings, fmt.Errorf("unable to parse errors of job with the GUID %s", job.GUID)
+			return warnings, &JobError{
+				FailureStatus: JobFailure.STATUS,
+				Error: fmt.Errorf("the job with GUID %s is failed with the error: %v",
+					job.GUID, job.RawErrors),
 			}
-			return warnings, fmt.Errorf("the job with GUID %s is failed with the error: %s", job.GUID, string(errorString))
 		}
 
 		time.Sleep(time.Duration(pc.settings.CF.JobPollInterval) * time.Second)
 	}
 
-	return warnings, fmt.Errorf("the job with GUID %s is finished with timeout: %d seconds",
-		job.GUID, pc.settings.CF.JobPollTimeout)
+	return warnings, &JobError{
+		FailureStatus: JobFailure.TIMEOUT,
+		Error: fmt.Errorf("the job with GUID %s is finished with timeout: %d seconds",
+			job.GUID, pc.settings.CF.JobPollTimeout),
+	}
+}
+
+func (pc *PlatformClient) ScheduleJobPolling(
+	ctx context.Context,
+	jobUrl string) *JobError {
+
+	jobError := make(chan *JobError, 1)
+	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
+
+	if schedulerErr := scheduler.Schedule(func(ctx context.Context) error {
+		warnings, err := pc.PollJob(ctx, jobUrl)
+		if len(warnings) > 0 {
+			log.C(ctx).Infof("Job: %s warnings: %s",
+				jobUrl, strings.Join(warnings, ", "))
+		}
+
+		if err != nil {
+			jobError <- err
+			return err.Error
+		}
+
+		return nil
+	}); schedulerErr != nil {
+		return &JobError{
+			FailureStatus: JobFailure.UNKNOWN,
+			Error:         fmt.Errorf("scheduler error on job polling URL: %s", jobUrl),
+		}
+	}
+
+	if err := scheduler.Await(); err != nil {
+		jobActualError := <-jobError
+		return jobActualError
+	}
+
+	return nil
 }

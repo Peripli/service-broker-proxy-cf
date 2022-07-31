@@ -1,20 +1,30 @@
 package cf
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"github.com/Peripli/service-manager/pkg/log"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/Peripli/service-manager/pkg/log"
-
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
 )
+
+const (
+	CreateBrokerError = "could not retrieve service broker with name %s: %v"
+	DeleteBrokerError = "could not delete service broker with GUID %s: %v"
+	UpdateBrokerError = "could not update service broker with GUID %s: %v"
+)
+
+type AuthenticationTypeValue string
+
+// AuthenticationType is the supported authentication types.
+var AuthenticationType = struct {
+	BASIC AuthenticationTypeValue
+}{
+	BASIC: "basic",
+}
 
 // CCListServiceBrokersResponse CF CC pagination response for SB list
 type CCListServiceBrokersResponse struct {
@@ -33,6 +43,25 @@ type CCServiceBroker struct {
 	Name          string                `json:"name"`
 	URL           string                `json:"url"`
 	Relationships CCBrokerRelationships `json:"relationships"`
+}
+
+// CCSaveServiceBrokerRequest used for create and update broker requests payload
+type CCSaveServiceBrokerRequest struct {
+	Name           string           `json:"name"`
+	URL            string           `json:"url"`
+	Authentication CCAuthentication `json:"authentication"`
+}
+
+// CCAuthentication CF CC authentication object
+type CCAuthentication struct {
+	Type        AuthenticationTypeValue `json:"type"`
+	Credentials CCCredentials           `json:"credentials"`
+}
+
+// CCCredentials CF CC credentials object
+type CCCredentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 // GetBrokers implements service-broker-proxy/pkg/cf/Client.GetBrokers and provides logic for
@@ -93,21 +122,42 @@ func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*pl
 // CreateBroker implements service-broker-proxy/pkg/cf/Client.CreateBroker and provides logic for
 // registering a new broker in CF
 func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
-	request := cfclient.CreateServiceBrokerRequest{
-		Username:  r.Username,
-		Password:  r.Password,
-		Name:      r.Name,
-		BrokerURL: r.BrokerURL,
+	request := PlatformClientRequest{
+		CTX:    ctx,
+		URL:    "/v3/service_brokers",
+		Method: http.MethodPost,
+		RequestBody: CCSaveServiceBrokerRequest{
+			Name: r.Name,
+			URL:  r.BrokerURL,
+			Authentication: CCAuthentication{
+				Type: AuthenticationType.BASIC,
+				Credentials: CCCredentials{
+					Username: r.Username,
+					Password: r.Password,
+				},
+			},
+		},
 	}
 
-	broker, err := pc.client.CreateServiceBroker(request)
-	if err != nil {
-		return nil, fmt.Errorf("could not create service broker with name %s: %v", r.Name, err)
+	res, err := pc.MakeRequest(request)
+	if err != nil || res.JobURL == "" {
+		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
 	}
+
+	jobErr := pc.ScheduleJobPolling(ctx, res.JobURL)
+	if jobErr != nil {
+		return nil, fmt.Errorf(CreateBrokerError, r.Name, jobErr.Error)
+	}
+
+	broker, err := pc.GetBrokerByName(ctx, r.Name)
+	if err != nil {
+		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
+	}
+
 	log.C(ctx).Infof("Created service broker with name %s and URL %s", r.Name, r.BrokerURL)
 
 	response := &platform.ServiceBroker{
-		GUID:      broker.Guid,
+		GUID:      broker.GUID,
 		Name:      broker.Name,
 		BrokerURL: broker.BrokerURL,
 	}
@@ -117,9 +167,23 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 // DeleteBroker implements service-broker-proxy/pkg/cf/Client.DeleteBroker and provides logic for
 // deleting broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
-	if err := pc.client.DeleteServiceBroker(r.GUID); err != nil {
-		return fmt.Errorf("could not delete service broker with GUID %s: %v", r.GUID, err)
+	path := fmt.Sprintf("/v3/service_brokers/%s", r.GUID)
+	request := PlatformClientRequest{
+		CTX:    ctx,
+		URL:    path,
+		Method: http.MethodDelete,
 	}
+
+	res, err := pc.MakeRequest(request)
+	if err != nil || res.JobURL == "" {
+		return fmt.Errorf(DeleteBrokerError, r.Name, err)
+	}
+
+	jobErr := pc.ScheduleJobPolling(ctx, res.JobURL)
+	if jobErr != nil {
+		return fmt.Errorf(DeleteBrokerError, r.Name, jobErr.Error)
+	}
+
 	log.C(ctx).Infof("Deleted service broker with GUID %s", r.GUID)
 	return nil
 }
@@ -127,68 +191,43 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 // UpdateBroker implements service-broker-proxy/pkg/cf/Client.UpdateBroker and provides logic for
 // updating a broker registration in CF
 func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
-	broker, err := pc.updateBroker(ctx, r)
-	if err != nil {
-		err = fmt.Errorf("could not update service broker with GUID %s: %v", r.GUID, err)
-	} else {
-		log.C(ctx).Infof("Updated service broker with GUID %s, name %s and URL %s",
-			broker.GUID, broker.Name, broker.BrokerURL)
+	path := fmt.Sprintf("/v3/service_brokers/%s", r.GUID)
+	request := PlatformClientRequest{
+		CTX:    ctx,
+		URL:    path,
+		Method: http.MethodPatch,
+		RequestBody: CCSaveServiceBrokerRequest{
+			Name: r.Name,
+			URL:  r.BrokerURL,
+			Authentication: CCAuthentication{
+				Type: AuthenticationType.BASIC,
+				Credentials: CCCredentials{
+					Username: r.Username,
+					Password: r.Password,
+				},
+			},
+		},
 	}
+
+	res, err := pc.MakeRequest(request)
+	if err != nil || res.JobURL == "" {
+		return nil, fmt.Errorf(UpdateBrokerError, r.Name, err)
+	}
+
+	jobErr := pc.ScheduleJobPolling(ctx, res.JobURL)
+	if jobErr != nil {
+		return nil, fmt.Errorf(UpdateBrokerError, r.Name, jobErr.Error)
+	}
+
+	broker, err := pc.GetBrokerByName(ctx, r.Name)
+	if err != nil {
+		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
+	}
+
+	log.C(ctx).Infof("Updated service broker with GUID %s, name %s and URL %s",
+		broker.GUID, broker.Name, broker.BrokerURL)
+
 	return broker, err
-}
-
-func (pc *PlatformClient) updateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
-	request := struct {
-		Name      string `json:"name"`
-		BrokerURL string `json:"broker_url"`
-		Username  string `json:"auth_username,omitempty"`
-		Password  string `json:"auth_password,omitempty"`
-	}{
-		Name:      r.Name,
-		BrokerURL: r.BrokerURL,
-		Username:  r.Username,
-		Password:  r.Password,
-	}
-
-	var serviceBrokerResource cfclient.ServiceBrokerResource
-
-	buf := bytes.NewBuffer(nil)
-	err := json.NewEncoder(buf).Encode(request)
-	if err != nil {
-		return nil, err
-	}
-	path := fmt.Sprintf("/v2/service_brokers/%s", r.GUID)
-	req := pc.client.NewRequestWithBody("PUT", path, buf)
-	resp, err := pc.client.DoRequest(req)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("CF API PUT %s returned status code %d", path, resp.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.C(ctx).Debug("unable to close response body stream:", err)
-		}
-	}()
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(body, &serviceBrokerResource)
-	if err != nil {
-		return nil, err
-	}
-	serviceBrokerResource.Entity.Guid = serviceBrokerResource.Meta.Guid
-
-	response := &platform.ServiceBroker{
-		GUID:      serviceBrokerResource.Entity.Guid,
-		Name:      serviceBrokerResource.Entity.Name,
-		BrokerURL: serviceBrokerResource.Entity.BrokerURL,
-	}
-
-	return response, nil
 }
 
 func (pc *PlatformClient) listServiceBrokersByQuery(ctx context.Context, query url.Values) ([]CCServiceBroker, error) {

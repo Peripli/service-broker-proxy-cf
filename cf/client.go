@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
 	"github.com/cloudfoundry-community/go-cfclient"
@@ -19,7 +18,7 @@ import (
 type PlatformClient struct {
 	client       *cfclient.Client
 	settings     *Settings
-	planResolver *cfmodel.PlanResolver
+	planResolver *PlanResolver
 }
 
 // PlatformClientRequest provides generic request to CF API
@@ -159,6 +158,6 @@ func NewClient(config *Settings) (*PlatformClient, error) {
 	return &PlatformClient{
 		client:       cfClient,
 		settings:     config,
-		planResolver: cfmodel.NewPlanResolver(),
+		planResolver: NewPlanResolver(),
 	}, nil
 }

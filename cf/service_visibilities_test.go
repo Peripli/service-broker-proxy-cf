@@ -20,7 +20,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	)
 
 	var (
-		generatedCFBrokers      []*cfclient.ServiceBroker
+		generatedCFBrokers      []*cf.CCServiceBroker
 		generatedCFServices     map[string][]*cfclient.Service
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
 		generatedCFVisibilities map[string]*cf.ServicePlanVisibilitiesResponse
@@ -29,7 +29,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	)
 
 	createCCServer := func(
-		brokers []*cfclient.ServiceBroker,
+		brokers []*cf.CCServiceBroker,
 		cfServices map[string][]*cfclient.Service,
 		cfPlans map[string][]*cfclient.ServicePlan,
 		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
@@ -157,7 +157,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("but a single broker", func() {
 			It("should return the correct visibilities", func() {
 				for _, generatedCFBroker := range generatedCFBrokers {
-					brokerGUID := generatedCFBroker.Guid
+					brokerGUID := generatedCFBroker.GUID
 					platformVisibilities, err := getVisibilitiesByBrokers(ctx, []string{
 						generatedCFBroker.Name,
 					})
@@ -275,5 +275,4 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 		})
 	})
-
 })

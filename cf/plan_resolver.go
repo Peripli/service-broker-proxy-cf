@@ -1,4 +1,4 @@
-package cfmodel
+package cf
 
 import (
 	"context"
@@ -40,7 +40,7 @@ func NewPlanResolver() *PlanResolver {
 // Reset replaces all the data
 func (r *PlanResolver) Reset(
 	ctx context.Context,
-	brokers []cfclient.ServiceBroker,
+	brokers []CCServiceBroker,
 	services []cfclient.Service,
 	plans []cfclient.ServicePlan,
 ) {
@@ -51,9 +51,9 @@ func (r *PlanResolver) Reset(
 
 	r.brokerPlans = make(map[string][]PlanData, len(brokers))
 
-	brokerMap := make(map[string]*cfclient.ServiceBroker, len(brokers))
+	brokerMap := make(map[string]*CCServiceBroker, len(brokers))
 	for i, broker := range brokers {
-		brokerMap[broker.Guid] = &brokers[i]
+		brokerMap[broker.GUID] = &brokers[i]
 	}
 
 	serviceMap := make(map[string]*cfclient.Service, len(services))

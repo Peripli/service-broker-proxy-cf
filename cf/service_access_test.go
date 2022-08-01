@@ -21,7 +21,7 @@ var _ = Describe("Client Service Plan Access", func() {
 	)
 
 	var (
-		generatedCFBrokers      []*cfclient.ServiceBroker
+		generatedCFBrokers      []*cf.CCServiceBroker
 		generatedCFServices     map[string][]*cfclient.Service
 		generatedCFPlans        map[string][]*cfclient.ServicePlan
 		generatedCFVisibilities map[string]*cf.ServicePlanVisibilitiesResponse
@@ -29,7 +29,7 @@ var _ = Describe("Client Service Plan Access", func() {
 	)
 
 	createCCServer := func(
-		brokers []*cfclient.ServiceBroker,
+		brokers []*cf.CCServiceBroker,
 		cfServices map[string][]*cfclient.Service,
 		cfPlans map[string][]*cfclient.ServicePlan,
 		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
@@ -101,7 +101,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			It("should return error if request is nil", func() {
 				err := enableAccessForPlan(ctx, nil)
 
-				Expect(err).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
+				Expect(err).To(MatchError(MatchRegexp("Modify plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {
 				brokerName := generatedCFBrokers[0].Name
@@ -117,7 +117,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 			It("should return error if plan is public", func() {
 				broker := generatedCFBrokers[0]
-				publicPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], true)[0]
+				publicPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], true)[0]
 				request := platform.ModifyPlanAccessRequest{
 					BrokerName:    broker.Name,
 					CatalogPlanID: publicPlan.UniqueId,
@@ -134,7 +134,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when AddOrganizationVisibilities successful", func() {
 				It("should add visibility for these organizations", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
@@ -151,7 +151,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesUpdateResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
@@ -170,7 +170,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when UpdateServicePlanVisibility successful", func() {
 				It("should update plan visibility to Public", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
@@ -187,7 +187,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesUpdateResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
@@ -211,7 +211,7 @@ var _ = Describe("Client Service Plan Access", func() {
 		Context("when invalid request", func() {
 			It("should return error if request is nil", func() {
 				err := disableAccessForPlan(ctx, nil)
-				Expect(err).To(MatchError(MatchRegexp("Enable plan access request cannot be nil")))
+				Expect(err).To(MatchError(MatchRegexp("Modify plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {
 				brokerName := generatedCFBrokers[0].Name
@@ -227,7 +227,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 			It("should return an error if the plan is public and organizations were provided", func() {
 				broker := generatedCFBrokers[0]
-				publicPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], true)[0]
+				publicPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], true)[0]
 				request := platform.ModifyPlanAccessRequest{
 					BrokerName:    broker.Name,
 					CatalogPlanID: publicPlan.UniqueId,
@@ -245,7 +245,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when DeleteOrganizationVisibilities successful", func() {
 				It("should remove visibility for these organizations", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
@@ -262,7 +262,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesDeleteResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					organizationGuids := []string{org1Guid, org2Guid}
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
@@ -283,7 +283,7 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when ReplaceOrganizationVisibilities successful", func() {
 				It("should remove all organizations from visibility of this plan", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,
@@ -300,7 +300,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesUpdateResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.Guid][0].Guid], false)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServices[broker.GUID][0].Guid], false)[0]
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.UniqueId,

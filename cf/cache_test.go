@@ -9,7 +9,7 @@ import (
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-manager/pkg/log"
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -18,16 +18,14 @@ import (
 var _ = Describe("Cache", func() {
 
 	type brokerData struct {
-		broker   cfclient.ServiceBroker
+		broker   cf.CCServiceBroker
 		services []cfclient.Service
 		plans    []cfclient.ServicePlan
 	}
 
 	var (
-		ctx      context.Context
-		err      error
-		ccServer *ghttp.Server
-		client   *cf.PlatformClient
+		err    error
+		client *cf.PlatformClient
 
 		brokersRequest, servicesRequest, plansRequest, visibilitiesRequest *http.Request
 
@@ -44,25 +42,24 @@ var _ = Describe("Cache", func() {
 	}
 
 	setupCCRoutes := func(brokers ...brokerData) {
-		brokersResponse := cfclient.ServiceBrokerResponse{Pages: 1}
+		brokersResponse := cf.CCListServiceBrokersResponse{
+			Pagination: cf.CCPagination{
+				TotalPages: 1,
+			},
+		}
 		servicesResponse := cfclient.ServicesResponse{Pages: 1}
 		plansResponse := cfclient.ServicePlansResponse{Pages: 1}
 
-		for _, broker := range brokers {
-			brokersResponse.Resources = append(brokersResponse.Resources, cfclient.ServiceBrokerResource{
-				Meta: cfclient.Meta{
-					Guid: broker.broker.Guid,
-				},
-				Entity: broker.broker,
-			})
-			for _, service := range broker.services {
+		for _, brokerData := range brokers {
+			brokersResponse.Resources = append(brokersResponse.Resources, brokerData.broker)
+			for _, service := range brokerData.services {
 				servicesResponse.Resources = append(servicesResponse.Resources, cfclient.ServicesResource{
 					Meta: cfclient.Meta{
 						Guid: service.Guid,
 					},
 					Entity: service,
 				})
-				for _, plan := range broker.plans {
+				for _, plan := range brokerData.plans {
 					plansResponse.Resources = append(plansResponse.Resources, cfclient.ServicePlanResource{
 						Meta: cfclient.Meta{
 							Guid: plan.Guid,
@@ -73,14 +70,21 @@ var _ = Describe("Cache", func() {
 			}
 		}
 
-		brokersResponse.Count = len(brokersResponse.Resources)
+		brokersResponse.Pagination.TotalResults = len(brokersResponse.Resources)
 		servicesResponse.Count = len(servicesResponse.Resources)
 		plansResponse.Count = len(plansResponse.Resources)
 
 		visibilitiesRequestPath := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 		planIdExtractor := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
 
-		ccServer.RouteToHandler(http.MethodGet, "/v2/service_brokers",
+		var brokersRes []*cf.CCServiceBroker
+		for _, broker := range brokersResponse.Resources {
+			brokersRes = append(brokersRes, &broker)
+		}
+
+		setCCBrokersResponse(ccServer, brokersRes)
+
+		ccServer.RouteToHandler(http.MethodGet, "/v3/service_brokers",
 			ghttp.CombineHandlers(
 				recordRequest(&brokersRequest),
 				ghttp.RespondWithJSONEncoded(http.StatusOK, brokersResponse),
@@ -139,8 +143,8 @@ var _ = Describe("Cache", func() {
 
 	BeforeEach(func() {
 		broker1 = brokerData{
-			broker: cfclient.ServiceBroker{
-				Guid: "broker1-guid",
+			broker: cf.CCServiceBroker{
+				GUID: "broker1-guid",
 				Name: "broker1",
 			},
 			services: []cfclient.Service{
@@ -167,8 +171,8 @@ var _ = Describe("Cache", func() {
 			},
 		}
 		broker2 = brokerData{
-			broker: cfclient.ServiceBroker{
-				Guid: "broker2-guid",
+			broker: cf.CCServiceBroker{
+				GUID: "broker2-guid",
 				Name: "broker2",
 			},
 			services: []cfclient.Service{

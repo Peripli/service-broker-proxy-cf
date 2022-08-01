@@ -20,7 +20,7 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	}
 
 	logger.Info("Loading all service brokers from Cloud Foundry...")
-	brokers, err := pc.client.ListServiceBrokersByQuery(query)
+	brokers, err := pc.listServiceBrokersByQuery(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -55,9 +55,8 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 	logger := log.C(ctx)
 
 	logger.Infof("Loading services of broker with GUID %s from Cloud Foundry...", broker.GUID)
-	services, err := pc.client.ListServicesByQuery(url.Values{
-		"service_broker_guid": []string{broker.GUID},
-	})
+	services, err := pc.client.ListServicesByQuery(
+		pc.buildQuery("service_broker_guid", broker.GUID))
 	if err != nil {
 		return err
 	}
@@ -67,9 +66,8 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 		serviceGUIDs[i] = services[i].Guid
 	}
 	logger.Infof("Loading plans of services with GUIDs %v from Cloud Foundry...", serviceGUIDs)
-	plans, err := pc.client.ListServicePlansByQuery(url.Values{
-		"service_guid": serviceGUIDs,
-	})
+	plans, err := pc.client.ListServicePlansByQuery(
+		pc.buildQuery("service_guid", serviceGUIDs...))
 	if err != nil {
 		return err
 	}

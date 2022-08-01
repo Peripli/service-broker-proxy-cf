@@ -131,10 +131,7 @@ func (pc *PlatformClient) PollJob(ctx context.Context, jobURL string) (Warnings,
 	}
 }
 
-func (pc *PlatformClient) ScheduleJobPolling(
-	ctx context.Context,
-	jobUrl string) *JobError {
-
+func (pc *PlatformClient) ScheduleJobPolling(ctx context.Context, jobUrl string) *JobError {
 	jobError := make(chan *JobError, 1)
 	scheduler := reconcile.NewScheduler(ctx, pc.settings.Reconcile.MaxParallelRequests)
 

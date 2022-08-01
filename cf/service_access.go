@@ -3,7 +3,6 @@ package cf
 import (
 	"context"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
@@ -109,7 +108,7 @@ func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
 	}
 }
 
-func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlanAccessRequest) (*cfmodel.PlanData, error) {
+func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlanAccessRequest) (*PlanData, error) {
 	if request == nil {
 		return nil, errors.Errorf("Modify plan access request cannot be nil")
 	}

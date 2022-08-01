@@ -83,4 +83,26 @@ var _ = Describe("job", func() {
 			})
 		})
 	})
+
+	Describe("ScheduleJobPolling", func() {
+		Context("when the job succeeded", func() {
+			It("shouldn't return error", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+				_, jobError = client.PollJob(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
+
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+		})
+
+		Context("when the job fails", func() {
+			It("should return actual job error", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.FAILED)
+				jobError = client.ScheduleJobPolling(ctx, fmt.Sprintf("/v3/jobs/%s", jobGUID.String()))
+
+				Expect(jobError.FailureStatus).To(Equal(cf.JobFailure.STATUS))
+				Expect(jobError.Error.Error()).To(Equal(
+					fmt.Sprintf("the job with GUID %s is failed with the error: []", jobGUID)))
+			})
+		})
+	})
 })

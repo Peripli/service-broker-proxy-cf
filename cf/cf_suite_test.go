@@ -45,22 +45,22 @@ var _ = BeforeEach(func() {
 })
 
 // Test Context initialization methods
-func generateCFBrokers(count int) []*cfclient.ServiceBroker {
-	brokers := make([]*cfclient.ServiceBroker, 0)
+func generateCFBrokers(count int) []*cf.CCServiceBroker {
+	brokers := make([]*cf.CCServiceBroker, 0)
 	for i := 0; i < count; i++ {
 		UUID, err := uuid.NewV4()
 		Expect(err).ShouldNot(HaveOccurred())
 		brokerGuid := "broker-" + UUID.String()
 		brokerName := fmt.Sprintf("broker%d", i)
-		brokers = append(brokers, &cfclient.ServiceBroker{
-			Guid: brokerGuid,
+		brokers = append(brokers, &cf.CCServiceBroker{
+			GUID: brokerGuid,
 			Name: reconcile.DefaultProxyBrokerPrefix + brokerName + "-" + brokerGuid,
 		})
 	}
 	return brokers
 }
 
-func generateCFServices(brokers []*cfclient.ServiceBroker, count int) map[string][]*cfclient.Service {
+func generateCFServices(brokers []*cf.CCServiceBroker, count int) map[string][]*cfclient.Service {
 	services := make(map[string][]*cfclient.Service)
 	for _, broker := range brokers {
 		for i := 0; i < count; i++ {
@@ -68,9 +68,9 @@ func generateCFServices(brokers []*cfclient.ServiceBroker, count int) map[string
 			Expect(err).ShouldNot(HaveOccurred())
 
 			serviceGUID := "service-" + UUID.String()
-			services[broker.Guid] = append(services[broker.Guid], &cfclient.Service{
+			services[broker.GUID] = append(services[broker.GUID], &cfclient.Service{
 				Guid:              serviceGUID,
-				ServiceBrokerGuid: broker.Guid,
+				ServiceBrokerGuid: broker.GUID,
 			})
 		}
 	}
@@ -115,7 +115,7 @@ func generateCFVisibilities(
 	plansMap map[string][]*cfclient.ServicePlan,
 	organizations []cf.Organization,
 	services map[string][]*cfclient.Service,
-	brokers []*cfclient.ServiceBroker,
+	brokers []*cf.CCServiceBroker,
 ) (map[string]*cf.ServicePlanVisibilitiesResponse, map[string][]*platform.Visibility) {
 
 	visibilities := make(map[string]*cf.ServicePlanVisibilitiesResponse)
@@ -128,7 +128,7 @@ func generateCFVisibilities(
 					if service.Guid == plan.ServiceGuid {
 						brokerName = ""
 						for _, cfBroker := range brokers {
-							if cfBroker.Guid == service.ServiceBrokerGuid {
+							if cfBroker.GUID == service.ServiceBrokerGuid {
 								brokerName = cfBroker.Name
 							}
 						}
@@ -205,10 +205,13 @@ func parseFilterQuery(query, queryKey string) map[string]bool {
 		return nil
 	}
 
-	prefix := queryKey + " IN "
-	Expect(query).To(HavePrefix(prefix))
+	if queryKey != "" {
+		prefix := queryKey + " IN "
+		Expect(query).To(HavePrefix(prefix))
 
-	query = strings.TrimPrefix(query, prefix)
+		query = strings.TrimPrefix(query, prefix)
+	}
+
 	items := strings.Split(query, ",")
 	Expect(items).ToNot(BeEmpty())
 
@@ -227,7 +230,7 @@ func writeJSONResponse(respStruct interface{}, rw http.ResponseWriter) {
 	rw.Write(jsonResponse)
 }
 
-func getBrokerNames(cfBrokers []*cfclient.ServiceBroker) []string {
+func getBrokerNames(cfBrokers []*cf.CCServiceBroker) []string {
 	names := make([]string, 0, len(cfBrokers))
 	for _, cfBroker := range cfBrokers {
 		names = append(names, cfBroker.Name)
@@ -251,28 +254,24 @@ var badRequestHandler = func(rw http.ResponseWriter, req *http.Request) {
 	rw.Write([]byte(`{"description": "Expected"}`))
 }
 
-// TODO replace with V3
-func setCCBrokersResponse(server *ghttp.Server, cfBrokers []*cfclient.ServiceBroker) {
+func setCCBrokersResponse(server *ghttp.Server, cfBrokers []*cf.CCServiceBroker) {
 	if cfBrokers == nil {
-		server.RouteToHandler(http.MethodGet, "/v2/service_brokers", parallelRequestsChecker(badRequestHandler))
+		server.RouteToHandler(http.MethodGet, "/v3/service_brokers", parallelRequestsChecker(badRequestHandler))
 		return
 	}
-	server.RouteToHandler(http.MethodGet, "/v2/service_brokers", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
-		filter := parseFilterQuery(req.URL.Query().Get("q"), "name")
-		var result []cfclient.ServiceBrokerResource
+	server.RouteToHandler(http.MethodGet, "/v3/service_brokers", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+		filter := parseFilterQuery(req.URL.Query().Get("names"), "")
+		var result []cf.CCServiceBroker
 		for _, broker := range cfBrokers {
 			if filter == nil || filter[broker.Name] {
-				result = append(result, cfclient.ServiceBrokerResource{
-					Entity: *broker,
-					Meta: cfclient.Meta{
-						Guid: broker.Guid,
-					},
-				})
+				result = append(result, *broker)
 			}
 		}
-		resp := cfclient.ServiceBrokerResponse{
-			Count:     len(result),
-			Pages:     1,
+		resp := cf.CCListServiceBrokersResponse{
+			Pagination: cf.CCPagination{
+				TotalPages:   1,
+				TotalResults: len(result),
+			},
 			Resources: result,
 		}
 		writeJSONResponse(resp, rw)

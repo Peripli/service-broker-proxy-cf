@@ -3,7 +3,7 @@ package cf_test
 import (
 	"context"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -11,9 +11,9 @@ import (
 var _ = Describe("PlanResolver", func() {
 
 	type brokerData struct {
-		broker   cf.CCServiceBroker
-		services []cfclient.Service
-		plans    []cfclient.ServicePlan
+		broker   platform.ServiceBroker
+		services []cf.ServiceOffering
+		plans    []cf.ServicePlan
 	}
 
 	var broker1, broker2 brokerData
@@ -22,12 +22,12 @@ var _ = Describe("PlanResolver", func() {
 
 	resetResolver := func(brokers ...brokerData) {
 		var (
-			allBrokers  []cf.CCServiceBroker
-			allServices []cfclient.Service
-			allPlans    []cfclient.ServicePlan
+			allBrokers  []*platform.ServiceBroker
+			allServices []cf.ServiceOffering
+			allPlans    []cf.ServicePlan
 		)
 		for _, b := range brokers {
-			allBrokers = append(allBrokers, b.broker)
+			allBrokers = append(allBrokers, &b.broker)
 			allServices = append(allServices, b.services...)
 			allPlans = append(allPlans, b.plans...)
 		}
@@ -36,23 +36,23 @@ var _ = Describe("PlanResolver", func() {
 
 	BeforeEach(func() {
 		broker1 = brokerData{
-			broker: cf.CCServiceBroker{GUID: "b1-id", Name: "b1"},
-			services: []cfclient.Service{
-				{Guid: "b1-s1-id", Label: "b1-s1", ServiceBrokerGuid: "b1-id"},
+			broker: platform.ServiceBroker{GUID: "b1-id", Name: "b1"},
+			services: []cf.ServiceOffering{
+				{GUID: "b1-s1-id", ServiceBrokerGuid: "b1-id"},
 			},
-			plans: []cfclient.ServicePlan{
-				{Guid: "b1-s1-p1-id", Name: "b1-s1-p1", ServiceGuid: "b1-s1-id", UniqueId: "s1-p1-cid"},
+			plans: []cf.ServicePlan{
+				{GUID: "b1-s1-p1-id", Name: "b1-s1-p1", ServiceOfferingGuid: "b1-s1-id", CatalogPlanId: "s1-p1-cid"},
 			},
 		}
 
 		broker2 = brokerData{
-			broker: cf.CCServiceBroker{GUID: "b2-id", Name: "b2"},
-			services: []cfclient.Service{
-				{Guid: "b2-s1-id", Label: "b2-s1", ServiceBrokerGuid: "b2-id"},
+			broker: platform.ServiceBroker{GUID: "b2-id", Name: "b2"},
+			services: []cf.ServiceOffering{
+				{GUID: "b2-s1-id", ServiceBrokerGuid: "b2-id"},
 			},
-			plans: []cfclient.ServicePlan{
-				{Guid: "b2-s1-p1-id", Name: "b2-s1-p1", ServiceGuid: "b2-s1-id", UniqueId: "s1-p1-cid", Public: true},
-				{Guid: "b2-s1-p2-id", Name: "b2-s1-p2", ServiceGuid: "b2-s1-id", UniqueId: "s1-p2-cid"},
+			plans: []cf.ServicePlan{
+				{GUID: "b2-s1-p1-id", Name: "b2-s1-p1", ServiceOfferingGuid: "b2-s1-id", CatalogPlanId: "s1-p1-cid", Public: true},
+				{GUID: "b2-s1-p2-id", Name: "b2-s1-p2", ServiceOfferingGuid: "b2-s1-id", CatalogPlanId: "s1-p2-cid"},
 			},
 		}
 
@@ -149,7 +149,7 @@ var _ = Describe("PlanResolver", func() {
 
 		It("Ignores inconsistent data", func() {
 			broker1.services[0].ServiceBrokerGuid = "no-such-broker"
-			broker2.plans[0].ServiceGuid = "no-such-service"
+			broker2.plans[0].ServiceOfferingGuid = "no-such-service"
 			resetResolver(broker1, broker2)
 			Expect(resolver.GetBrokerPlans([]string{"b1", "b2"})).To(Equal(cf.PlanMap{
 				"b2-s1-p2-id": cf.PlanData{
@@ -172,8 +172,8 @@ var _ = Describe("PlanResolver", func() {
 
 			resolver.ResetBroker(
 				broker1.broker.Name,
-				[]cfclient.ServicePlan{
-					{Guid: "b1-s1-p2-id", Name: "b1-s1-p2", ServiceGuid: "b1-s1-id", UniqueId: "s1-p2-cid"},
+				[]cf.ServicePlan{
+					{GUID: "b1-s1-p2-id", Name: "b1-s1-p2", ServiceOfferingGuid: "b1-s1-id", CatalogPlanId: "s1-p2-cid"},
 				},
 			)
 			Expect(resolver.GetBrokerPlans([]string{"b1", "b2"})).To(Equal(cf.PlanMap{

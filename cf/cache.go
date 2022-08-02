@@ -20,21 +20,21 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	}
 
 	logger.Info("Loading all service brokers from Cloud Foundry...")
-	brokers, err := pc.listServiceBrokersByQuery(ctx, query)
+	brokers, err := pc.GetBrokers(ctx)
 	if err != nil {
 		return err
 	}
 	logger.Infof("Loaded %d service brokers from Cloud Foundry", len(brokers))
 
-	logger.Info("Loading all services from Cloud Foundry...")
-	services, err := pc.client.ListServicesByQuery(query)
+	logger.Info("Loading all service offerings from Cloud Foundry...")
+	services, err := pc.ListServiceOfferingsByQuery(ctx, query)
 	if err != nil {
 		return err
 	}
-	logger.Infof("Loaded %d services from Cloud Foundry", len(services))
+	logger.Infof("Loaded %d service offerings from Cloud Foundry", len(services))
 
 	logger.Info("Loading all service plans from Cloud Foundry...")
-	plans, err := pc.client.ListServicePlansByQuery(query)
+	plans, err := pc.ListServicePlansByQuery(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -55,19 +55,25 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 	logger := log.C(ctx)
 
 	logger.Infof("Loading services of broker with GUID %s from Cloud Foundry...", broker.GUID)
-	services, err := pc.client.ListServicesByQuery(
-		pc.buildQuery("service_broker_guid", broker.GUID))
+	serviceOfferings, err := pc.ListServiceOfferingsByQuery(ctx,
+		url.Values{
+			CCQueryParams.PageSize:           []string{strconv.Itoa(pc.settings.CF.PageSize)},
+			CCQueryParams.ServiceBrokerGuids: []string{broker.GUID},
+		})
 	if err != nil {
 		return err
 	}
 
-	serviceGUIDs := make([]string, len(services))
-	for i := range services {
-		serviceGUIDs[i] = services[i].Guid
+	serviceOfferingGUIDs := make([]string, len(serviceOfferings))
+	for i := range serviceOfferings {
+		serviceOfferingGUIDs[i] = serviceOfferings[i].GUID
 	}
-	logger.Infof("Loading plans of services with GUIDs %v from Cloud Foundry...", serviceGUIDs)
-	plans, err := pc.client.ListServicePlansByQuery(
-		pc.buildQuery("service_guid", serviceGUIDs...))
+	logger.Infof("Loading plans of services with GUIDs %v from Cloud Foundry...", serviceOfferingGUIDs)
+	plans, err := pc.ListServicePlansByQuery(ctx,
+		url.Values{
+			CCQueryParams.PageSize:             []string{strconv.Itoa(pc.settings.CF.PageSize)},
+			CCQueryParams.ServiceOfferingGuids: serviceOfferingGUIDs,
+		})
 	if err != nil {
 		return err
 	}

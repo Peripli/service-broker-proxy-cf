@@ -2,10 +2,9 @@ package cf
 
 import (
 	"context"
+	"github.com/Peripli/service-broker-proxy/pkg/platform"
 
 	"github.com/Peripli/service-manager/pkg/log"
-	"github.com/cloudfoundry-community/go-cfclient"
-
 	"sync"
 )
 
@@ -40,9 +39,9 @@ func NewPlanResolver() *PlanResolver {
 // Reset replaces all the data
 func (r *PlanResolver) Reset(
 	ctx context.Context,
-	brokers []CCServiceBroker,
-	services []cfclient.Service,
-	plans []cfclient.ServicePlan,
+	brokers []*platform.ServiceBroker,
+	serviceOfferings []ServiceOffering,
+	plans []ServicePlan,
 ) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -51,40 +50,40 @@ func (r *PlanResolver) Reset(
 
 	r.brokerPlans = make(map[string][]PlanData, len(brokers))
 
-	brokerMap := make(map[string]*CCServiceBroker, len(brokers))
+	brokerMap := make(map[string]*platform.ServiceBroker, len(brokers))
 	for i, broker := range brokers {
-		brokerMap[broker.GUID] = &brokers[i]
+		brokerMap[broker.GUID] = brokers[i]
 	}
 
-	serviceMap := make(map[string]*cfclient.Service, len(services))
-	for i, service := range services {
-		serviceMap[service.Guid] = &services[i]
+	serviceOfferingsMap := make(map[string]*ServiceOffering, len(serviceOfferings))
+	for i, serviceOffering := range serviceOfferings {
+		serviceOfferingsMap[serviceOffering.GUID] = &serviceOfferings[i]
 	}
 
 	for _, plan := range plans {
-		service := serviceMap[plan.ServiceGuid]
-		if service == nil {
-			logger.Errorf("Service with GUID %s not found for plan with GUID %s",
-				plan.ServiceGuid, plan.Guid)
+		serviceOffering := serviceOfferingsMap[plan.ServiceOfferingGuid]
+		if serviceOffering == nil {
+			logger.Errorf("Service Offering with GUID %s not found for plan with GUID %s",
+				plan.ServiceOfferingGuid, plan.GUID)
 			continue
 		}
-		broker := brokerMap[service.ServiceBrokerGuid]
+		broker := brokerMap[serviceOffering.ServiceBrokerGuid]
 		if broker == nil {
 			logger.Errorf("Service broker with GUID %s not found for service with GUID %s",
-				service.ServiceBrokerGuid, service.Guid)
+				serviceOffering.ServiceBrokerGuid, serviceOffering.GUID)
 			continue
 		}
 		r.brokerPlans[broker.Name] = append(r.brokerPlans[broker.Name], PlanData{
-			GUID:          plan.Guid,
+			GUID:          plan.GUID,
 			BrokerName:    broker.Name,
-			CatalogPlanID: plan.UniqueId,
+			CatalogPlanID: plan.CatalogPlanId,
 			Public:        plan.Public,
 		})
 	}
 }
 
 // ResetBroker replaces the data for a particular broker
-func (r *PlanResolver) ResetBroker(brokerName string, plans []cfclient.ServicePlan) {
+func (r *PlanResolver) ResetBroker(brokerName string, plans []ServicePlan) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -92,9 +91,9 @@ func (r *PlanResolver) ResetBroker(brokerName string, plans []cfclient.ServicePl
 
 	for _, plan := range plans {
 		r.brokerPlans[brokerName] = append(r.brokerPlans[brokerName], PlanData{
-			GUID:          plan.Guid,
+			GUID:          plan.GUID,
 			BrokerName:    brokerName,
-			CatalogPlanID: plan.UniqueId,
+			CatalogPlanID: plan.CatalogPlanId,
 			Public:        plan.Public,
 		})
 	}

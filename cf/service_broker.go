@@ -69,7 +69,7 @@ type CCCredentials struct {
 func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBroker, error) {
 	logger := log.C(ctx)
 	logger.Info("Fetching service brokers from CF...")
-	brokers, err := pc.listServiceBrokersByQuery(ctx, url.Values{
+	brokers, err := pc.ListServiceBrokersByQuery(ctx, url.Values{
 		CCQueryParams.PageSize: []string{strconv.Itoa(pc.settings.CF.PageSize)},
 	})
 	if err != nil {
@@ -96,7 +96,7 @@ func (pc *PlatformClient) GetBrokers(ctx context.Context) ([]*platform.ServiceBr
 // GetBrokerByName implements service-broker-proxy/pkg/cf/Client.GetBrokerByName and provides logic for getting a broker by name
 // that is already registered in CF
 func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*platform.ServiceBroker, error) {
-	brokers, err := pc.listServiceBrokersByQuery(ctx, url.Values{
+	brokers, err := pc.ListServiceBrokersByQuery(ctx, url.Values{
 		CCQueryParams.Names: []string{name},
 	})
 	if err != nil || len(brokers) == 0 {
@@ -230,7 +230,7 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 	return broker, err
 }
 
-func (pc *PlatformClient) listServiceBrokersByQuery(ctx context.Context, query url.Values) ([]CCServiceBroker, error) {
+func (pc *PlatformClient) ListServiceBrokersByQuery(ctx context.Context, query url.Values) ([]CCServiceBroker, error) {
 	var serviceBrokers []CCServiceBroker
 	var serviceBrokersResponse CCListServiceBrokersResponse
 	request := PlatformClientRequest{

@@ -65,11 +65,15 @@ type CCPagination struct {
 
 // CCQueryParams CF API query params
 var CCQueryParams = struct {
-	PageSize string
-	Names    string
+	PageSize             string
+	Names                string
+	ServiceBrokerGuids   string
+	ServiceOfferingGuids string
 }{
-	PageSize: "per_page",
-	Names:    "names",
+	PageSize:             "per_page",
+	Names:                "names",
+	ServiceBrokerGuids:   "service_broker_guids",
+	ServiceOfferingGuids: "service_offering_guids",
 }
 
 // Broker returns platform client which can perform platform broker operations

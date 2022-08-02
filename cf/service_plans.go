@@ -20,7 +20,7 @@ type CCServicePlan struct {
 	GUID           string                     `json:"guid"`
 	Name           string                     `json:"name"`
 	BrokerCatalog  CCBrokerCatalog            `json:"broker_catalog"`
-	VisibilityType string                     `json:"visibility_type"`
+	VisibilityType VisibilityTypeValue        `json:"visibility_type"`
 	Relationships  CCServicePlanRelationships `json:"relationships"`
 }
 
@@ -62,7 +62,7 @@ func (pc *PlatformClient) ListServicePlansByQuery(ctx context.Context, query url
 				Name:                servicePlan.Name,
 				CatalogPlanId:       servicePlan.BrokerCatalog.ID,
 				ServiceOfferingGuid: servicePlan.Relationships.ServiceOffering.Data.GUID,
-				Public:              servicePlan.VisibilityType == string(VisibilityType.PUBLIC),
+				Public:              servicePlan.VisibilityType == VisibilityType.PUBLIC,
 			})
 		}
 

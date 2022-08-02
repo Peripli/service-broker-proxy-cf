@@ -11,9 +11,9 @@ import (
 var _ = Describe("PlanResolver", func() {
 
 	type brokerData struct {
-		broker   platform.ServiceBroker
-		services []cf.ServiceOffering
-		plans    []cf.ServicePlan
+		broker           platform.ServiceBroker
+		serviceOfferings []cf.ServiceOffering
+		plans            []cf.ServicePlan
 	}
 
 	var broker1, broker2 brokerData
@@ -22,22 +22,22 @@ var _ = Describe("PlanResolver", func() {
 
 	resetResolver := func(brokers ...brokerData) {
 		var (
-			allBrokers  []*platform.ServiceBroker
-			allServices []cf.ServiceOffering
-			allPlans    []cf.ServicePlan
+			allBrokers          []platform.ServiceBroker
+			allServiceOfferings []cf.ServiceOffering
+			allPlans            []cf.ServicePlan
 		)
 		for _, b := range brokers {
-			allBrokers = append(allBrokers, &b.broker)
-			allServices = append(allServices, b.services...)
+			allBrokers = append(allBrokers, b.broker)
+			allServiceOfferings = append(allServiceOfferings, b.serviceOfferings...)
 			allPlans = append(allPlans, b.plans...)
 		}
-		resolver.Reset(ctx, allBrokers, allServices, allPlans)
+		resolver.Reset(ctx, allBrokers, allServiceOfferings, allPlans)
 	}
 
 	BeforeEach(func() {
 		broker1 = brokerData{
 			broker: platform.ServiceBroker{GUID: "b1-id", Name: "b1"},
-			services: []cf.ServiceOffering{
+			serviceOfferings: []cf.ServiceOffering{
 				{GUID: "b1-s1-id", ServiceBrokerGuid: "b1-id"},
 			},
 			plans: []cf.ServicePlan{
@@ -47,7 +47,7 @@ var _ = Describe("PlanResolver", func() {
 
 		broker2 = brokerData{
 			broker: platform.ServiceBroker{GUID: "b2-id", Name: "b2"},
-			services: []cf.ServiceOffering{
+			serviceOfferings: []cf.ServiceOffering{
 				{GUID: "b2-s1-id", ServiceBrokerGuid: "b2-id"},
 			},
 			plans: []cf.ServicePlan{
@@ -148,7 +148,7 @@ var _ = Describe("PlanResolver", func() {
 		})
 
 		It("Ignores inconsistent data", func() {
-			broker1.services[0].ServiceBrokerGuid = "no-such-broker"
+			broker1.serviceOfferings[0].ServiceBrokerGuid = "no-such-broker"
 			broker2.plans[0].ServiceOfferingGuid = "no-such-service"
 			resetResolver(broker1, broker2)
 			Expect(resolver.GetBrokerPlans([]string{"b1", "b2"})).To(Equal(cf.PlanMap{

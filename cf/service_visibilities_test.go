@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,23 +19,23 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	)
 
 	var (
-		generatedCFBrokers      []*cf.CCServiceBroker
-		generatedCFServices     map[string][]*cfclient.Service
-		generatedCFPlans        map[string][]*cfclient.ServicePlan
-		generatedCFVisibilities map[string]*cf.ServicePlanVisibilitiesResponse
-		expectedCFVisibilities  map[string][]*platform.Visibility
-		client                  *cf.PlatformClient
+		generatedCFBrokers          []*cf.CCServiceBroker
+		generatedCFServiceOfferings map[string][]*cf.CCServiceOffering
+		generatedCFPlans            map[string][]*cf.CCServicePlan
+		generatedCFVisibilities     map[string]*cf.ServicePlanVisibilitiesResponse
+		expectedCFVisibilities      map[string][]*platform.Visibility
+		client                      *cf.PlatformClient
 	)
 
 	createCCServer := func(
 		brokers []*cf.CCServiceBroker,
-		cfServices map[string][]*cfclient.Service,
-		cfPlans map[string][]*cfclient.ServicePlan,
+		cfServiceOfferings map[string][]*cf.CCServiceOffering,
+		cfPlans map[string][]*cf.CCServicePlan,
 		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
 	) *ghttp.Server {
 		server := fakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
-		setCCServicesResponse(server, cfServices)
+		setCCServiceOfferingsResponse(server, cfServiceOfferings)
 		setCCPlansResponse(server, cfPlans)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
 		setCCVisibilitiesUpdateResponse(server, cfPlans, false)
@@ -109,8 +108,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	BeforeEach(func() {
 		ctx = context.TODO()
 		generatedCFBrokers = generateCFBrokers(5)
-		generatedCFServices = generateCFServices(generatedCFBrokers, 10)
-		generatedCFPlans = generateCFPlans(generatedCFServices, 15, 2)
+		generatedCFServiceOfferings = generateCFServiceOfferings(generatedCFBrokers, 10)
+		generatedCFPlans = generateCFPlans(generatedCFServiceOfferings, 15, 2)
 		generatedCFVisibilities, expectedCFVisibilities = generateCFVisibilities(
 			generatedCFPlans, []cf.Organization{
 				{
@@ -122,7 +121,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					Guid: org2Guid,
 				},
 			},
-			generatedCFServices,
+			generatedCFServiceOfferings,
 			generatedCFBrokers)
 
 		parallelRequestsCounter = 0
@@ -137,7 +136,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	Describe("Get visibilities when visibilities are available", func() {
 		BeforeEach(func() {
-			ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
+			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
 			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 		})
 
@@ -163,10 +162,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					for _, service := range generatedCFServices[brokerGUID] {
-						serviceGUID := service.Guid
+					for _, serviceOffering := range generatedCFServiceOfferings[brokerGUID] {
+						serviceGUID := serviceOffering.GUID
 						for _, plan := range generatedCFPlans[serviceGUID] {
-							planGUID := plan.Guid
+							planGUID := plan.GUID
 							expectedVis := expectedCFVisibilities[planGUID]
 							for _, expectedCFVisibility := range expectedVis {
 								Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
@@ -193,7 +192,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 		Context("for getting plans", func() {
 			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, nil, nil)
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, nil, nil)
 				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
@@ -205,7 +204,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 		Context("for getting visibilities", func() {
 			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, nil)
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, nil)
 				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
@@ -250,7 +249,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 		Context("when service plan and org available", func() {
 			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
 				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 

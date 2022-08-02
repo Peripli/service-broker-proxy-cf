@@ -8,7 +8,6 @@ import (
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -25,7 +24,6 @@ var _ = Describe("Client FetchCatalog", func() {
 		testBroker      *platform.ServiceBroker
 		ccResponseCode  int
 		ccResponse      interface{}
-		ccResponseErr   cfclient.CloudFoundryError
 		expectedRequest interface{}
 		err             error
 		jobGUID         uuid.UUID
@@ -123,7 +121,7 @@ var _ = Describe("Client FetchCatalog", func() {
 					Password:  brokerPassword,
 				})
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})

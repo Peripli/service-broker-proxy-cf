@@ -39,7 +39,7 @@ func NewPlanResolver() *PlanResolver {
 // Reset replaces all the data
 func (r *PlanResolver) Reset(
 	ctx context.Context,
-	brokers []*platform.ServiceBroker,
+	brokers []platform.ServiceBroker,
 	serviceOfferings []ServiceOffering,
 	plans []ServicePlan,
 ) {
@@ -52,7 +52,7 @@ func (r *PlanResolver) Reset(
 
 	brokerMap := make(map[string]*platform.ServiceBroker, len(brokers))
 	for i, broker := range brokers {
-		brokerMap[broker.GUID] = brokers[i]
+		brokerMap[broker.GUID] = &brokers[i]
 	}
 
 	serviceOfferingsMap := make(map[string]*ServiceOffering, len(serviceOfferings))

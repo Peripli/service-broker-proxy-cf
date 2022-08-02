@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
@@ -20,9 +21,17 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	}
 
 	logger.Info("Loading all service brokers from Cloud Foundry...")
-	brokers, err := pc.GetBrokers(ctx)
+	var brokers []platform.ServiceBroker
+	brokersResponse, err := pc.ListServiceBrokersByQuery(ctx, query)
 	if err != nil {
 		return err
+	}
+	for _, broker := range brokersResponse {
+		brokers = append(brokers, platform.ServiceBroker{
+			GUID:      broker.GUID,
+			Name:      broker.Name,
+			BrokerURL: broker.URL,
+		})
 	}
 	logger.Infof("Loaded %d service brokers from Cloud Foundry", len(brokers))
 
@@ -72,7 +81,7 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 	plans, err := pc.ListServicePlansByQuery(ctx,
 		url.Values{
 			CCQueryParams.PageSize:             []string{strconv.Itoa(pc.settings.CF.PageSize)},
-			CCQueryParams.ServiceOfferingGuids: serviceOfferingGUIDs,
+			CCQueryParams.ServiceOfferingGuids: []string{strings.Join(serviceOfferingGUIDs, ",")},
 		})
 	if err != nil {
 		return err

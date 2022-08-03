@@ -145,7 +145,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 	}
 
 	jobURL, err := url.Parse(res.JobURL)
-	if err != nil || res.JobURL == "" {
+	if err != nil {
 		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
 	}
 
@@ -185,7 +185,7 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 	}
 
 	jobURL, err := url.Parse(res.JobURL)
-	if err != nil || res.JobURL == "" {
+	if err != nil {
 		return fmt.Errorf(DeleteBrokerError, r.Name, err)
 	}
 
@@ -225,7 +225,7 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 	}
 
 	jobURL, err := url.Parse(res.JobURL)
-	if err != nil || res.JobURL == "" {
+	if err != nil {
 		return nil, fmt.Errorf(UpdateBrokerError, r.Name, err)
 	}
 

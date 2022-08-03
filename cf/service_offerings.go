@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+
+	"github.com/pkg/errors"
 )
 
 // ServiceOffering object
@@ -44,7 +46,7 @@ func (pc *PlatformClient) ListServiceOfferingsByQuery(ctx context.Context, query
 	for {
 		_, err := pc.MakeRequest(request)
 		if err != nil {
-			return []ServiceOffering{}, err
+			return []ServiceOffering{}, errors.Wrap(err, "Error requesting service offerings")
 		}
 
 		for _, serviceOffering := range serviceOfferingsResponse.Resources {

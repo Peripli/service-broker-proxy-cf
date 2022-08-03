@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+
+	"github.com/pkg/errors"
 )
 
 // ServicePlan object
@@ -53,7 +55,7 @@ func (pc *PlatformClient) ListServicePlansByQuery(ctx context.Context, query url
 	for {
 		_, err := pc.MakeRequest(request)
 		if err != nil {
-			return []ServicePlan{}, err
+			return []ServicePlan{}, errors.Wrap(err, "Error requesting service plans")
 		}
 
 		for _, servicePlan := range servicePlansResponse.Resources {

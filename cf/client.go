@@ -63,6 +63,18 @@ type CCPagination struct {
 	Previous     string       `json:"previous"`
 }
 
+// CCError is the error object of CF CC V3
+type CCError struct {
+	Code   int    `json:"code"`
+	Title  string `json:"title"`
+	Detail string `json:"detail"`
+}
+
+// CCErrorResponse is the error response object of CF CC V3
+type CCErrorResponse struct {
+	Errors []CCError `json:"errors"`
+}
+
 // CCQueryParams CF API query params
 var CCQueryParams = struct {
 	PageSize             string

@@ -36,10 +36,10 @@ var _ = Describe("Client Service Plan Access", func() {
 		server := fakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
 		setCCServiceOfferingsResponse(server, cfServiceOfferings)
-		setCCPlansResponse(server, cfPlans)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
 		setCCVisibilitiesUpdateResponse(server, cfPlans, false)
 		setCCVisibilitiesDeleteResponse(server, cfPlans, false)
+		setCCPlansResponse(server, cfPlans)
 
 		return server
 	}
@@ -195,7 +195,7 @@ var _ = Describe("Client Service Plan Access", func() {
 
 					err := enableAccessForPlan(ctx, &request)
 					Expect(err).To(MatchError(
-						MatchRegexp(fmt.Sprintf("could not enable public access for plan with GUID %s:", organizationPlan.BrokerCatalog.ID))))
+						MatchRegexp(fmt.Sprintf("could not enable public access for plan with GUID %s:", organizationPlan.GUID))))
 				})
 			})
 		})

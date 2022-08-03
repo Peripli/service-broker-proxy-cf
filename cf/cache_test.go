@@ -66,13 +66,6 @@ var _ = Describe("Cache", func() {
 		visibilitiesRequestPath := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 		planIdExtractor := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
 
-		var brokersRes []*cf.CCServiceBroker
-		for _, broker := range brokersResponse.Resources {
-			brokersRes = append(brokersRes, &broker)
-		}
-
-		setCCBrokersResponse(ccServer, brokersRes)
-
 		ccServer.RouteToHandler(http.MethodGet, "/v3/service_brokers",
 			ghttp.CombineHandlers(
 				recordRequest(&brokersRequest),

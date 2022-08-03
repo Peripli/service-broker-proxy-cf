@@ -36,11 +36,11 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	logger.Infof("Loaded %d service brokers from Cloud Foundry", len(brokers))
 
 	logger.Info("Loading all service offerings from Cloud Foundry...")
-	services, err := pc.ListServiceOfferingsByQuery(ctx, query)
+	serviceOfferings, err := pc.ListServiceOfferingsByQuery(ctx, query)
 	if err != nil {
 		return err
 	}
-	logger.Infof("Loaded %d service offerings from Cloud Foundry", len(services))
+	logger.Infof("Loaded %d service offerings from Cloud Foundry", len(serviceOfferings))
 
 	logger.Info("Loading all service plans from Cloud Foundry...")
 	plans, err := pc.ListServicePlansByQuery(ctx, query)
@@ -49,7 +49,7 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	}
 	logger.Infof("Loaded %d service plans from Cloud Foundry...", len(plans))
 
-	pc.planResolver.Reset(ctx, brokers, services, plans)
+	pc.planResolver.Reset(ctx, brokers, serviceOfferings, plans)
 
 	return nil
 }
@@ -63,7 +63,7 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 
 	logger := log.C(ctx)
 
-	logger.Infof("Loading services of broker with GUID %s from Cloud Foundry...", broker.GUID)
+	logger.Infof("Loading service offerings of broker with GUID %s from Cloud Foundry...", broker.GUID)
 	serviceOfferings, err := pc.ListServiceOfferingsByQuery(ctx,
 		url.Values{
 			CCQueryParams.PageSize:           []string{strconv.Itoa(pc.settings.CF.PageSize)},
@@ -77,7 +77,7 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 	for i := range serviceOfferings {
 		serviceOfferingGUIDs[i] = serviceOfferings[i].GUID
 	}
-	logger.Infof("Loading plans of services with GUIDs %v from Cloud Foundry...", serviceOfferingGUIDs)
+	logger.Infof("Loading plans of service offerings with GUIDs %v from Cloud Foundry...", serviceOfferingGUIDs)
 	plans, err := pc.ListServicePlansByQuery(ctx,
 		url.Values{
 			CCQueryParams.PageSize:             []string{strconv.Itoa(pc.settings.CF.PageSize)},

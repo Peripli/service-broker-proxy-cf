@@ -2,6 +2,7 @@ package cf_test
 
 import (
 	"context"
+	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/gofrs/uuid"
@@ -36,10 +37,10 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		server := fakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
 		setCCServiceOfferingsResponse(server, cfServiceOfferings)
-		setCCPlansResponse(server, cfPlans)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
 		setCCVisibilitiesUpdateResponse(server, cfPlans, false)
 		setCCVisibilitiesDeleteResponse(server, cfPlans, false)
+		setCCPlansResponse(server, cfPlans)
 
 		return server
 	}
@@ -178,15 +179,16 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	})
 
 	Describe("Get visibilities when cloud controller is not working", func() {
-		Context("for getting services", func() {
+		Context("for getting service offerings", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
 				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
 			})
 
 			It("should return error", func() {
+				setCCPlansResponse(ccServer, nil)
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 		})
 
@@ -198,7 +200,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 			It("should return error", func() {
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-				Expect(err).To(MatchError(MatchRegexp("Error requesting service plans.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service plans.*%s", unknownError.Detail))))
 			})
 		})
 
@@ -212,7 +214,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).To(HaveOccurred())
 				k := logInterceptor.String()
-				Expect(k).To(MatchRegexp("Error requesting service plan visibilities."))
+				Expect(k).To(MatchRegexp(fmt.Sprintf("Error requesting service plan visibilities.*%s", unknownError.Detail)))
 			})
 		})
 	})
@@ -228,22 +230,22 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 			It("updateVisibility should return error", func() {
 				err := updateVisibility(ctx, servicePlanGuid.String(), cf.VisibilityType.PUBLIC)
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 
 			It("addVisibilities should return error", func() {
 				err := addVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 
 			It("replaceVisibilities should return error", func() {
 				err := replaceVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 
 			It("deleteVisibilities should return error", func() {
 				err := deleteVisibilities(ctx, servicePlanGuid.String(), org1Guid)
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 		})
 

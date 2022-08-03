@@ -43,6 +43,16 @@ var _ = BeforeEach(func() {
 	logInterceptor.Reset()
 })
 
+var unknownError = cf.CCError{
+	Code:   10001,
+	Title:  "UnknownError",
+	Detail: "An unexpected, uncaught error occurred; the CC logs will contain more information",
+}
+
+var unknownErrorResponse = cf.CCErrorResponse{
+	Errors: []cf.CCError{unknownError},
+}
+
 // Test Context initialization methods
 func generateCFBrokers(count int) []*cf.CCServiceBroker {
 	brokers := make([]*cf.CCServiceBroker, 0)
@@ -263,9 +273,13 @@ func filterPlans(plans []*cf.CCServicePlan, visibilityType cf.VisibilityTypeValu
 	return publicPlans
 }
 
-var badRequestHandler = func(rw http.ResponseWriter, req *http.Request) {
+func badRequestHandler(rw http.ResponseWriter, req *http.Request) {
+	out, err := json.Marshal(unknownErrorResponse)
+
+	Expect(err).ToNot(HaveOccurred())
+
 	rw.WriteHeader(http.StatusInternalServerError)
-	rw.Write([]byte(`{"description": "Expected"}`))
+	rw.Write(out)
 }
 
 func setCCBrokersResponse(server *ghttp.Server, cfBrokers []*cf.CCServiceBroker) {

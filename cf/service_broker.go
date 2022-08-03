@@ -144,7 +144,12 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
 	}
 
-	jobErr := pc.ScheduleJobPolling(ctx, res.JobURL)
+	jobURL, err := url.Parse(res.JobURL)
+	if err != nil || res.JobURL == "" {
+		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
+	}
+
+	jobErr := pc.ScheduleJobPolling(ctx, jobURL.Path)
 	if jobErr != nil {
 		return nil, fmt.Errorf(CreateBrokerError, r.Name, jobErr.Error)
 	}
@@ -179,7 +184,12 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 		return fmt.Errorf(DeleteBrokerError, r.Name, err)
 	}
 
-	jobErr := pc.ScheduleJobPolling(ctx, res.JobURL)
+	jobURL, err := url.Parse(res.JobURL)
+	if err != nil || res.JobURL == "" {
+		return fmt.Errorf(DeleteBrokerError, r.Name, err)
+	}
+
+	jobErr := pc.ScheduleJobPolling(ctx, jobURL.Path)
 	if jobErr != nil {
 		return fmt.Errorf(DeleteBrokerError, r.Name, jobErr.Error)
 	}
@@ -214,7 +224,12 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 		return nil, fmt.Errorf(UpdateBrokerError, r.Name, err)
 	}
 
-	jobErr := pc.ScheduleJobPolling(ctx, res.JobURL)
+	jobURL, err := url.Parse(res.JobURL)
+	if err != nil || res.JobURL == "" {
+		return nil, fmt.Errorf(UpdateBrokerError, r.Name, err)
+	}
+
+	jobErr := pc.ScheduleJobPolling(ctx, jobURL.Path)
 	if jobErr != nil {
 		return nil, fmt.Errorf(UpdateBrokerError, r.Name, jobErr.Error)
 	}

@@ -65,9 +65,11 @@ func DefaultCFConfiguration() *Config {
 
 	return &Config{
 		ClientConfiguration: &ClientConfiguration{
-			Config:    *cfClientConfig,
-			PageSize:  100,
-			ChunkSize: 10,
+			Config:          *cfClientConfig,
+			PageSize:        100,
+			ChunkSize:       10,
+			JobPollTimeout:  1800,
+			JobPollInterval: 2,
 		},
 		CFClientProvider: cfclient.NewClient,
 	}

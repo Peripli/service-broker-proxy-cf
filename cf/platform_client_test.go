@@ -3,6 +3,7 @@ package cf_test
 import (
 	"context"
 	"fmt"
+	"github.com/Peripli/service-broker-proxy-cf/cf/cfclient"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -12,7 +13,6 @@ import (
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -136,8 +136,8 @@ func assertCFError(actualErr error, expectedErr cfclient.CloudFoundryError) {
 	Expect(actualErr).ToNot(BeNil())
 	Expect(actualErr.Error()).To(SatisfyAll(
 		ContainSubstring(strconv.Itoa(expectedErr.Code)),
-		ContainSubstring(expectedErr.ErrorCode),
-		ContainSubstring(expectedErr.Description),
+		ContainSubstring(expectedErr.Title),
+		ContainSubstring(expectedErr.Detail),
 	))
 }
 
@@ -259,7 +259,7 @@ var _ = Describe("Client", func() {
 			ccServer = fakeCCServer(false)
 			_, cl = ccClientWithThrottling(ccServer.URL(), 50)
 			ctx = context.TODO()
-			requestPath = "/v2/some_route"
+			requestPath = "v3/service_plans"
 		})
 
 		Describe("when a request does not contain body", func() {
@@ -275,9 +275,9 @@ var _ = Describe("Client", func() {
 			Context("when an error status code is returned by CF Client", func() {
 				BeforeEach(func() {
 					responseErr = cfclient.CloudFoundryError{
-						Code:        1009,
-						ErrorCode:   "err",
-						Description: "test err",
+						Code:   1009,
+						Title:  "err",
+						Detail: "test err",
 					}
 
 					response = responseErr
@@ -298,16 +298,20 @@ var _ = Describe("Client", func() {
 			Context("when the request is successful", func() {
 				BeforeEach(func() {
 					responseCode = http.StatusOK
-					response = cfclient.AppResponse{
-						Count:     0,
-						Pages:     0,
-						NextUrl:   "",
-						Resources: []cfclient.AppResource{},
+					response = cf.CCListServicePlansResponse{
+						Pagination: cf.CCPagination{
+							TotalResults: 0,
+							TotalPages:   0,
+							Next: cf.CCLinkObject{
+								Href: "",
+							},
+						},
+						Resources: []cf.CCServicePlan{},
 					}
 				})
 
 				It("returns CF response", func() {
-					var appResponse cfclient.AppResponse
+					var appResponse cf.CCListServicePlansResponse
 					_, err := cl.MakeRequest(cf.PlatformClientRequest{
 						CTX:          ctx,
 						URL:          requestPath,
@@ -345,16 +349,21 @@ var _ = Describe("Client", func() {
 			Context("when the request is successful", func() {
 				BeforeEach(func() {
 					responseCode = http.StatusOK
-					response = cfclient.AppResponse{
-						Count:     2,
-						Pages:     2,
-						NextUrl:   "",
-						Resources: []cfclient.AppResource{},
+
+					response = cf.CCListServicePlansResponse{
+						Pagination: cf.CCPagination{
+							TotalResults: 2,
+							TotalPages:   2,
+							Next: cf.CCLinkObject{
+								Href: "",
+							},
+						},
+						Resources: []cf.CCServicePlan{},
 					}
 				})
 
 				It("returns CF response", func() {
-					var appResponse cfclient.AppResponse
+					var appResponse cf.CCListServicePlansResponse
 					_, err := cl.MakeRequest(cf.PlatformClientRequest{
 						CTX:          ctx,
 						URL:          requestPath,

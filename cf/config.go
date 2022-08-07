@@ -9,8 +9,8 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 
+	"github.com/Peripli/service-broker-proxy-cf/cf/cfclient"
 	"github.com/Peripli/service-manager/pkg/env"
-	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/spf13/pflag"
 )
 

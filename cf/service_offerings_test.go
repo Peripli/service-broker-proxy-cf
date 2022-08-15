@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -25,7 +26,7 @@ var _ = Describe("Service Offerings", func() {
 		brokers []*cf.CCServiceBroker,
 		cfServiceOfferings map[string][]*cf.CCServiceOffering,
 	) *ghttp.Server {
-		server := fakeCCServer(false)
+		server := testhelper.FakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
 		setCCServiceOfferingsResponse(server, cfServiceOfferings)
 

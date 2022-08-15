@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,7 +20,7 @@ var _ = Describe("job", func() {
 	)
 
 	createCCServer := func() *ghttp.Server {
-		server := fakeCCServer(false)
+		server := testhelper.FakeCCServer(false)
 		return server
 	}
 

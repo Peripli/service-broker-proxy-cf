@@ -2,6 +2,7 @@ package cf_test
 
 import (
 	"context"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"net/http"
 	"regexp"
@@ -218,7 +219,7 @@ var _ = Describe("Cache", func() {
 		})
 		Expect(err).To(BeNil())
 
-		ccServer = fakeCCServer(true)
+		ccServer = testhelper.FakeCCServer(true)
 		_, client = ccClient(ccServer.URL())
 		setupCCRoutes()
 	})

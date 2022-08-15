@@ -74,7 +74,7 @@ var _ = Describe("Client ServiceBroker", func() {
 		JobPollTimeout = 2
 
 		ccServer = testhelper.FakeCCServer(false)
-		_, client = ccClient(ccServer.URL())
+		_, client = testhelper.CCClient(ccServer.URL())
 	})
 
 	AfterEach(func() {

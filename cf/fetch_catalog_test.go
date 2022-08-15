@@ -47,7 +47,7 @@ var _ = Describe("Client FetchCatalog", func() {
 		JobPollTimeout = 2
 
 		ccServer = testhelper.FakeCCServer(false)
-		_, client = ccClient(ccServer.URL())
+		_, client = testhelper.CCClient(ccServer.URL())
 
 		expectedRequest = &cf.CCSaveServiceBrokerRequest{
 			Name: testBroker.Name,

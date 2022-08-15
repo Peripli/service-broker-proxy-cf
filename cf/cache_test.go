@@ -220,7 +220,7 @@ var _ = Describe("Cache", func() {
 		Expect(err).To(BeNil())
 
 		ccServer = testhelper.FakeCCServer(true)
-		_, client = ccClient(ccServer.URL())
+		_, client = testhelper.CCClient(ccServer.URL())
 		setupCCRoutes()
 	})
 

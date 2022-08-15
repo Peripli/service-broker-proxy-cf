@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
-	testhelper "github.com/Peripli/service-broker-proxy-cf/cf/internal"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/types"
 	. "github.com/onsi/ginkgo"
@@ -94,7 +94,7 @@ var _ = Describe("Client Service Plan Access", func() {
 	Describe("EnableAccessForPlan", func() {
 		BeforeEach(func() {
 			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
-			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 		})
 
 		Context("when invalid request", func() {
@@ -205,7 +205,7 @@ var _ = Describe("Client Service Plan Access", func() {
 	Describe("DisableAccessForPlan", func() {
 		BeforeEach(func() {
 			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
-			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 		})
 
 		Context("when invalid request", func() {

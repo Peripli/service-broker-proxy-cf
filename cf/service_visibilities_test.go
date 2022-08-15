@@ -132,14 +132,14 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	It("is not nil", func() {
 		ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-		_, client = ccClient(ccServer.URL())
+		_, client = testhelper.CCClient(ccServer.URL())
 		Expect(client.Visibility()).ToNot(BeNil())
 	})
 
 	Describe("Get visibilities when visibilities are available", func() {
 		BeforeEach(func() {
 			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
-			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 		})
 
 		Context("for multiple brokers", func() {
@@ -183,7 +183,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("for getting service offerings", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("should return error", func() {
@@ -196,7 +196,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("for getting plans", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("should return error", func() {
@@ -208,7 +208,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("for getting visibilities", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("should return error", func() {
@@ -226,7 +226,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("when service plan is not available", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("updateVisibility should return error", func() {
@@ -253,7 +253,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("when service plan and org available", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("updateVisibility should not return error", func() {

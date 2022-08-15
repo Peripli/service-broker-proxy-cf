@@ -2,16 +2,14 @@ package cf_test
 
 import (
 	"context"
+	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfclient"
 	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
-	"net/http"
-	"strconv"
-
-	"github.com/Peripli/service-broker-proxy-cf/cf"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"net/http"
 )
 
 var (
@@ -23,50 +21,6 @@ var (
 	responseErr  cfclient.CloudFoundryErrors
 	ctx          context.Context
 )
-
-func assertCFError(actualErr error, expectedErr cfclient.CloudFoundryError) {
-	Expect(actualErr).ToNot(BeNil())
-	Expect(actualErr.Error()).To(SatisfyAll(
-		ContainSubstring(strconv.Itoa(expectedErr.Code)),
-		ContainSubstring(expectedErr.Title),
-		ContainSubstring(expectedErr.Detail),
-	))
-}
-
-func ccClient(URL string) (*cf.Settings, *cf.PlatformClient) {
-	return ccClientWithThrottling(URL, 50)
-}
-
-func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Settings, *cf.PlatformClient) {
-	cfConfig := cfclient.Config{
-		ApiAddress: URL,
-	}
-	config := &cf.Config{
-		ClientConfiguration: &cf.ClientConfiguration{
-			Config:          cfConfig,
-			JobPollTimeout:  JobPollTimeout,
-			JobPollInterval: 1,
-			PageSize:        100,
-			ChunkSize:       10,
-		},
-		CFClientProvider: cfclient.NewClient,
-	}
-	settings := &cf.Settings{
-		Settings: *sbproxy.DefaultSettings(),
-		CF:       config,
-	}
-	settings.Reconcile.URL = "http://10.0.2.2"
-	settings.Reconcile.MaxParallelRequests = maxAllowedParallelRequests
-	settings.Reconcile.LegacyURL = "http://proxy.com"
-	settings.Sm.URL = "http://10.0.2.2"
-	settings.Sm.User = "user"
-	settings.Sm.Password = "password"
-
-	client, err := cf.NewClient(settings)
-	Expect(err).ShouldNot(HaveOccurred())
-	Expect(client).ShouldNot(BeNil())
-	return settings, client
-}
 
 var _ = Describe("Client", func() {
 	Describe("NewClient", func() {
@@ -119,7 +73,7 @@ var _ = Describe("Client", func() {
 	Describe("MakeRequest", func() {
 		BeforeEach(func() {
 			ccServer = testhelper.FakeCCServer(false)
-			_, cl = ccClientWithThrottling(ccServer.URL(), 50)
+			_, cl = testhelper.CCClientWithThrottling(ccServer.URL(), 50, 2)
 			ctx = context.TODO()
 			requestPath = "/v3/service_plans"
 		})
@@ -157,7 +111,7 @@ var _ = Describe("Client", func() {
 						Method: http.MethodGet,
 					})
 
-					assertCFError(err, responseErr.Errors[0])
+					testhelper.AssertCFError(err, responseErr.Errors[0])
 				})
 			})
 

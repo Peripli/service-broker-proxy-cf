@@ -53,7 +53,7 @@ var _ = Describe("Service Offerings", func() {
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("returns an error", func() {
@@ -67,7 +67,7 @@ var _ = Describe("Service Offerings", func() {
 		Context("when no service offerings are found in CC", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("returns nil", func() {
@@ -83,7 +83,7 @@ var _ = Describe("Service Offerings", func() {
 		Context("when service offerings exist in CC", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("returns all of the service offerings", func() {

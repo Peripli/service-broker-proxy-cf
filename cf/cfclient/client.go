@@ -139,7 +139,7 @@ func DefaultConfig() *Config {
 		Token:             "",
 		SkipSslValidation: false,
 		HttpClient:        http.DefaultClient,
-		UserAgent:         "Go-CF-client/1.1",
+		UserAgent:         "SM-CF-client/1.0",
 	}
 }
 

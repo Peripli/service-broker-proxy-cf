@@ -2,6 +2,7 @@ package cf_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf/cfclient"
 	"net/http"
@@ -17,8 +18,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
-
-const InvalidJSON = `{invalidjson`
 
 type expectedRequest struct {
 	Method   string
@@ -46,7 +45,7 @@ var (
 	responseCode int
 	response     interface{}
 	requestPath  string
-	responseErr  cfclient.CloudFoundryError
+	responseErr  cfclient.CloudFoundryErrors
 	ctx          context.Context
 )
 
@@ -81,12 +80,6 @@ func appendRoutes(server *ghttp.Server, routes ...*mockRoute) {
 
 		server.AppendHandlers(ghttp.CombineHandlers(handlers...))
 	}
-}
-
-func encodeQuery(query string) string {
-	q := url.Values{}
-	q.Set("q", query)
-	return q.Encode()
 }
 
 // can directly use this to verify if already defined routes were hit x times
@@ -178,18 +171,25 @@ func ccClientWithThrottling(URL string, maxAllowedParallelRequests int) (*cf.Set
 
 func fakeCCServer(allowUnhandled bool) *ghttp.Server {
 	ccServer := ghttp.NewServer()
-	v2InfoResponse := fmt.Sprintf(`
-										{
-											"api_version":"%[1]s",
-											"authorization_endpoint": "%[2]s",
-											"token_endpoint": "%[2]s",
-											"login_endpoint": "%[2]s"
-										}`,
-		"2.5", ccServer.URL())
-	ccServer.RouteToHandler(http.MethodGet, "/v2/info", func(res http.ResponseWriter, req *http.Request) {
+	serverUrl := ccServer.URL()
+
+	v3RootCallResponse, err := json.Marshal(&cfclient.Endpoints{
+		Links: cfclient.Links{
+			AuthEndpoint: cfclient.EndpointUrl{
+				URL: serverUrl,
+			},
+			TokenEndpoint: cfclient.EndpointUrl{
+				URL: serverUrl,
+			},
+		},
+	})
+
+	Expect(err).ShouldNot(HaveOccurred())
+
+	ccServer.RouteToHandler(http.MethodGet, "/", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.WriteHeader(http.StatusOK)
-		res.Write([]byte(v2InfoResponse))
+		res.Write(v3RootCallResponse)
 	})
 	ccServer.RouteToHandler(http.MethodPost, "/oauth/token", func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
@@ -259,7 +259,7 @@ var _ = Describe("Client", func() {
 			ccServer = fakeCCServer(false)
 			_, cl = ccClientWithThrottling(ccServer.URL(), 50)
 			ctx = context.TODO()
-			requestPath = "v3/service_plans"
+			requestPath = "/v3/service_plans"
 		})
 
 		Describe("when a request does not contain body", func() {
@@ -274,10 +274,14 @@ var _ = Describe("Client", func() {
 
 			Context("when an error status code is returned by CF Client", func() {
 				BeforeEach(func() {
-					responseErr = cfclient.CloudFoundryError{
-						Code:   1009,
-						Title:  "err",
-						Detail: "test err",
+					responseErr = cfclient.CloudFoundryErrors{
+						Errors: []cfclient.CloudFoundryError{
+							{
+								Code:   1009,
+								Title:  "err",
+								Detail: "test err",
+							},
+						},
 					}
 
 					response = responseErr
@@ -291,7 +295,7 @@ var _ = Describe("Client", func() {
 						Method: http.MethodGet,
 					})
 
-					assertCFError(err, responseErr)
+					assertCFError(err, responseErr.Errors[0])
 				})
 			})
 

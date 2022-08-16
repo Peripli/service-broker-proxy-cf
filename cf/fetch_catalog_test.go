@@ -3,6 +3,7 @@ package cf_test
 import (
 	"context"
 	"fmt"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/gofrs/uuid"
 	"net/http"
 
@@ -45,8 +46,8 @@ var _ = Describe("Client FetchCatalog", func() {
 		maxAllowedParallelRequests = 3
 		JobPollTimeout = 2
 
-		ccServer = fakeCCServer(false)
-		_, client = ccClient(ccServer.URL())
+		ccServer = testhelper.FakeCCServer(false)
+		_, client = testhelper.CCClient(ccServer.URL())
 
 		expectedRequest = &cf.CCSaveServiceBrokerRequest{
 			Name: testBroker.Name,

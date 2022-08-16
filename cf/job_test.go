@@ -32,9 +32,9 @@ var _ = Describe("job", func() {
 
 		parallelRequestsCounter = 0
 		maxAllowedParallelRequests = 3
-		jobPollTimeout := 2
+		JobPollTimeout = 2
 		ccServer = createCCServer()
-		_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, jobPollTimeout)
+		_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 	})
 	AfterEach(func() {
 		if ccServer != nil {

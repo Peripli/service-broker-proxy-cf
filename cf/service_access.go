@@ -15,6 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const GetOrganizationsChunkSize = 50
+
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
 func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *platform.ModifyPlanAccessRequest) error {
@@ -136,13 +138,12 @@ func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlan
 }
 
 func (pc *PlatformClient) getExistingOrgGUIDs(ctx context.Context, orgGUIDs []string) []string {
-	const chunkSize = 50
 	var chunkedGUIDs [][]string
 	var existingOrgGUIDs []string
 
 	// split guids into the chunks
-	for i := 0; i < len(orgGUIDs); i += chunkSize {
-		end := i + chunkSize
+	for i := 0; i < len(orgGUIDs); i += GetOrganizationsChunkSize {
+		end := i + GetOrganizationsChunkSize
 		if end > len(orgGUIDs) {
 			end = len(orgGUIDs)
 		}
@@ -153,7 +154,7 @@ func (pc *PlatformClient) getExistingOrgGUIDs(ctx context.Context, orgGUIDs []st
 	for _, chunk := range chunkedGUIDs {
 		orgIds := strings.Join(chunk[:], ",")
 		query := url.Values{
-			CCQueryParams.PageSize: []string{strconv.Itoa(chunkSize)},
+			CCQueryParams.PageSize: []string{strconv.Itoa(GetOrganizationsChunkSize)},
 			CCQueryParams.GUIDs:    []string{orgIds},
 		}
 

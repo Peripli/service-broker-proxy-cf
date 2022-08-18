@@ -8,11 +8,13 @@ import (
 	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/types"
+	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 var _ = Describe("Client Service Plan Access", func() {
@@ -209,6 +211,45 @@ var _ = Describe("Client Service Plan Access", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(len(reqBody.Organizations)).To(Equal(1))
 					Expect(reqBody.Organizations[0].Guid).To(Equal(generatedCFOrganizations[1].GUID))
+				})
+			})
+
+			Context("when there is many organizations in request", func() {
+				It("should execute get organizations with limited amount of ids", func() {
+					ccServer.RouteToHandler(http.MethodGet, "/v3/organizations", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+						guids := strings.Split(req.URL.Query()[cf.CCQueryParams.GUIDs][0], ",")
+
+						Expect(len(guids) > cf.GetOrganizationsChunkSize).To(BeFalse())
+						rw.WriteHeader(http.StatusOK)
+						writeJSONResponse(cf.CCListOrganizationsResponse{
+							Pagination: cf.CCPagination{
+								TotalResults: 1,
+								TotalPages:   1,
+								Next: cf.CCLinkObject{
+									Href: "",
+								},
+							},
+							Resources: []cf.CCOrganization{*generatedCFOrganizations[0]},
+						}, rw)
+					}))
+
+					broker := generatedCFBrokers[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+
+					var orgGuids []string
+					for i := 0; i < cf.GetOrganizationsChunkSize+1; i++ {
+						UUID, err := uuid.NewV4()
+						Expect(err).ShouldNot(HaveOccurred())
+						orgGuids = append(orgGuids, UUID.String())
+					}
+					request := platform.ModifyPlanAccessRequest{
+						BrokerName:    broker.Name,
+						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
+						Labels:        types.Labels{"organization_guid": orgGuids},
+					}
+
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err).ToNot(HaveOccurred())
 				})
 			})
 		})

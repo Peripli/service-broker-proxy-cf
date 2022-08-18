@@ -53,6 +53,21 @@ var unknownErrorResponse = cf.CCErrorResponse{
 	Errors: []cf.CCError{unknownError},
 }
 
+func generateCFOrganizations(count int) []*cf.CCOrganization {
+	organizations := make([]*cf.CCOrganization, 0)
+	for i := 0; i < count; i++ {
+		UUID, err := uuid.NewV4()
+		Expect(err).ShouldNot(HaveOccurred())
+		organizationGuid := "org-" + UUID.String()
+		organizationName := fmt.Sprintf("org%d", i)
+		organizations = append(organizations, &cf.CCOrganization{
+			GUID: organizationGuid,
+			Name: organizationName + "-" + organizationGuid,
+		})
+	}
+	return organizations
+}
+
 // Test Context initialization methods
 func generateCFBrokers(count int) []*cf.CCServiceBroker {
 	brokers := make([]*cf.CCServiceBroker, 0)
@@ -415,6 +430,30 @@ func setCCJobResponse(server *ghttp.Server, simulateError bool, jobState cf.JobS
 			GUID:      jobGuid,
 			State:     jobState,
 			Warnings:  []cf.JobWarning{},
+		}, rw)
+	}))
+}
+
+func setCCGetOrganizationsResponse(server *ghttp.Server, organizations []*cf.CCOrganization) {
+	if organizations == nil {
+		server.RouteToHandler(http.MethodGet, "/v3/organizations", parallelRequestsChecker(badRequestHandler))
+		return
+	}
+
+	server.RouteToHandler(http.MethodGet, "/v3/organizations", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+		var orgs []cf.CCOrganization
+		for _, org := range organizations {
+			orgs = append(orgs, *org)
+		}
+		writeJSONResponse(cf.CCListOrganizationsResponse{
+			Pagination: cf.CCPagination{
+				TotalResults: len(organizations),
+				TotalPages:   1,
+				Next: cf.CCLinkObject{
+					Href: "",
+				},
+			},
+			Resources: orgs,
 		}, rw)
 	}))
 }

@@ -81,11 +81,13 @@ var CCQueryParams = struct {
 	Names                string
 	ServiceBrokerGuids   string
 	ServiceOfferingGuids string
+	GUIDs                string
 }{
 	PageSize:             "per_page",
 	Names:                "names",
 	ServiceBrokerGuids:   "service_broker_guids",
 	ServiceOfferingGuids: "service_offering_guids",
+	GUIDs:                "guids",
 }
 
 // Broker returns platform client which can perform platform broker operations

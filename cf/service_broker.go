@@ -122,6 +122,7 @@ func (pc *PlatformClient) GetBrokerByName(ctx context.Context, name string) (*pl
 // CreateBroker implements service-broker-proxy/pkg/cf/Client.CreateBroker and provides logic for
 // registering a new broker in CF
 func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateServiceBrokerRequest) (*platform.ServiceBroker, error) {
+	logger := log.C(ctx)
 	request := PlatformClientRequest{
 		CTX:    ctx,
 		URL:    "/v3/service_brokers",
@@ -154,12 +155,13 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 		return nil, fmt.Errorf(CreateBrokerError, r.Name, jobErr.Error)
 	}
 
+	logger.Infof("Start polling job url: %s, for create broker operation: %v", res.JobURL, r)
 	broker, err := pc.GetBrokerByName(ctx, r.Name)
 	if err != nil {
 		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
 	}
 
-	log.C(ctx).Infof("Created service broker with name %s and URL %s", r.Name, r.BrokerURL)
+	logger.Infof("Created service broker with name %s and URL %s", r.Name, r.BrokerURL)
 
 	response := &platform.ServiceBroker{
 		GUID:      broker.GUID,
@@ -172,6 +174,7 @@ func (pc *PlatformClient) CreateBroker(ctx context.Context, r *platform.CreateSe
 // DeleteBroker implements service-broker-proxy/pkg/cf/Client.DeleteBroker and provides logic for
 // deleting broker in CF
 func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteServiceBrokerRequest) error {
+	logger := log.C(ctx)
 	path := fmt.Sprintf("/v3/service_brokers/%s", r.GUID)
 	request := PlatformClientRequest{
 		CTX:    ctx,
@@ -189,18 +192,20 @@ func (pc *PlatformClient) DeleteBroker(ctx context.Context, r *platform.DeleteSe
 		return fmt.Errorf(DeleteBrokerError, r.Name, err)
 	}
 
+	logger.Infof("Start polling job url: %s, for delete broker operation: %v", res.JobURL, r)
 	jobErr := pc.ScheduleJobPolling(ctx, jobURL.Path)
 	if jobErr != nil {
 		return fmt.Errorf(DeleteBrokerError, r.Name, jobErr.Error)
 	}
 
-	log.C(ctx).Infof("Deleted service broker with GUID %s", r.GUID)
+	logger.Infof("Deleted service broker with GUID %s", r.GUID)
 	return nil
 }
 
 // UpdateBroker implements service-broker-proxy/pkg/cf/Client.UpdateBroker and provides logic for
 // updating a broker registration in CF
 func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateServiceBrokerRequest) (*platform.ServiceBroker, error) {
+	logger := log.C(ctx)
 	path := fmt.Sprintf("/v3/service_brokers/%s", r.GUID)
 	request := PlatformClientRequest{
 		CTX:    ctx,
@@ -229,6 +234,7 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 		return nil, fmt.Errorf(UpdateBrokerError, r.Name, err)
 	}
 
+	logger.Infof("Start polling job url: %s, for update broker operation: %v", res.JobURL, r)
 	jobErr := pc.ScheduleJobPolling(ctx, jobURL.Path)
 	if jobErr != nil {
 		return nil, fmt.Errorf(UpdateBrokerError, r.Name, jobErr.Error)
@@ -239,7 +245,7 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 		return nil, fmt.Errorf(CreateBrokerError, r.Name, err)
 	}
 
-	log.C(ctx).Infof("Updated service broker with GUID %s, name %s and URL %s",
+	logger.Infof("Updated service broker with GUID %s, name %s and URL %s",
 		broker.GUID, broker.Name, broker.BrokerURL)
 
 	return broker, err

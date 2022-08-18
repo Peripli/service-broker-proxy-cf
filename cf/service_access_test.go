@@ -2,6 +2,7 @@ package cf_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
@@ -10,17 +11,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"net/http"
+	"regexp"
 )
 
 var _ = Describe("Client Service Plan Access", func() {
-	const (
-		org1Guid = "testorgguid1"
-		org2Guid = "testorgguid2"
-		org1Name = "org1Name"
-		org2Name = "org2Name"
-	)
-
 	var (
+		generatedCFOrganizations    []*cf.CCOrganization
 		generatedCFBrokers          []*cf.CCServiceBroker
 		generatedCFServiceOfferings map[string][]*cf.CCServiceOffering
 		generatedCFPlans            map[string][]*cf.CCServicePlan
@@ -29,12 +26,14 @@ var _ = Describe("Client Service Plan Access", func() {
 	)
 
 	createCCServer := func(
+		organizations []*cf.CCOrganization,
 		brokers []*cf.CCServiceBroker,
 		cfServiceOfferings map[string][]*cf.CCServiceOffering,
 		cfPlans map[string][]*cf.CCServicePlan,
 		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
 	) *ghttp.Server {
 		server := testhelper.FakeCCServer(false)
+		setCCGetOrganizationsResponse(server, organizations)
 		setCCBrokersResponse(server, brokers)
 		setCCServiceOfferingsResponse(server, cfServiceOfferings)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
@@ -47,18 +46,19 @@ var _ = Describe("Client Service Plan Access", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
+		generatedCFOrganizations = generateCFOrganizations(2)
 		generatedCFBrokers = generateCFBrokers(2)
 		generatedCFServiceOfferings = generateCFServiceOfferings(generatedCFBrokers, 2)
 		generatedCFPlans = generateCFPlans(generatedCFServiceOfferings, 2, 1)
 		generatedCFVisibilities, _ = generateCFVisibilities(
 			generatedCFPlans, []cf.Organization{
 				{
-					Name: org1Name,
-					Guid: org1Guid,
+					Name: generatedCFOrganizations[0].Name,
+					Guid: generatedCFOrganizations[0].GUID,
 				},
 				{
-					Name: org2Name,
-					Guid: org2Guid,
+					Name: generatedCFOrganizations[1].Name,
+					Guid: generatedCFOrganizations[1].GUID,
 				},
 			},
 			generatedCFServiceOfferings,
@@ -93,7 +93,7 @@ var _ = Describe("Client Service Plan Access", func() {
 
 	Describe("EnableAccessForPlan", func() {
 		BeforeEach(func() {
-			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
+			ccServer = createCCServer(generatedCFOrganizations, generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
 			_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 		})
 
@@ -138,7 +138,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
-						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
+						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
 
 					err := enableAccessForPlan(ctx, &request)
@@ -155,13 +155,60 @@ var _ = Describe("Client Service Plan Access", func() {
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
-						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
+						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
 
 					err := enableAccessForPlan(ctx, &request)
 					Expect(err).To(MatchError(
 						MatchRegexp(fmt.Sprintf("could not enable access for plan with GUID %s in organizations with GUID %s:",
-							organizationPlan.GUID, fmt.Sprintf("%s, %s", org1Guid, org2Guid)))))
+							organizationPlan.GUID, fmt.Sprintf("%s, %s", generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID)))))
+				})
+			})
+
+			Context("when organizations is not exist", func() {
+				It("should return error", func() {
+					orgs := make([]*cf.CCOrganization, 0)
+					setCCGetOrganizationsResponse(ccServer, orgs)
+
+					broker := generatedCFBrokers[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					request := platform.ModifyPlanAccessRequest{
+						BrokerName:    broker.Name,
+						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
+						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
+					}
+
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err.Error()).To(Equal(fmt.Sprintf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
+						organizationPlan.GUID, fmt.Sprintf("%s, %s", generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID))))
+				})
+			})
+
+			Context("when part of organizations is not exist", func() {
+				It("should enable access for existing organizations", func() {
+					setCCGetOrganizationsResponse(ccServer, []*cf.CCOrganization{generatedCFOrganizations[1]})
+
+					var reqBody cf.UpdateOrganizationVisibilitiesRequest
+					path := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
+					ccServer.RouteToHandler(http.MethodPost, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+						err := json.NewDecoder(req.Body).Decode(&reqBody)
+
+						Expect(err).ToNot(HaveOccurred())
+						rw.WriteHeader(http.StatusOK)
+					}))
+
+					broker := generatedCFBrokers[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					request := platform.ModifyPlanAccessRequest{
+						BrokerName:    broker.Name,
+						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
+						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
+					}
+
+					err := enableAccessForPlan(ctx, &request)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(len(reqBody.Organizations)).To(Equal(1))
+					Expect(reqBody.Organizations[0].Guid).To(Equal(generatedCFOrganizations[1].GUID))
 				})
 			})
 		})
@@ -204,7 +251,7 @@ var _ = Describe("Client Service Plan Access", func() {
 
 	Describe("DisableAccessForPlan", func() {
 		BeforeEach(func() {
-			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
+			ccServer = createCCServer(generatedCFOrganizations, generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
 			_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 		})
 
@@ -231,7 +278,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				request := platform.ModifyPlanAccessRequest{
 					BrokerName:    broker.Name,
 					CatalogPlanID: publicPlan.BrokerCatalog.ID,
-					Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
+					Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 				}
 
 				err := disableAccessForPlan(ctx, &request)
@@ -249,7 +296,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
-						Labels:        types.Labels{"organization_guid": []string{org1Guid, org2Guid}},
+						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
 
 					err := disableAccessForPlan(ctx, &request)
@@ -263,7 +310,7 @@ var _ = Describe("Client Service Plan Access", func() {
 
 					broker := generatedCFBrokers[0]
 					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
-					organizationGuids := []string{org1Guid, org2Guid}
+					organizationGuids := []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}
 					request := platform.ModifyPlanAccessRequest{
 						BrokerName:    broker.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,

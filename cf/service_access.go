@@ -3,6 +3,8 @@ package cf
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
@@ -12,6 +14,8 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+const GetOrganizationsChunkSize = 50
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
@@ -28,7 +32,18 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-		err = pc.AddOrganizationVisibilities(ctx, plan.GUID, orgGUIDs)
+		existingOrgGUIDs := pc.getExistingOrgGUIDs(ctx, orgGUIDs)
+		if len(existingOrgGUIDs) == 0 {
+			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
+				plan.GUID, strings.Join(orgGUIDs, ", "))
+		}
+
+		if len(existingOrgGUIDs) != len(orgGUIDs) {
+			logger.Infof("Enabled access for plan with GUID %s in organizations with GUID %s will be executed only for existing organizations: %s",
+				plan.GUID, strings.Join(orgGUIDs, ", "), strings.Join(existingOrgGUIDs, ", "))
+		}
+
+		err = pc.AddOrganizationVisibilities(ctx, plan.GUID, existingOrgGUIDs)
 		if err != nil {
 			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s: %v",
 				plan.GUID, strings.Join(orgGUIDs, ", "), err)
@@ -120,4 +135,39 @@ func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlan
 	}
 
 	return &plan, nil
+}
+
+func (pc *PlatformClient) getExistingOrgGUIDs(ctx context.Context, orgGUIDs []string) []string {
+	var chunkedGUIDs [][]string
+	var existingOrgGUIDs []string
+
+	// split guids into the chunks
+	for i := 0; i < len(orgGUIDs); i += GetOrganizationsChunkSize {
+		end := i + GetOrganizationsChunkSize
+		if end > len(orgGUIDs) {
+			end = len(orgGUIDs)
+		}
+
+		chunkedGUIDs = append(chunkedGUIDs, orgGUIDs[i:end])
+	}
+
+	for _, chunk := range chunkedGUIDs {
+		orgIds := strings.Join(chunk[:], ",")
+		query := url.Values{
+			CCQueryParams.PageSize: []string{strconv.Itoa(GetOrganizationsChunkSize)},
+			CCQueryParams.GUIDs:    []string{orgIds},
+		}
+
+		organizations, err := pc.ListOrganizationsByQuery(ctx, query)
+		if err != nil {
+			log.C(ctx).WithError(err).
+				Errorf("Error when trying to GET organizations: %s", orgIds)
+		}
+
+		for _, org := range organizations {
+			existingOrgGUIDs = append(existingOrgGUIDs, org.GUID)
+		}
+	}
+
+	return existingOrgGUIDs
 }

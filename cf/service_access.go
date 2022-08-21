@@ -32,10 +32,14 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-		existingOrgGUIDs := pc.getExistingOrgGUIDs(ctx, orgGUIDs)
-		if len(existingOrgGUIDs) == 0 {
-			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
-				plan.GUID, strings.Join(orgGUIDs, ", "))
+		existingOrgGUIDs := orgGUIDs
+		// We need to validate that organizations exist in CF
+		if len(orgGUIDs) > 1 {
+			existingOrgGUIDs = pc.getExistingOrgGUIDs(ctx, orgGUIDs)
+			if len(existingOrgGUIDs) == 0 {
+				return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
+					plan.GUID, strings.Join(orgGUIDs, ", "))
+			}
 		}
 
 		if len(existingOrgGUIDs) != len(orgGUIDs) {

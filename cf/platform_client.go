@@ -121,11 +121,11 @@ func (pc *PlatformClient) MakeRequest(req PlatformClientRequest) (*PlatformClien
 			return nil, err
 		}
 		request = pc.client.NewRequestWithBody(req.Method, req.URL, buf)
+		logger.Infof("sending request to %s with request body %v", req.URL, req.RequestBody)
 	} else {
 		request = pc.client.NewRequest(req.Method, req.URL)
+		logger.Infof("sending request to %s", req.URL)
 	}
-
-	logger.Infof("sending request to %s with request body %v", req.URL, req.RequestBody)
 
 	response, err := pc.client.DoRequest(request)
 	if err != nil {

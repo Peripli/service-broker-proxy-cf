@@ -400,7 +400,8 @@ var _ = Describe("Client Service Plan Access", func() {
 
 			Context("when ReplaceOrganizationVisibilities failed", func() {
 				It("should return error", func() {
-					setCCVisibilitiesUpdateResponse(ccServer, generatedCFPlans, true)
+					setCCVisibilitiesGetResponse(ccServer, generatedCFVisibilities)
+					setCCVisibilitiesDeleteResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
 					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]

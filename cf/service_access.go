@@ -96,8 +96,20 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to delete all visibilities of this plan
-		err = pc.ReplaceOrganizationVisibilities(ctx, plan.GUID, []string{})
+		visibilities, err := pc.getPlanVisibilitiesByPlanId(ctx, plan.GUID)
 		if err != nil {
+			return fmt.Errorf("could not get service plan visibilities for the plan with GUID %s: %v", plan.GUID, err)
+		}
+
+		if len(visibilities) == 0 {
+			return nil
+		}
+
+		for _, visibility := range visibilities {
+			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, visibility.OrganizationGuid)
+		}
+
+		if err = scheduler.Await(); err != nil {
 			return fmt.Errorf("could not disable access for plan with GUID %s: %v", plan.GUID, err)
 		}
 

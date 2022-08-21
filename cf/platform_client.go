@@ -121,16 +121,20 @@ func (pc *PlatformClient) MakeRequest(req PlatformClientRequest) (*PlatformClien
 			return nil, err
 		}
 		request = pc.client.NewRequestWithBody(req.Method, req.URL, buf)
+		logger.Infof("sending request to %s with request body %v", req.URL, req.RequestBody)
 	} else {
 		request = pc.client.NewRequest(req.Method, req.URL)
+		logger.Infof("sending request to %s", req.URL)
 	}
 
 	response, err := pc.client.DoRequest(request)
 	if err != nil {
+		logger.Errorf("error sending request url %s with the body %v: %v", req.URL, req.RequestBody, err)
 		return nil, err
 	}
 
 	if response.StatusCode >= http.StatusBadRequest {
+		logger.Errorf("error response from %s with request body %v: %v", req.URL, req.RequestBody, response)
 		return nil, fmt.Errorf("CF API %s %s returned status code %d", req.Method, req.URL, response.StatusCode)
 	}
 

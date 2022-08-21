@@ -32,10 +32,14 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-		existingOrgGUIDs := pc.getExistingOrgGUIDs(ctx, orgGUIDs)
-		if len(existingOrgGUIDs) == 0 {
-			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
-				plan.GUID, strings.Join(orgGUIDs, ", "))
+		existingOrgGUIDs := orgGUIDs
+		// We need to validate that organizations exist in CF
+		if len(orgGUIDs) > 1 {
+			existingOrgGUIDs = pc.getExistingOrgGUIDs(ctx, orgGUIDs)
+			if len(existingOrgGUIDs) == 0 {
+				return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
+					plan.GUID, strings.Join(orgGUIDs, ", "))
+			}
 		}
 
 		if len(existingOrgGUIDs) != len(orgGUIDs) {
@@ -92,8 +96,20 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to delete all visibilities of this plan
-		err = pc.ReplaceOrganizationVisibilities(ctx, plan.GUID, []string{})
+		visibilities, err := pc.getPlanVisibilitiesByPlanId(ctx, plan.GUID)
 		if err != nil {
+			return fmt.Errorf("could not get service plan visibilities for the plan with GUID %s: %v", plan.GUID, err)
+		}
+
+		if len(visibilities) == 0 {
+			return nil
+		}
+
+		for _, visibility := range visibilities {
+			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, visibility.OrganizationGuid)
+		}
+
+		if err = scheduler.Await(); err != nil {
 			return fmt.Errorf("could not disable access for plan with GUID %s: %v", plan.GUID, err)
 		}
 

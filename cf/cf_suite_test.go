@@ -321,6 +321,31 @@ func setCCBrokersResponse(server *ghttp.Server, cfBrokers []*cf.CCServiceBroker)
 	}))
 }
 
+func setCCGetBrokerResponse(server *ghttp.Server, cfBrokers []*cf.CCServiceBroker) {
+	r := strings.NewReplacer("/v3/service_brokers/", "")
+	path := regexp.MustCompile(`/v3/service_brokers/(?P<guid>[A-Za-z0-9_-]+)`)
+	if cfBrokers == nil {
+		server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(badRequestHandler))
+		return
+	}
+	server.RouteToHandler(http.MethodGet, path, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+		brokerGUID := r.Replace(req.RequestURI)
+
+		found := false
+		for _, broker := range cfBrokers {
+			if broker.GUID == brokerGUID {
+				found = true
+				writeJSONResponse(broker, rw)
+				break
+			}
+		}
+
+		if !found {
+			rw.WriteHeader(http.StatusNotFound)
+		}
+	}))
+}
+
 func setCCServiceOfferingsResponse(server *ghttp.Server, cfServiceOfferings map[string][]*cf.CCServiceOffering) {
 	if cfServiceOfferings == nil {
 		server.RouteToHandler(http.MethodGet, "/v3/service_offerings", parallelRequestsChecker(badRequestHandler))

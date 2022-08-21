@@ -52,7 +52,7 @@ var _ = Describe("Client FetchCatalog", func() {
 		expectedRequest = &cf.CCSaveServiceBrokerRequest{
 			Name: testBroker.Name,
 			URL:  testBroker.BrokerURL,
-			Authentication: cf.CCAuthentication{
+			Authentication: &cf.CCAuthentication{
 				Type: cf.AuthenticationType.BASIC,
 				Credentials: cf.CCCredentials{
 					Username: brokerUsername,
@@ -89,7 +89,7 @@ var _ = Describe("Client FetchCatalog", func() {
 
 			It("returns no error", func() {
 				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{{
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{{
 					GUID: testBroker.GUID,
 					Name: testBroker.Name,
 					URL:  testBroker.BrokerURL,

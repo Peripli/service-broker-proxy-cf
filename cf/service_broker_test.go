@@ -3,15 +3,15 @@ package cf_test
 import (
 	"context"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
-	"github.com/gofrs/uuid"
-	"net/http"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
+	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"io"
+	"net/http"
 )
 
 var _ = Describe("Client ServiceBroker", func() {
@@ -131,6 +131,52 @@ var _ = Describe("Client ServiceBroker", func() {
 		})
 	})
 
+	Describe("GetBroker", func() {
+		var brokerGUID string
+
+		BeforeEach(func() {
+			brokerGUID = testBroker.GUID
+		})
+
+		Context("when an error status code is returned by CC", func() {
+			It("returns an error", func() {
+				setCCGetBrokerResponse(ccServer, nil)
+				_, err := client.GetBroker(ctx, brokerGUID)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when a broker with the GUID does not exist in CC", func() {
+			It("returns an err", func() {
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{
+					{
+						GUID: "test-testBroker-guid-2",
+						Name: "test-testBroker-name-2",
+						URL:  "http://example2.com",
+					},
+				})
+				_, err := client.GetBroker(ctx, brokerGUID)
+
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).To(
+					ContainSubstring(
+						fmt.Sprintf("could not retrieve service broker with GUID %s", brokerGUID)))
+			})
+		})
+
+		Context("when a broker with the GUID exists in CC", func() {
+			It("returns the broker", func() {
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+				broker, err := client.GetBroker(ctx, brokerGUID)
+
+				Expect(err).ShouldNot(HaveOccurred())
+				assertBrokersFoundMatchTestBroker(1, broker)
+			})
+		})
+
+	})
+
 	Describe("GetBrokerByName", func() {
 		var brokerName string
 
@@ -198,7 +244,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			expectedRequest = &cf.CCSaveServiceBrokerRequest{
 				Name: testBroker.Name,
 				URL:  testBroker.BrokerURL,
-				Authentication: cf.CCAuthentication{
+				Authentication: &cf.CCAuthentication{
 					Type: cf.AuthenticationType.BASIC,
 					Credentials: cf.CCCredentials{
 						Username: brokerUsername,
@@ -348,9 +394,42 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			It("returns the created broker", func() {
 				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
 
 				broker, err := client.UpdateBroker(ctx, actualRequest)
+
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(broker).To(Equal(testBroker))
+			})
+		})
+
+		Context("when username or password wasn't provided", func() {
+			It("returns the created broker", func() {
+				request := &platform.UpdateServiceBrokerRequest{
+					Name:      testBroker.Name,
+					BrokerURL: testBroker.BrokerURL,
+					GUID:      testBroker.GUID,
+					Username:  "",
+					Password:  "",
+				}
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+				ccServer.RouteToHandler(http.MethodGet, "/v3/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					writeJSONResponse(cf.CCServiceBroker{
+						Name: testBroker.Name,
+						GUID: testBroker.GUID,
+						URL:  testBroker.BrokerURL,
+					}, rw)
+				}))
+				ccServer.RouteToHandler(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					bytes, err := io.ReadAll(req.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(bytes)).ToNot(ContainSubstring("authentication"))
+
+					rw.Header().Set("Location", ccServer.URL()+"/v3/jobs/123")
+					rw.WriteHeader(http.StatusAccepted)
+				}))
+
+				broker, err := client.UpdateBroker(ctx, request)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(broker).To(Equal(testBroker))

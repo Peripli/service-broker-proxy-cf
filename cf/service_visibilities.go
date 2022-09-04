@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
 	"github.com/Peripli/service-manager/pkg/log"
@@ -135,8 +134,8 @@ func (pc *PlatformClient) DeleteOrganizationVisibilities(ctx context.Context, pl
 	return nil
 }
 
-func filterPublicPlans(plans cfmodel.PlanMap) []cfmodel.PlanData {
-	var publicPlans []cfmodel.PlanData
+func filterPublicPlans(plans PlanMap) []PlanData {
+	var publicPlans []PlanData
 	for _, plan := range plans {
 		if plan.Public {
 			publicPlans = append(publicPlans, plan)
@@ -145,7 +144,7 @@ func filterPublicPlans(plans cfmodel.PlanMap) []cfmodel.PlanData {
 	return publicPlans
 }
 
-func getPlanGUIDs(plans cfmodel.PlanMap) []string {
+func getPlanGUIDs(plans PlanMap) []string {
 	guids := make([]string, 0, len(plans))
 	for guid := range plans {
 		guids = append(guids, guid)

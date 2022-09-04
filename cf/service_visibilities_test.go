@@ -2,9 +2,10 @@ package cf_test
 
 import (
 	"context"
+	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,27 +21,27 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	)
 
 	var (
-		generatedCFBrokers      []*cfclient.ServiceBroker
-		generatedCFServices     map[string][]*cfclient.Service
-		generatedCFPlans        map[string][]*cfclient.ServicePlan
-		generatedCFVisibilities map[string]*cf.ServicePlanVisibilitiesResponse
-		expectedCFVisibilities  map[string][]*platform.Visibility
-		client                  *cf.PlatformClient
+		generatedCFBrokers          []*cf.CCServiceBroker
+		generatedCFServiceOfferings map[string][]*cf.CCServiceOffering
+		generatedCFPlans            map[string][]*cf.CCServicePlan
+		generatedCFVisibilities     map[string]*cf.ServicePlanVisibilitiesResponse
+		expectedCFVisibilities      map[string][]*platform.Visibility
+		client                      *cf.PlatformClient
 	)
 
 	createCCServer := func(
-		brokers []*cfclient.ServiceBroker,
-		cfServices map[string][]*cfclient.Service,
-		cfPlans map[string][]*cfclient.ServicePlan,
+		brokers []*cf.CCServiceBroker,
+		cfServiceOfferings map[string][]*cf.CCServiceOffering,
+		cfPlans map[string][]*cf.CCServicePlan,
 		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
 	) *ghttp.Server {
-		server := fakeCCServer(false)
+		server := testhelper.FakeCCServer(false)
 		setCCBrokersResponse(server, brokers)
-		setCCServicesResponse(server, cfServices)
-		setCCPlansResponse(server, cfPlans)
+		setCCServiceOfferingsResponse(server, cfServiceOfferings)
 		setCCVisibilitiesGetResponse(server, cfVisibilities)
 		setCCVisibilitiesUpdateResponse(server, cfPlans, false)
 		setCCVisibilitiesDeleteResponse(server, cfPlans, false)
+		setCCPlansResponse(server, cfPlans)
 
 		return server
 	}
@@ -109,8 +110,8 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	BeforeEach(func() {
 		ctx = context.TODO()
 		generatedCFBrokers = generateCFBrokers(5)
-		generatedCFServices = generateCFServices(generatedCFBrokers, 10)
-		generatedCFPlans = generateCFPlans(generatedCFServices, 15, 2)
+		generatedCFServiceOfferings = generateCFServiceOfferings(generatedCFBrokers, 10)
+		generatedCFPlans = generateCFPlans(generatedCFServiceOfferings, 15, 2)
 		generatedCFVisibilities, expectedCFVisibilities = generateCFVisibilities(
 			generatedCFPlans, []cf.Organization{
 				{
@@ -122,7 +123,7 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 					Guid: org2Guid,
 				},
 			},
-			generatedCFServices,
+			generatedCFServiceOfferings,
 			generatedCFBrokers)
 
 		parallelRequestsCounter = 0
@@ -131,14 +132,14 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 
 	It("is not nil", func() {
 		ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-		_, client = ccClient(ccServer.URL())
+		_, client = testhelper.CCClient(ccServer.URL())
 		Expect(client.Visibility()).ToNot(BeNil())
 	})
 
 	Describe("Get visibilities when visibilities are available", func() {
 		BeforeEach(func() {
-			ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
-			_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+			ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
+			_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 		})
 
 		Context("for multiple brokers", func() {
@@ -157,16 +158,16 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("but a single broker", func() {
 			It("should return the correct visibilities", func() {
 				for _, generatedCFBroker := range generatedCFBrokers {
-					brokerGUID := generatedCFBroker.Guid
+					brokerGUID := generatedCFBroker.GUID
 					platformVisibilities, err := getVisibilitiesByBrokers(ctx, []string{
 						generatedCFBroker.Name,
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 
-					for _, service := range generatedCFServices[brokerGUID] {
-						serviceGUID := service.Guid
+					for _, serviceOffering := range generatedCFServiceOfferings[brokerGUID] {
+						serviceGUID := serviceOffering.GUID
 						for _, plan := range generatedCFPlans[serviceGUID] {
-							planGUID := plan.Guid
+							planGUID := plan.GUID
 							expectedVis := expectedCFVisibilities[planGUID]
 							for _, expectedCFVisibility := range expectedVis {
 								Expect(platformVisibilities).Should(ContainElement(expectedCFVisibility))
@@ -179,41 +180,42 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 	})
 
 	Describe("Get visibilities when cloud controller is not working", func() {
-		Context("for getting services", func() {
+		Context("for getting service offerings", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("should return error", func() {
+				setCCPlansResponse(ccServer, nil)
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 		})
 
 		Context("for getting plans", func() {
 			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, nil, nil)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("should return error", func() {
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
-				Expect(err).To(MatchError(MatchRegexp("Error requesting service plans.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service plans.*%s", unknownError.Detail))))
 			})
 		})
 
 		Context("for getting visibilities", func() {
 			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, nil)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("should return error", func() {
 				_, err := getVisibilitiesByBrokers(ctx, getBrokerNames(generatedCFBrokers))
 				Expect(err).To(HaveOccurred())
 				k := logInterceptor.String()
-				Expect(k).To(MatchRegexp("Error requesting service plan visibilities."))
+				Expect(k).To(MatchRegexp(fmt.Sprintf("Error requesting service plan visibilities.*%s", unknownError.Detail)))
 			})
 		})
 	})
@@ -224,34 +226,34 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 		Context("when service plan is not available", func() {
 			BeforeEach(func() {
 				ccServer = createCCServer(generatedCFBrokers, nil, nil, nil)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("updateVisibility should return error", func() {
 				err := updateVisibility(ctx, servicePlanGuid.String(), cf.VisibilityType.PUBLIC)
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 
 			It("addVisibilities should return error", func() {
 				err := addVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 
 			It("replaceVisibilities should return error", func() {
 				err := replaceVisibilities(ctx, servicePlanGuid.String(), []string{org1Guid})
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 
 			It("deleteVisibilities should return error", func() {
 				err := deleteVisibilities(ctx, servicePlanGuid.String(), org1Guid)
-				Expect(err).To(MatchError(MatchRegexp("Error requesting services.*Expected")))
+				Expect(err).To(MatchError(MatchRegexp(fmt.Sprintf("Error requesting service offerings.*%s", unknownError.Detail))))
 			})
 		})
 
 		Context("when service plan and org available", func() {
 			BeforeEach(func() {
-				ccServer = createCCServer(generatedCFBrokers, generatedCFServices, generatedCFPlans, generatedCFVisibilities)
-				_, client = ccClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests)
+				ccServer = createCCServer(generatedCFBrokers, generatedCFServiceOfferings, generatedCFPlans, generatedCFVisibilities)
+				_, client = testhelper.CCClientWithThrottling(ccServer.URL(), maxAllowedParallelRequests, JobPollTimeout)
 			})
 
 			It("updateVisibility should not return error", func() {
@@ -275,5 +277,4 @@ var _ = Describe("Client Service Plan Visibilities", func() {
 			})
 		})
 	})
-
 })

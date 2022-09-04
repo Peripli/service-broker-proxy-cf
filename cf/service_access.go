@@ -3,7 +3,8 @@ package cf
 import (
 	"context"
 	"fmt"
-	"github.com/Peripli/service-broker-proxy-cf/cf/cfmodel"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy/reconcile"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+const GetOrganizationsChunkSize = 50
 
 // EnableAccessForPlan implements service-broker-proxy/pkg/cf/ServiceVisibilityHandler.EnableAccessForPlan
 // and provides logic for enabling the service access for a specified plan by the plan's catalog GUID.
@@ -29,7 +32,22 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 	}
 
 	if orgGUIDs, ok := request.Labels[OrgLabelKey]; ok && len(orgGUIDs) != 0 {
-		err := pc.AddOrganizationVisibilities(ctx, plan.GUID, orgGUIDs)
+		existingOrgGUIDs := orgGUIDs
+		// We need to validate that organizations exist in CF
+		if len(orgGUIDs) > 1 {
+			existingOrgGUIDs = pc.getExistingOrgGUIDs(ctx, orgGUIDs)
+			if len(existingOrgGUIDs) == 0 {
+				return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s because organizations is not exist",
+					plan.GUID, strings.Join(orgGUIDs, ", "))
+			}
+		}
+
+		if len(existingOrgGUIDs) != len(orgGUIDs) {
+			logger.Infof("Enabled access for plan with GUID %s in organizations with GUID %s will be executed only for existing organizations: %s",
+				plan.GUID, strings.Join(orgGUIDs, ", "), strings.Join(existingOrgGUIDs, ", "))
+		}
+
+		err = pc.AddOrganizationVisibilities(ctx, plan.GUID, existingOrgGUIDs)
 		if err != nil {
 			return fmt.Errorf("could not enable access for plan with GUID %s in organizations with GUID %s: %v",
 				plan.GUID, strings.Join(orgGUIDs, ", "), err)
@@ -38,7 +56,7 @@ func (pc *PlatformClient) EnableAccessForPlan(ctx context.Context, request *plat
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to make this plan to be Public
-		err := pc.UpdateServicePlanVisibilityType(ctx, plan.GUID, VisibilityType.PUBLIC)
+		err = pc.UpdateServicePlanVisibilityType(ctx, plan.GUID, VisibilityType.PUBLIC)
 		if err != nil {
 			return fmt.Errorf("could not enable public access for plan with GUID %s: %v", plan.GUID, err)
 		}
@@ -69,7 +87,7 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, orgGUID)
 		}
 
-		if err := scheduler.Await(); err != nil {
+		if err = scheduler.Await(); err != nil {
 			return fmt.Errorf("failed to disable visibilities for plan with GUID %s : %v",
 				plan.GUID, err)
 		}
@@ -78,8 +96,20 @@ func (pc *PlatformClient) DisableAccessForPlan(ctx context.Context, request *pla
 			plan.GUID, strings.Join(orgGUIDs, ", "))
 	} else {
 		// We didn't receive a list of organizations means we need to delete all visibilities of this plan
-		err := pc.ReplaceOrganizationVisibilities(ctx, plan.GUID, []string{})
+		visibilities, err := pc.getPlanVisibilitiesByPlanId(ctx, plan.GUID)
 		if err != nil {
+			return fmt.Errorf("could not get service plan visibilities for the plan with GUID %s: %v", plan.GUID, err)
+		}
+
+		if len(visibilities) == 0 {
+			return nil
+		}
+
+		for _, visibility := range visibilities {
+			pc.scheduleDeleteOrgVisibilityForPlan(ctx, request, scheduler, plan.GUID, visibility.OrganizationGuid)
+		}
+
+		if err = scheduler.Await(); err != nil {
 			return fmt.Errorf("could not disable access for plan with GUID %s: %v", plan.GUID, err)
 		}
 
@@ -109,9 +139,9 @@ func (pc *PlatformClient) scheduleDeleteOrgVisibilityForPlan(
 	}
 }
 
-func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlanAccessRequest) (*cfmodel.PlanData, error) {
+func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlanAccessRequest) (*PlanData, error) {
 	if request == nil {
-		return nil, errors.Errorf("Enable plan access request cannot be nil")
+		return nil, errors.Errorf("Modify plan access request cannot be nil")
 	}
 
 	plan, found := pc.planResolver.GetPlan(request.CatalogPlanID, request.BrokerName)
@@ -121,4 +151,39 @@ func (pc *PlatformClient) validateRequestAndGetPlan(request *platform.ModifyPlan
 	}
 
 	return &plan, nil
+}
+
+func (pc *PlatformClient) getExistingOrgGUIDs(ctx context.Context, orgGUIDs []string) []string {
+	var chunkedGUIDs [][]string
+	var existingOrgGUIDs []string
+
+	// split guids into the chunks
+	for i := 0; i < len(orgGUIDs); i += GetOrganizationsChunkSize {
+		end := i + GetOrganizationsChunkSize
+		if end > len(orgGUIDs) {
+			end = len(orgGUIDs)
+		}
+
+		chunkedGUIDs = append(chunkedGUIDs, orgGUIDs[i:end])
+	}
+
+	for _, chunk := range chunkedGUIDs {
+		orgIds := strings.Join(chunk[:], ",")
+		query := url.Values{
+			CCQueryParams.PageSize: []string{strconv.Itoa(GetOrganizationsChunkSize)},
+			CCQueryParams.GUIDs:    []string{orgIds},
+		}
+
+		organizations, err := pc.ListOrganizationsByQuery(ctx, query)
+		if err != nil {
+			log.C(ctx).WithError(err).
+				Errorf("Error when trying to GET organizations: %s", orgIds)
+		}
+
+		for _, org := range organizations {
+			existingOrgGUIDs = append(existingOrgGUIDs, org.GUID)
+		}
+	}
+
+	return existingOrgGUIDs
 }

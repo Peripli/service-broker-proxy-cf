@@ -2,11 +2,13 @@ package cf_test
 
 import (
 	"context"
+	"fmt"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
+	"github.com/gofrs/uuid"
 	"net/http"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -20,18 +22,19 @@ const (
 var _ = Describe("Client FetchCatalog", func() {
 	var (
 		client          *cf.PlatformClient
-		ccServer        *ghttp.Server
 		testBroker      *platform.ServiceBroker
 		ccResponseCode  int
 		ccResponse      interface{}
-		ccResponseErr   cfclient.CloudFoundryError
 		expectedRequest interface{}
 		err             error
-		ctx             context.Context
+		jobGUID         uuid.UUID
 	)
 
 	BeforeEach(func() {
 		ctx = context.TODO()
+		jobGUID, err = uuid.NewV4()
+
+		Expect(err).ShouldNot(HaveOccurred())
 
 		testBroker = &platform.ServiceBroker{
 			GUID:      "test-testBroker-guid",
@@ -39,22 +42,32 @@ var _ = Describe("Client FetchCatalog", func() {
 			BrokerURL: "http://example.com",
 		}
 
-		ccServer = fakeCCServer(false)
+		parallelRequestsCounter = 0
+		maxAllowedParallelRequests = 3
+		JobPollTimeout = 2
 
-		_, client = ccClient(ccServer.URL())
+		ccServer = testhelper.FakeCCServer(false)
+		_, client = testhelper.CCClient(ccServer.URL())
 
-		expectedRequest = &cfclient.UpdateServiceBrokerRequest{
-			Name:      testBroker.Name,
-			BrokerURL: testBroker.BrokerURL,
-			Username:  brokerUsername,
-			Password:  brokerPassword,
+		expectedRequest = &cf.CCSaveServiceBrokerRequest{
+			Name: testBroker.Name,
+			URL:  testBroker.BrokerURL,
+			Authentication: &cf.CCAuthentication{
+				Type: cf.AuthenticationType.BASIC,
+				Credentials: cf.CCCredentials{
+					Username: brokerUsername,
+					Password: brokerPassword,
+				},
+			},
 		}
 
 		ccServer.AppendHandlers(
 			ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/v2/service_brokers/"+testBroker.GUID),
+				ghttp.VerifyRequest(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID),
 				ghttp.VerifyJSONRepresenting(expectedRequest),
-				ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
+				ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
+					"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
+				}),
 			),
 		)
 	})
@@ -70,21 +83,18 @@ var _ = Describe("Client FetchCatalog", func() {
 	Describe("Fetch", func() {
 		Context("when the call to UpdateBroker is successful", func() {
 			BeforeEach(func() {
-				ccResponse = cfclient.ServiceBrokerResource{
-					Meta: cfclient.Meta{
-						Guid: testBroker.GUID,
-					},
-					Entity: cfclient.ServiceBroker{
-						Name:      testBroker.Name,
-						BrokerURL: testBroker.BrokerURL,
-						Username:  brokerUsername,
-					},
-				}
-
-				ccResponseCode = http.StatusOK
+				ccResponseCode = http.StatusAccepted
+				ccResponse = nil
 			})
 
 			It("returns no error", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{{
+					GUID: testBroker.GUID,
+					Name: testBroker.Name,
+					URL:  testBroker.BrokerURL,
+				}})
+
 				err = client.Fetch(ctx, &platform.UpdateServiceBrokerRequest{
 					GUID:      testBroker.GUID,
 					Name:      testBroker.Name,
@@ -99,13 +109,7 @@ var _ = Describe("Client FetchCatalog", func() {
 
 		Context("when UpdateBroker returns an error", func() {
 			BeforeEach(func() {
-				ccResponseErr = cfclient.CloudFoundryError{
-					Code:        1009,
-					ErrorCode:   "err",
-					Description: "test err",
-				}
-				ccResponse = ccResponseErr
-
+				ccResponse = fmt.Errorf("internal server error")
 				ccResponseCode = http.StatusInternalServerError
 			})
 
@@ -118,7 +122,7 @@ var _ = Describe("Client FetchCatalog", func() {
 					Password:  brokerPassword,
 				})
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})

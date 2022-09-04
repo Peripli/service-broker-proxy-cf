@@ -9,8 +9,8 @@ import (
 
 	"github.com/Peripli/service-broker-proxy/pkg/sbproxy"
 
+	"github.com/Peripli/service-broker-proxy-cf/cf/cfclient"
 	"github.com/Peripli/service-manager/pkg/env"
-	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/spf13/pflag"
 )
 
@@ -27,8 +27,10 @@ type Config struct {
 type ClientConfiguration struct {
 	cfclient.Config `mapstructure:",squash"`
 
-	PageSize  int `mapstructure:"page_size"`
-	ChunkSize int `mapstructure:"chunk_size"`
+	PageSize        int `mapstructure:"page_size"`
+	ChunkSize       int `mapstructure:"chunk_size"`
+	JobPollTimeout  int `mapstructure:"job_poll_timeout"`
+	JobPollInterval int `mapstructure:"job_poll_interval"`
 }
 
 // Settings type wraps the CF client configuration
@@ -63,9 +65,11 @@ func DefaultCFConfiguration() *Config {
 
 	return &Config{
 		ClientConfiguration: &ClientConfiguration{
-			Config:    *cfClientConfig,
-			PageSize:  100,
-			ChunkSize: 10,
+			Config:          *cfClientConfig,
+			PageSize:        100,
+			ChunkSize:       10,
+			JobPollTimeout:  1800,
+			JobPollInterval: 2,
 		},
 		CFClientProvider: cfclient.NewClient,
 	}

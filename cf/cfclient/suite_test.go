@@ -1,4 +1,4 @@
-package cfmodel_test
+package cfclient_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestCFModel(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CF Model")
+	RunSpecs(t, "CF Client")
 }

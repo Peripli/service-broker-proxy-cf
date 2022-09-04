@@ -3,14 +3,15 @@ package cf_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/Peripli/service-broker-proxy-cf/cf"
+	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"io"
+	"net/http"
 )
 
 var _ = Describe("Client ServiceBroker", func() {
@@ -19,15 +20,14 @@ var _ = Describe("Client ServiceBroker", func() {
 
 	var (
 		client              *cf.PlatformClient
-		ccServer            *ghttp.Server
 		testBroker          *platform.ServiceBroker
 		ccResponseCode      int
 		ccResponse          interface{}
-		ccResponseErr       cfclient.CloudFoundryError
-		ccGlobalBroker      cfclient.ServiceBroker
-		ccSpaceScopedBroker cfclient.ServiceBroker
+		ccGlobalBroker      cf.CCServiceBroker
+		ccSpaceScopedBroker cf.CCServiceBroker
 		expectedRequest     interface{}
-		ctx                 context.Context
+		jobGUID             uuid.UUID
+		err                 error
 	)
 
 	assertBrokersFoundMatchTestBroker := func(expectedCount int, actualBrokers ...*platform.ServiceBroker) {
@@ -37,26 +37,11 @@ var _ = Describe("Client ServiceBroker", func() {
 		}
 	}
 
-	ccBrokersResponse := func(brokers ...cfclient.ServiceBroker) cfclient.ServiceBrokerResponse {
-		ccBrokersResources := make([]cfclient.ServiceBrokerResource, 0)
-		for _, broker := range brokers {
-			ccBrokersResources = append(ccBrokersResources, cfclient.ServiceBrokerResource{
-				Meta: cfclient.Meta{
-					Guid: broker.Guid,
-				},
-				Entity: broker,
-			})
-		}
-
-		return cfclient.ServiceBrokerResponse{
-			Count:     len(ccBrokersResources),
-			Pages:     1,
-			Resources: ccBrokersResources,
-		}
-	}
-
 	BeforeEach(func() {
 		ctx = context.TODO()
+		jobGUID, err = uuid.NewV4()
+
+		Expect(err).ShouldNot(HaveOccurred())
 
 		testBroker = &platform.ServiceBroker{
 			GUID:      "test-testBroker-guid",
@@ -64,23 +49,32 @@ var _ = Describe("Client ServiceBroker", func() {
 			BrokerURL: "http://example.com",
 		}
 
-		ccGlobalBroker = cfclient.ServiceBroker{
-			Guid:      testBroker.GUID,
-			Name:      testBroker.Name,
-			BrokerURL: testBroker.BrokerURL,
+		ccGlobalBroker = cf.CCServiceBroker{
+			GUID: testBroker.GUID,
+			Name: testBroker.Name,
+			URL:  testBroker.BrokerURL,
 		}
 
 		spaceScopedSuffix := "-space-scoped"
-		ccSpaceScopedBroker = cfclient.ServiceBroker{
-			Guid:      testBroker.GUID + spaceScopedSuffix,
-			Name:      testBroker.Name + spaceScopedSuffix,
-			BrokerURL: testBroker.BrokerURL + spaceScopedSuffix,
-			SpaceGUID: cfSpaceGUID,
+		ccSpaceScopedBroker = cf.CCServiceBroker{
+			GUID: testBroker.GUID + spaceScopedSuffix,
+			Name: testBroker.Name + spaceScopedSuffix,
+			URL:  testBroker.BrokerURL + spaceScopedSuffix,
+			Relationships: cf.CCBrokerRelationships{
+				Space: cf.CCRelationship{
+					Data: cf.CCData{
+						GUID: cfSpaceGUID,
+					},
+				},
+			},
 		}
 
-		ccServer = fakeCCServer(false)
+		parallelRequestsCounter = 0
+		maxAllowedParallelRequests = 3
+		JobPollTimeout = 2
 
-		_, client = ccClient(ccServer.URL())
+		ccServer = testhelper.FakeCCServer(false)
+		_, client = testhelper.CCClient(ccServer.URL())
 	})
 
 	AfterEach(func() {
@@ -92,42 +86,18 @@ var _ = Describe("Client ServiceBroker", func() {
 	})
 
 	Describe("GetBrokers", func() {
-		BeforeEach(func() {
-			ccServer.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v2/service_brokers"),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
-				),
-			)
-		})
-
 		Context("when an error status code is returned by CC", func() {
-			BeforeEach(func() {
-				ccResponseErr = cfclient.CloudFoundryError{
-					Code:        1009,
-					ErrorCode:   "err",
-					Description: "test err",
-				}
-				ccResponse = ccResponseErr
-
-				ccResponseCode = http.StatusInternalServerError
-			})
-
 			It("returns an error", func() {
+				setCCBrokersResponse(ccServer, nil)
 				_, err := client.GetBrokers(ctx)
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
-
 		})
 
 		Context("when no brokers are found in CC", func() {
-			BeforeEach(func() {
-				ccResponse = ccBrokersResponse()
-				ccResponseCode = http.StatusOK
-			})
-
 			It("returns an empty slice", func() {
+				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{})
 				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -142,7 +112,7 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns all of the brokers", func() {
-				ccResponse = ccBrokersResponse(ccGlobalBroker)
+				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
 				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -151,7 +121,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			Context("space-scoped broker exists", func() {
 				It("returns only the global brokers", func() {
-					ccResponse = ccBrokersResponse(ccGlobalBroker, ccSpaceScopedBroker)
+					setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker, &ccSpaceScopedBroker})
 					brokers, err := client.GetBrokers(ctx)
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -161,60 +131,90 @@ var _ = Describe("Client ServiceBroker", func() {
 		})
 	})
 
+	Describe("GetBroker", func() {
+		var brokerGUID string
+
+		BeforeEach(func() {
+			brokerGUID = testBroker.GUID
+		})
+
+		Context("when an error status code is returned by CC", func() {
+			It("returns an error", func() {
+				setCCGetBrokerResponse(ccServer, nil)
+				_, err := client.GetBroker(ctx, brokerGUID)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when a broker with the GUID does not exist in CC", func() {
+			It("returns an err", func() {
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{
+					{
+						GUID: "test-testBroker-guid-2",
+						Name: "test-testBroker-name-2",
+						URL:  "http://example2.com",
+					},
+				})
+				_, err := client.GetBroker(ctx, brokerGUID)
+
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).To(
+					ContainSubstring(
+						fmt.Sprintf("could not retrieve service broker with GUID %s", brokerGUID)))
+			})
+		})
+
+		Context("when a broker with the GUID exists in CC", func() {
+			It("returns the broker", func() {
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+				broker, err := client.GetBroker(ctx, brokerGUID)
+
+				Expect(err).ShouldNot(HaveOccurred())
+				assertBrokersFoundMatchTestBroker(1, broker)
+			})
+		})
+
+	})
+
 	Describe("GetBrokerByName", func() {
 		var brokerName string
 
 		BeforeEach(func() {
 			brokerName = testBroker.Name
-
-			ccServer.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/v2/service_brokers"),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
-				),
-			)
 		})
 
 		Context("when an error status code is returned by CC", func() {
-			BeforeEach(func() {
-				ccResponseErr = cfclient.CloudFoundryError{
-					Code:        1009,
-					ErrorCode:   "err",
-					Description: "test err",
-				}
-				ccResponse = ccResponseErr
-
-				ccResponseCode = http.StatusInternalServerError
-			})
-
 			It("returns an error", func() {
+				setCCBrokersResponse(ccServer, nil)
 				_, err := client.GetBrokerByName(ctx, brokerName)
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when a broker with the specified name does not exist in CC", func() {
-			BeforeEach(func() {
-				ccResponse = ccBrokersResponse()
-				ccResponseCode = http.StatusOK
-			})
-
 			It("returns an err", func() {
+				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{
+					{
+						GUID: "test-testBroker-guid-2",
+						Name: "test-testBroker-name-2",
+						URL:  "http://example2.com",
+					},
+				})
 				_, err := client.GetBrokerByName(ctx, brokerName)
 
 				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).To(
+					ContainSubstring(
+						fmt.Sprintf("could not retrieve service broker with name %s", brokerName)))
 			})
 		})
 
 		Context("when a broker with the specified name exists in CC", func() {
-			BeforeEach(func() {
-				ccResponseCode = http.StatusOK
-			})
-
 			Context("when the broker is global", func() {
 				It("returns the broker", func() {
-					ccResponse = ccBrokersResponse(ccGlobalBroker)
+					setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
 					broker, err := client.GetBrokerByName(ctx, brokerName)
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -224,12 +224,13 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			Context("when the broker is space-scoped", func() {
 				It("returns an error", func() {
-					ccResponse = ccBrokersResponse(ccSpaceScopedBroker)
+					setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccSpaceScopedBroker})
 					_, err := client.GetBrokerByName(ctx, ccSpaceScopedBroker.Name)
 
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal(fmt.Sprintf("service broker with name %s and GUID %s is scoped to a space with GUID %s",
-						ccSpaceScopedBroker.Name, ccSpaceScopedBroker.Guid, cfSpaceGUID)))
+					Expect(err.Error()).To(
+						Equal(fmt.Sprintf("service broker with name %s and GUID %s is scoped to a space with GUID %s",
+							ccSpaceScopedBroker.Name, ccSpaceScopedBroker.GUID, cfSpaceGUID)))
 				})
 			})
 		})
@@ -240,11 +241,16 @@ var _ = Describe("Client ServiceBroker", func() {
 		var actualRequest *platform.CreateServiceBrokerRequest
 
 		BeforeEach(func() {
-			expectedRequest = &cfclient.CreateServiceBrokerRequest{
-				Name:      testBroker.Name,
-				BrokerURL: testBroker.BrokerURL,
-				Username:  brokerUsername,
-				Password:  brokerPassword,
+			expectedRequest = &cf.CCSaveServiceBrokerRequest{
+				Name: testBroker.Name,
+				URL:  testBroker.BrokerURL,
+				Authentication: &cf.CCAuthentication{
+					Type: cf.AuthenticationType.BASIC,
+					Credentials: cf.CCCredentials{
+						Username: brokerUsername,
+						Password: brokerPassword,
+					},
+				},
 			}
 
 			actualRequest = &platform.CreateServiceBrokerRequest{
@@ -256,48 +262,38 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/v2/service_brokers"),
+					ghttp.VerifyRequest(http.MethodPost, "/v3/service_brokers"),
 					ghttp.VerifyJSONRepresenting(expectedRequest),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
+						"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
+					}),
 				),
 			)
 		})
 
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cfclient.CloudFoundryError{
-					Code:        1009,
-					ErrorCode:   "err",
-					Description: "test err",
-				}
-
-				ccResponse = ccResponseErr
+				ccResponse = fmt.Errorf("internal server error")
 				ccResponseCode = http.StatusInternalServerError
 			})
 
 			It("returns an error", func() {
 				_, err := client.CreateBroker(ctx, actualRequest)
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when the request is successful", func() {
 			BeforeEach(func() {
-				ccResponseCode = http.StatusCreated
-				ccResponse = cfclient.ServiceBrokerResource{
-					Meta: cfclient.Meta{
-						Guid: testBroker.GUID,
-					},
-					Entity: cfclient.ServiceBroker{
-						Name:      testBroker.Name,
-						BrokerURL: testBroker.BrokerURL,
-						Username:  brokerUsername,
-					},
-				}
+				ccResponseCode = http.StatusAccepted
+				ccResponse = nil
 			})
 
 			It("returns the created broker", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+
 				broker, err := client.CreateBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -317,58 +313,47 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/v2/service_brokers/"+testBroker.GUID),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
+					ghttp.VerifyRequest(http.MethodDelete, "/v3/service_brokers/"+testBroker.GUID),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
+						"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
+					}),
 				),
 			)
 		})
 
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cfclient.CloudFoundryError{
-					Code:        1009,
-					ErrorCode:   "err",
-					Description: "test err",
-				}
-
-				ccResponse = ccResponseErr
+				ccResponse = fmt.Errorf("internal server error")
 				ccResponseCode = http.StatusInternalServerError
 			})
 
 			It("returns an error", func() {
 				err := client.DeleteBroker(ctx, actualRequest)
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when the broker exists in CC", func() {
 			BeforeEach(func() {
-				ccResponseCode = http.StatusNoContent
+				ccResponseCode = http.StatusAccepted
 				ccResponse = nil
 			})
 
 			It("returns no error", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+
 				err := client.DeleteBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
 			})
-
 		})
-
 	})
 
 	Describe("UpdateBroker", func() {
 		var actualRequest *platform.UpdateServiceBrokerRequest
 
 		BeforeEach(func() {
-			expectedRequest = &cfclient.UpdateServiceBrokerRequest{
-				Name:      testBroker.Name,
-				BrokerURL: testBroker.BrokerURL,
-				Username:  brokerUsername,
-				Password:  brokerPassword,
-			}
-
 			actualRequest = &platform.UpdateServiceBrokerRequest{
 				GUID:      testBroker.GUID,
 				Name:      testBroker.Name,
@@ -379,54 +364,76 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("PUT", "/v2/service_brokers/"+testBroker.GUID),
+					ghttp.VerifyRequest(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID),
 					ghttp.VerifyJSONRepresenting(expectedRequest),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
+						"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
+					}),
 				),
 			)
 		})
 		Context("when an error status code is returned by CC", func() {
 			BeforeEach(func() {
-				ccResponseErr = cfclient.CloudFoundryError{
-					Code:        1009,
-					ErrorCode:   "err",
-					Description: "test err",
-				}
-
-				ccResponse = ccResponseErr
+				ccResponse = fmt.Errorf("internal server error")
 				ccResponseCode = http.StatusInternalServerError
 			})
 
 			It("returns an error", func() {
 				_, err := client.UpdateBroker(ctx, actualRequest)
 
-				assertCFError(err, ccResponseErr)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when the request is successful", func() {
-			BeforeEach(func() {
-				ccResponse = cfclient.ServiceBrokerResource{
-					Meta: cfclient.Meta{
-						Guid: testBroker.GUID,
-					},
-					Entity: cfclient.ServiceBroker{
-						Name:      testBroker.Name,
-						BrokerURL: testBroker.BrokerURL,
-						Username:  testBroker.Name,
-					},
-				}
 
-				ccResponseCode = http.StatusOK
+			BeforeEach(func() {
+				ccResponseCode = http.StatusAccepted
+				ccResponse = nil
 			})
 
-			It("returns the updated broker", func() {
+			It("returns the created broker", func() {
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+
 				broker, err := client.UpdateBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(broker).Should(Equal(testBroker))
+				Expect(broker).To(Equal(testBroker))
 			})
 		})
 
+		Context("when username or password wasn't provided", func() {
+			It("returns the created broker", func() {
+				request := &platform.UpdateServiceBrokerRequest{
+					Name:      testBroker.Name,
+					BrokerURL: testBroker.BrokerURL,
+					GUID:      testBroker.GUID,
+					Username:  "",
+					Password:  "",
+				}
+				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
+				ccServer.RouteToHandler(http.MethodGet, "/v3/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					writeJSONResponse(cf.CCServiceBroker{
+						Name: testBroker.Name,
+						GUID: testBroker.GUID,
+						URL:  testBroker.BrokerURL,
+					}, rw)
+				}))
+				ccServer.RouteToHandler(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					bytes, err := io.ReadAll(req.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(bytes)).ToNot(ContainSubstring("authentication"))
+
+					rw.Header().Set("Location", ccServer.URL()+"/v3/jobs/123")
+					rw.WriteHeader(http.StatusAccepted)
+				}))
+
+				broker, err := client.UpdateBroker(ctx, request)
+
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(broker).To(Equal(testBroker))
+			})
+		})
 	})
 })

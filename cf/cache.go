@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
 	"github.com/Peripli/service-manager/pkg/log"
@@ -16,31 +17,39 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 	logger := log.C(ctx)
 
 	query := url.Values{
-		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
+		CCQueryParams.PageSize: []string{strconv.Itoa(pc.settings.CF.PageSize)},
 	}
 
 	logger.Info("Loading all service brokers from Cloud Foundry...")
-	brokers, err := pc.client.ListServiceBrokersByQuery(query)
+	var brokers []platform.ServiceBroker
+	brokersResponse, err := pc.ListServiceBrokersByQuery(ctx, query)
 	if err != nil {
 		return err
+	}
+	for _, broker := range brokersResponse {
+		brokers = append(brokers, platform.ServiceBroker{
+			GUID:      broker.GUID,
+			Name:      broker.Name,
+			BrokerURL: broker.URL,
+		})
 	}
 	logger.Infof("Loaded %d service brokers from Cloud Foundry", len(brokers))
 
-	logger.Info("Loading all services from Cloud Foundry...")
-	services, err := pc.client.ListServicesByQuery(query)
+	logger.Info("Loading all service offerings from Cloud Foundry...")
+	serviceOfferings, err := pc.ListServiceOfferingsByQuery(ctx, query)
 	if err != nil {
 		return err
 	}
-	logger.Infof("Loaded %d services from Cloud Foundry", len(services))
+	logger.Infof("Loaded %d service offerings from Cloud Foundry", len(serviceOfferings))
 
 	logger.Info("Loading all service plans from Cloud Foundry...")
-	plans, err := pc.client.ListServicePlansByQuery(query)
+	plans, err := pc.ListServicePlansByQuery(ctx, query)
 	if err != nil {
 		return err
 	}
 	logger.Infof("Loaded %d service plans from Cloud Foundry...", len(plans))
 
-	pc.planResolver.Reset(ctx, brokers, services, plans)
+	pc.planResolver.Reset(ctx, brokers, serviceOfferings, plans)
 
 	return nil
 }
@@ -54,20 +63,26 @@ func (pc *PlatformClient) ResetBroker(ctx context.Context, broker *platform.Serv
 
 	logger := log.C(ctx)
 
-	logger.Infof("Loading services of broker with GUID %s from Cloud Foundry...", broker.GUID)
-	services, err := pc.client.ListServicesByQuery(
-		pc.buildQuery("service_broker_guid", broker.GUID))
+	logger.Infof("Loading service offerings of broker with GUID %s from Cloud Foundry...", broker.GUID)
+	serviceOfferings, err := pc.ListServiceOfferingsByQuery(ctx,
+		url.Values{
+			CCQueryParams.PageSize:           []string{strconv.Itoa(pc.settings.CF.PageSize)},
+			CCQueryParams.ServiceBrokerGuids: []string{broker.GUID},
+		})
 	if err != nil {
 		return err
 	}
 
-	serviceGUIDs := make([]string, len(services))
-	for i := range services {
-		serviceGUIDs[i] = services[i].Guid
+	serviceOfferingGUIDs := make([]string, len(serviceOfferings))
+	for i := range serviceOfferings {
+		serviceOfferingGUIDs[i] = serviceOfferings[i].GUID
 	}
-	logger.Infof("Loading plans of services with GUIDs %v from Cloud Foundry...", serviceGUIDs)
-	plans, err := pc.client.ListServicePlansByQuery(
-		pc.buildQuery("service_guid", serviceGUIDs...))
+	logger.Infof("Loading plans of service offerings with GUIDs %v from Cloud Foundry...", serviceOfferingGUIDs)
+	plans, err := pc.ListServicePlansByQuery(ctx,
+		url.Values{
+			CCQueryParams.PageSize:             []string{strconv.Itoa(pc.settings.CF.PageSize)},
+			CCQueryParams.ServiceOfferingGuids: []string{strings.Join(serviceOfferingGUIDs, ",")},
+		})
 	if err != nil {
 		return err
 	}

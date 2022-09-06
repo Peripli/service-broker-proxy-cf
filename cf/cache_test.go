@@ -18,7 +18,7 @@ import (
 var _ = Describe("Cache", func() {
 
 	type brokerData struct {
-		broker           cf.CCServiceBroker
+		broker           cf.ServiceBrokerResource
 		serviceOfferings []cf.CCServiceOffering
 		plans            []cf.CCServicePlan
 	}
@@ -43,9 +43,7 @@ var _ = Describe("Cache", func() {
 
 	setupCCRoutes := func(brokers ...brokerData) {
 		brokersResponse := cf.CCListServiceBrokersResponse{
-			Pagination: cf.CCPagination{
-				TotalPages: 1,
-			},
+			Count: 1,
 		}
 		serviceOfferingsResponse := cf.CCListServiceOfferingsResponse{Pagination: cf.CCPagination{TotalPages: 1}}
 		plansResponse := cf.CCListServicePlansResponse{Pagination: cf.CCPagination{TotalPages: 1}}
@@ -60,14 +58,14 @@ var _ = Describe("Cache", func() {
 			}
 		}
 
-		brokersResponse.Pagination.TotalResults = len(brokersResponse.Resources)
+		brokersResponse.Pages = len(brokersResponse.Resources)
 		serviceOfferingsResponse.Pagination.TotalResults = len(serviceOfferingsResponse.Resources)
 		plansResponse.Pagination.TotalResults = len(plansResponse.Resources)
 
 		visibilitiesRequestPath := regexp.MustCompile(`/v3/service_plans/(?P<guid>[A-Za-z0-9_-]+)/visibility`)
 		planIdExtractor := strings.NewReplacer("/v3/service_plans/", "", "/visibility", "")
 
-		ccServer.RouteToHandler(http.MethodGet, "/v3/service_brokers",
+		ccServer.RouteToHandler(http.MethodGet, "/v2/service_brokers",
 			ghttp.CombineHandlers(
 				recordRequest(&brokersRequest),
 				ghttp.RespondWithJSONEncoded(http.StatusOK, brokersResponse),
@@ -118,9 +116,14 @@ var _ = Describe("Cache", func() {
 
 	BeforeEach(func() {
 		broker1 = brokerData{
-			broker: cf.CCServiceBroker{
-				GUID: "broker1-guid",
-				Name: "broker1",
+			broker: cf.ServiceBrokerResource{
+				Meta: cf.Meta{
+					Guid: "broker1-guid",
+				},
+				Entity: cf.CCServiceBroker{
+					Guid: "broker1-guid",
+					Name: "broker1",
+				},
 			},
 			serviceOfferings: []cf.CCServiceOffering{
 				{
@@ -170,9 +173,14 @@ var _ = Describe("Cache", func() {
 			},
 		}
 		broker2 = brokerData{
-			broker: cf.CCServiceBroker{
-				GUID: "broker2-guid",
-				Name: "broker2",
+			broker: cf.ServiceBrokerResource{
+				Meta: cf.Meta{
+					Guid: "broker2-guid",
+				},
+				Entity: cf.CCServiceBroker{
+					Guid: "broker2-guid",
+					Name: "broker2",
+				},
 			},
 			serviceOfferings: []cf.CCServiceOffering{
 				{

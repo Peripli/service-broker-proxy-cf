@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("Service Plans", func() {
 	var (
-		generatedCFBrokers          []*cf.CCServiceBroker
+		generatedCFBrokers          []*cf.ServiceBrokerResource
 		generatedCFServiceOfferings map[string][]*cf.CCServiceOffering
 		generatedCFPlans            map[string][]*cf.CCServicePlan
 		client                      *cf.PlatformClient
@@ -24,7 +24,7 @@ var _ = Describe("Service Plans", func() {
 	}
 
 	createCCServer := func(
-		brokers []*cf.CCServiceBroker,
+		brokers []*cf.ServiceBrokerResource,
 		cfServiceOfferings map[string][]*cf.CCServiceOffering,
 		cfPlans map[string][]*cf.CCServicePlan,
 	) *ghttp.Server {

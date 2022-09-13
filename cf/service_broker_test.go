@@ -6,7 +6,6 @@ import (
 	"github.com/Peripli/service-broker-proxy-cf/cf"
 	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
 	"github.com/Peripli/service-broker-proxy/pkg/platform"
-	"github.com/gofrs/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -26,8 +25,6 @@ var _ = Describe("Client ServiceBroker", func() {
 		ccGlobalBroker      cf.CCServiceBroker
 		ccSpaceScopedBroker cf.CCServiceBroker
 		expectedRequest     interface{}
-		jobGUID             uuid.UUID
-		err                 error
 	)
 
 	assertBrokersFoundMatchTestBroker := func(expectedCount int, actualBrokers ...*platform.ServiceBroker) {
@@ -39,9 +36,6 @@ var _ = Describe("Client ServiceBroker", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
-		jobGUID, err = uuid.NewV4()
-
-		Expect(err).ShouldNot(HaveOccurred())
 
 		testBroker = &platform.ServiceBroker{
 			GUID:      "test-testBroker-guid",
@@ -50,28 +44,21 @@ var _ = Describe("Client ServiceBroker", func() {
 		}
 
 		ccGlobalBroker = cf.CCServiceBroker{
-			GUID: testBroker.GUID,
-			Name: testBroker.Name,
-			URL:  testBroker.BrokerURL,
+			Guid:      testBroker.GUID,
+			Name:      testBroker.Name,
+			BrokerURL: testBroker.BrokerURL,
 		}
 
 		spaceScopedSuffix := "-space-scoped"
 		ccSpaceScopedBroker = cf.CCServiceBroker{
-			GUID: testBroker.GUID + spaceScopedSuffix,
-			Name: testBroker.Name + spaceScopedSuffix,
-			URL:  testBroker.BrokerURL + spaceScopedSuffix,
-			Relationships: cf.CCBrokerRelationships{
-				Space: cf.CCRelationship{
-					Data: cf.CCData{
-						GUID: cfSpaceGUID,
-					},
-				},
-			},
+			Guid:      testBroker.GUID + spaceScopedSuffix,
+			Name:      testBroker.Name + spaceScopedSuffix,
+			BrokerURL: testBroker.BrokerURL + spaceScopedSuffix,
+			SpaceGUID: cfSpaceGUID,
 		}
 
 		parallelRequestsCounter = 0
 		maxAllowedParallelRequests = 3
-		JobPollTimeout = 2
 
 		ccServer = testhelper.FakeCCServer(false)
 		_, client = testhelper.CCClient(ccServer.URL())
@@ -97,7 +84,7 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when no brokers are found in CC", func() {
 			It("returns an empty slice", func() {
-				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{})
+				setCCBrokersResponse(ccServer, []*cf.ServiceBrokerResource{})
 				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -112,7 +99,14 @@ var _ = Describe("Client ServiceBroker", func() {
 			})
 
 			It("returns all of the brokers", func() {
-				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+				setCCBrokersResponse(ccServer, []*cf.ServiceBrokerResource{
+					{
+						Meta: cf.Meta{
+							Guid: ccGlobalBroker.Guid,
+						},
+						Entity: ccGlobalBroker,
+					},
+				})
 				brokers, err := client.GetBrokers(ctx)
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -121,7 +115,20 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			Context("space-scoped broker exists", func() {
 				It("returns only the global brokers", func() {
-					setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker, &ccSpaceScopedBroker})
+					setCCBrokersResponse(ccServer, []*cf.ServiceBrokerResource{
+						{
+							Meta: cf.Meta{
+								Guid: ccGlobalBroker.Guid,
+							},
+							Entity: ccGlobalBroker,
+						},
+						{
+							Meta: cf.Meta{
+								Guid: ccSpaceScopedBroker.Guid,
+							},
+							Entity: ccSpaceScopedBroker,
+						},
+					})
 					brokers, err := client.GetBrokers(ctx)
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -149,11 +156,16 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when a broker with the GUID does not exist in CC", func() {
 			It("returns an err", func() {
-				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{
+				setCCGetBrokerResponse(ccServer, []*cf.ServiceBrokerResource{
 					{
-						GUID: "test-testBroker-guid-2",
-						Name: "test-testBroker-name-2",
-						URL:  "http://example2.com",
+						Meta: cf.Meta{
+							Guid: "test-testBroker-guid-2",
+						},
+						Entity: cf.CCServiceBroker{
+							Guid:      "test-testBroker-guid-2",
+							Name:      "test-testBroker-name-2",
+							BrokerURL: "http://example2.com",
+						},
 					},
 				})
 				_, err := client.GetBroker(ctx, brokerGUID)
@@ -167,8 +179,15 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when a broker with the GUID exists in CC", func() {
 			It("returns the broker", func() {
-				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
-				broker, err := client.GetBroker(ctx, brokerGUID)
+				setCCGetBrokerResponse(ccServer, []*cf.ServiceBrokerResource{
+					{
+						Meta: cf.Meta{
+							Guid: ccGlobalBroker.Guid,
+						},
+						Entity: ccGlobalBroker,
+					},
+				})
+				broker, err := client.GetBroker(ctx, ccGlobalBroker.Guid)
 
 				Expect(err).ShouldNot(HaveOccurred())
 				assertBrokersFoundMatchTestBroker(1, broker)
@@ -195,11 +214,16 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when a broker with the specified name does not exist in CC", func() {
 			It("returns an err", func() {
-				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{
+				setCCBrokersResponse(ccServer, []*cf.ServiceBrokerResource{
 					{
-						GUID: "test-testBroker-guid-2",
-						Name: "test-testBroker-name-2",
-						URL:  "http://example2.com",
+						Meta: cf.Meta{
+							Guid: "test-testBroker-guid-2",
+						},
+						Entity: cf.CCServiceBroker{
+							Guid:      "test-testBroker-guid-2",
+							Name:      "test-testBroker-name-2",
+							BrokerURL: "http://example2.com",
+						},
 					},
 				})
 				_, err := client.GetBrokerByName(ctx, brokerName)
@@ -214,7 +238,14 @@ var _ = Describe("Client ServiceBroker", func() {
 		Context("when a broker with the specified name exists in CC", func() {
 			Context("when the broker is global", func() {
 				It("returns the broker", func() {
-					setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+					setCCBrokersResponse(ccServer, []*cf.ServiceBrokerResource{
+						{
+							Meta: cf.Meta{
+								Guid: ccGlobalBroker.Guid,
+							},
+							Entity: ccGlobalBroker,
+						},
+					})
 					broker, err := client.GetBrokerByName(ctx, brokerName)
 
 					Expect(err).ShouldNot(HaveOccurred())
@@ -224,13 +255,20 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			Context("when the broker is space-scoped", func() {
 				It("returns an error", func() {
-					setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccSpaceScopedBroker})
+					setCCBrokersResponse(ccServer, []*cf.ServiceBrokerResource{
+						{
+							Meta: cf.Meta{
+								Guid: ccSpaceScopedBroker.Guid,
+							},
+							Entity: ccSpaceScopedBroker,
+						},
+					})
 					_, err := client.GetBrokerByName(ctx, ccSpaceScopedBroker.Name)
 
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(
 						Equal(fmt.Sprintf("service broker with name %s and GUID %s is scoped to a space with GUID %s",
-							ccSpaceScopedBroker.Name, ccSpaceScopedBroker.GUID, cfSpaceGUID)))
+							ccSpaceScopedBroker.Name, ccSpaceScopedBroker.Guid, cfSpaceGUID)))
 				})
 			})
 		})
@@ -241,16 +279,11 @@ var _ = Describe("Client ServiceBroker", func() {
 		var actualRequest *platform.CreateServiceBrokerRequest
 
 		BeforeEach(func() {
-			expectedRequest = &cf.CCSaveServiceBrokerRequest{
-				Name: testBroker.Name,
-				URL:  testBroker.BrokerURL,
-				Authentication: &cf.CCAuthentication{
-					Type: cf.AuthenticationType.BASIC,
-					Credentials: cf.CCCredentials{
-						Username: brokerUsername,
-						Password: brokerPassword,
-					},
-				},
+			expectedRequest = &cf.CreateServiceBrokerRequest{
+				Name:      testBroker.Name,
+				BrokerURL: testBroker.BrokerURL,
+				Username:  brokerUsername,
+				Password:  brokerPassword,
 			}
 
 			actualRequest = &platform.CreateServiceBrokerRequest{
@@ -262,11 +295,9 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest(http.MethodPost, "/v3/service_brokers"),
+					ghttp.VerifyRequest(http.MethodPost, "/v2/service_brokers"),
 					ghttp.VerifyJSONRepresenting(expectedRequest),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
-						"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
-					}),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
 				),
 			)
 		})
@@ -286,13 +317,23 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when the request is successful", func() {
 			BeforeEach(func() {
-				ccResponseCode = http.StatusAccepted
+				ccResponseCode = http.StatusCreated
 				ccResponse = nil
 			})
 
 			It("returns the created broker", func() {
-				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				setCCBrokersResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+				ccServer.RouteToHandler(http.MethodPost, "/v2/service_brokers", parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					writeJSONResponse(cf.ServiceBrokerResource{
+						Meta: cf.Meta{
+							Guid: testBroker.GUID,
+						},
+						Entity: cf.CCServiceBroker{
+							Name:      testBroker.Name,
+							Guid:      testBroker.GUID,
+							BrokerURL: testBroker.BrokerURL,
+						},
+					}, rw)
+				}))
 
 				broker, err := client.CreateBroker(ctx, actualRequest)
 
@@ -313,10 +354,8 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest(http.MethodDelete, "/v3/service_brokers/"+testBroker.GUID),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
-						"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
-					}),
+					ghttp.VerifyRequest(http.MethodDelete, "/v2/service_brokers/"+testBroker.GUID),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
 				),
 			)
 		})
@@ -336,13 +375,11 @@ var _ = Describe("Client ServiceBroker", func() {
 
 		Context("when the broker exists in CC", func() {
 			BeforeEach(func() {
-				ccResponseCode = http.StatusAccepted
+				ccResponseCode = http.StatusNoContent
 				ccResponse = nil
 			})
 
 			It("returns no error", func() {
-				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-
 				err := client.DeleteBroker(ctx, actualRequest)
 
 				Expect(err).ShouldNot(HaveOccurred())
@@ -364,11 +401,9 @@ var _ = Describe("Client ServiceBroker", func() {
 
 			ccServer.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID),
+					ghttp.VerifyRequest(http.MethodPut, "/v2/service_brokers/"+testBroker.GUID),
 					ghttp.VerifyJSONRepresenting(expectedRequest),
-					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
-						"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
-					}),
+					ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
 				),
 			)
 		})
@@ -388,13 +423,23 @@ var _ = Describe("Client ServiceBroker", func() {
 		Context("when the request is successful", func() {
 
 			BeforeEach(func() {
-				ccResponseCode = http.StatusAccepted
+				ccResponseCode = http.StatusOK
 				ccResponse = nil
 			})
 
 			It("returns the created broker", func() {
-				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{&ccGlobalBroker})
+				ccServer.RouteToHandler(http.MethodPut, "/v2/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					writeJSONResponse(cf.ServiceBrokerResource{
+						Meta: cf.Meta{
+							Guid: testBroker.GUID,
+						},
+						Entity: cf.CCServiceBroker{
+							Name:      testBroker.Name,
+							Guid:      testBroker.GUID,
+							BrokerURL: testBroker.BrokerURL,
+						},
+					}, rw)
+				}))
 
 				broker, err := client.UpdateBroker(ctx, actualRequest)
 
@@ -413,20 +458,34 @@ var _ = Describe("Client ServiceBroker", func() {
 					Password:  "",
 				}
 				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				ccServer.RouteToHandler(http.MethodGet, "/v3/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
-					writeJSONResponse(cf.CCServiceBroker{
-						Name: testBroker.Name,
-						GUID: testBroker.GUID,
-						URL:  testBroker.BrokerURL,
+				ccServer.RouteToHandler(http.MethodGet, "/v2/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+					writeJSONResponse(cf.ServiceBrokerResource{
+						Meta: cf.Meta{
+							Guid: testBroker.GUID,
+						},
+						Entity: cf.CCServiceBroker{
+							Name:      testBroker.Name,
+							Guid:      testBroker.GUID,
+							BrokerURL: testBroker.BrokerURL,
+						},
 					}, rw)
 				}))
-				ccServer.RouteToHandler(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
+				ccServer.RouteToHandler(http.MethodPut, "/v2/service_brokers/"+testBroker.GUID, parallelRequestsChecker(func(rw http.ResponseWriter, req *http.Request) {
 					bytes, err := io.ReadAll(req.Body)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(bytes)).ToNot(ContainSubstring("authentication"))
+					Expect(string(bytes)).ToNot(ContainSubstring("username"))
+					Expect(string(bytes)).ToNot(ContainSubstring("password"))
 
-					rw.Header().Set("Location", ccServer.URL()+"/v3/jobs/123")
-					rw.WriteHeader(http.StatusAccepted)
+					writeJSONResponse(cf.ServiceBrokerResource{
+						Meta: cf.Meta{
+							Guid: testBroker.GUID,
+						},
+						Entity: cf.CCServiceBroker{
+							Name:      testBroker.Name,
+							Guid:      testBroker.GUID,
+							BrokerURL: testBroker.BrokerURL,
+						},
+					}, rw)
 				}))
 
 				broker, err := client.UpdateBroker(ctx, request)

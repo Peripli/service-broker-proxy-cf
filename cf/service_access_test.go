@@ -20,7 +20,7 @@ import (
 var _ = Describe("Client Service Plan Access", func() {
 	var (
 		generatedCFOrganizations    []*cf.CCOrganization
-		generatedCFBrokers          []*cf.CCServiceBroker
+		generatedCFBrokers          []*cf.ServiceBrokerResource
 		generatedCFServiceOfferings map[string][]*cf.CCServiceOffering
 		generatedCFPlans            map[string][]*cf.CCServicePlan
 		generatedCFVisibilities     map[string]*cf.ServicePlanVisibilitiesResponse
@@ -29,7 +29,7 @@ var _ = Describe("Client Service Plan Access", func() {
 
 	createCCServer := func(
 		organizations []*cf.CCOrganization,
-		brokers []*cf.CCServiceBroker,
+		brokers []*cf.ServiceBrokerResource,
 		cfServiceOfferings map[string][]*cf.CCServiceOffering,
 		cfPlans map[string][]*cf.CCServicePlan,
 		cfVisibilities map[string]*cf.ServicePlanVisibilitiesResponse,
@@ -106,7 +106,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				Expect(err).To(MatchError(MatchRegexp("Modify plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {
-				brokerName := generatedCFBrokers[0].Name
+				brokerName := generatedCFBrokers[0].Entity.Name
 				catalogPlanId := "not_existing_plan"
 				request := platform.ModifyPlanAccessRequest{
 					BrokerName:    brokerName,
@@ -119,23 +119,23 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 			It("should return error if plan is public", func() {
 				broker := generatedCFBrokers[0]
-				publicPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.PUBLIC)[0]
+				publicPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.PUBLIC)[0]
 				request := platform.ModifyPlanAccessRequest{
-					BrokerName:    broker.Name,
+					BrokerName:    broker.Entity.Name,
 					CatalogPlanID: publicPlan.BrokerCatalog.ID,
 					Labels:        types.Labels{},
 				}
 
 				err := enableAccessForPlan(ctx, &request)
 				Expect(err).To(MatchError(
-					MatchRegexp(fmt.Sprintf("Plan with catalog id %s from service broker %s is already public", publicPlan.BrokerCatalog.ID, broker.Name))))
+					MatchRegexp(fmt.Sprintf("Plan with catalog id %s from service broker %s is already public", publicPlan.BrokerCatalog.ID, broker.Entity.Name))))
 			})
 			It("should return update error if only one organization was provided", func() {
 				notExistingOrgGuid := "not_existing_org"
 				broker := generatedCFBrokers[0]
-				organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+				organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 				request := platform.ModifyPlanAccessRequest{
-					BrokerName:    broker.Name,
+					BrokerName:    broker.Entity.Name,
 					CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 					Labels:        types.Labels{"organization_guid": []string{notExistingOrgGuid}},
 				}
@@ -151,9 +151,9 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when AddOrganizationVisibilities successful", func() {
 				It("should add visibility for these organizations", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
@@ -168,9 +168,9 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesUpdateResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
@@ -188,9 +188,9 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCGetOrganizationsResponse(ccServer, orgs)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
@@ -215,9 +215,9 @@ var _ = Describe("Client Service Plan Access", func() {
 					}))
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
@@ -249,7 +249,7 @@ var _ = Describe("Client Service Plan Access", func() {
 					}))
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 
 					var orgGuids []string
 					for i := 0; i < cf.GetOrganizationsChunkSize+1; i++ {
@@ -258,7 +258,7 @@ var _ = Describe("Client Service Plan Access", func() {
 						orgGuids = append(orgGuids, UUID.String())
 					}
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": orgGuids},
 					}
@@ -273,9 +273,9 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when UpdateServicePlanVisibility successful", func() {
 				It("should update plan visibility to Public", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{},
 					}
@@ -290,9 +290,9 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesUpdateResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{},
 					}
@@ -317,7 +317,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				Expect(err).To(MatchError(MatchRegexp("Modify plan access request cannot be nil")))
 			})
 			It("should return error if plan not found", func() {
-				brokerName := generatedCFBrokers[0].Name
+				brokerName := generatedCFBrokers[0].Entity.Name
 				catalogPlanId := "not_existing_plan"
 				request := platform.ModifyPlanAccessRequest{
 					BrokerName:    brokerName,
@@ -330,9 +330,9 @@ var _ = Describe("Client Service Plan Access", func() {
 			})
 			It("should return an error if the plan is public and organizations were provided", func() {
 				broker := generatedCFBrokers[0]
-				publicPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.PUBLIC)[0]
+				publicPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.PUBLIC)[0]
 				request := platform.ModifyPlanAccessRequest{
-					BrokerName:    broker.Name,
+					BrokerName:    broker.Entity.Name,
 					CatalogPlanID: publicPlan.BrokerCatalog.ID,
 					Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 				}
@@ -340,7 +340,7 @@ var _ = Describe("Client Service Plan Access", func() {
 				err := disableAccessForPlan(ctx, &request)
 				Expect(err).To(MatchError(
 					MatchRegexp(fmt.Sprintf("Cannot disable plan access for orgs. Plan with catalog id %s from service broker %s is public",
-						publicPlan.BrokerCatalog.ID, broker.Name))))
+						publicPlan.BrokerCatalog.ID, broker.Entity.Name))))
 			})
 		})
 
@@ -348,9 +348,9 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when DeleteOrganizationVisibilities successful", func() {
 				It("should remove visibility for these organizations", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}},
 					}
@@ -365,10 +365,10 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesDeleteResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					organizationGuids := []string{generatedCFOrganizations[0].GUID, generatedCFOrganizations[1].GUID}
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{"organization_guid": organizationGuids},
 					}
@@ -386,9 +386,9 @@ var _ = Describe("Client Service Plan Access", func() {
 			Context("when ReplaceOrganizationVisibilities successful", func() {
 				It("should remove all organizations from visibility of this plan", func() {
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{},
 					}
@@ -404,9 +404,9 @@ var _ = Describe("Client Service Plan Access", func() {
 					setCCVisibilitiesDeleteResponse(ccServer, generatedCFPlans, true)
 
 					broker := generatedCFBrokers[0]
-					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.GUID][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
+					organizationPlan := filterPlans(generatedCFPlans[generatedCFServiceOfferings[broker.Entity.Guid][0].GUID], cf.VisibilityType.ORGANIZATION)[0]
 					request := platform.ModifyPlanAccessRequest{
-						BrokerName:    broker.Name,
+						BrokerName:    broker.Entity.Name,
 						CatalogPlanID: organizationPlan.BrokerCatalog.ID,
 						Labels:        types.Labels{},
 					}

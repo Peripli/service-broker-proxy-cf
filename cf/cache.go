@@ -22,15 +22,17 @@ func (pc *PlatformClient) ResetCache(ctx context.Context) error {
 
 	logger.Info("Loading all service brokers from Cloud Foundry...")
 	var brokers []platform.ServiceBroker
-	brokersResponse, err := pc.ListServiceBrokersByQuery(ctx, query)
+	brokersResponse, err := pc.ListServiceBrokersByQuery(ctx, url.Values{
+		cfPageSizeParam: []string{strconv.Itoa(pc.settings.CF.PageSize)},
+	})
 	if err != nil {
 		return err
 	}
 	for _, broker := range brokersResponse {
 		brokers = append(brokers, platform.ServiceBroker{
-			GUID:      broker.GUID,
+			GUID:      broker.Guid,
 			Name:      broker.Name,
-			BrokerURL: broker.URL,
+			BrokerURL: broker.BrokerURL,
 		})
 	}
 	logger.Infof("Loaded %d service brokers from Cloud Foundry", len(brokers))

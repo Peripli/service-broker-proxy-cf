@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/Peripli/service-broker-proxy-cf/cf/internal"
-	"github.com/gofrs/uuid"
 	"net/http"
 
 	"github.com/Peripli/service-broker-proxy-cf/cf"
@@ -27,14 +26,10 @@ var _ = Describe("Client FetchCatalog", func() {
 		ccResponse      interface{}
 		expectedRequest interface{}
 		err             error
-		jobGUID         uuid.UUID
 	)
 
 	BeforeEach(func() {
 		ctx = context.TODO()
-		jobGUID, err = uuid.NewV4()
-
-		Expect(err).ShouldNot(HaveOccurred())
 
 		testBroker = &platform.ServiceBroker{
 			GUID:      "test-testBroker-guid",
@@ -49,25 +44,18 @@ var _ = Describe("Client FetchCatalog", func() {
 		ccServer = testhelper.FakeCCServer(false)
 		_, client = testhelper.CCClient(ccServer.URL())
 
-		expectedRequest = &cf.CCSaveServiceBrokerRequest{
-			Name: testBroker.Name,
-			URL:  testBroker.BrokerURL,
-			Authentication: &cf.CCAuthentication{
-				Type: cf.AuthenticationType.BASIC,
-				Credentials: cf.CCCredentials{
-					Username: brokerUsername,
-					Password: brokerPassword,
-				},
-			},
+		expectedRequest = &cf.UpdateServiceBrokerRequest{
+			Name:      testBroker.Name,
+			BrokerURL: testBroker.BrokerURL,
+			Username:  brokerUsername,
+			Password:  brokerPassword,
 		}
 
 		ccServer.AppendHandlers(
 			ghttp.CombineHandlers(
-				ghttp.VerifyRequest(http.MethodPatch, "/v3/service_brokers/"+testBroker.GUID),
+				ghttp.VerifyRequest(http.MethodPut, "/v2/service_brokers/"+testBroker.GUID),
 				ghttp.VerifyJSONRepresenting(expectedRequest),
-				ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse, http.Header{
-					"Location": {fmt.Sprintf("/v3/jobs/%s", jobGUID.String())},
-				}),
+				ghttp.RespondWithJSONEncodedPtr(&ccResponseCode, &ccResponse),
 			),
 		)
 	})
@@ -83,16 +71,21 @@ var _ = Describe("Client FetchCatalog", func() {
 	Describe("Fetch", func() {
 		Context("when the call to UpdateBroker is successful", func() {
 			BeforeEach(func() {
-				ccResponseCode = http.StatusAccepted
+				ccResponseCode = http.StatusOK
 				ccResponse = nil
 			})
 
 			It("returns no error", func() {
 				setCCJobResponse(ccServer, false, cf.JobState.COMPLETE)
-				setCCGetBrokerResponse(ccServer, []*cf.CCServiceBroker{{
-					GUID: testBroker.GUID,
-					Name: testBroker.Name,
-					URL:  testBroker.BrokerURL,
+				setCCGetBrokerResponse(ccServer, []*cf.ServiceBrokerResource{{
+					Meta: cf.Meta{
+						Guid: testBroker.GUID,
+					},
+					Entity: cf.CCServiceBroker{
+						Guid:      testBroker.GUID,
+						Name:      testBroker.Name,
+						BrokerURL: testBroker.BrokerURL,
+					},
 				}})
 
 				err = client.Fetch(ctx, &platform.UpdateServiceBrokerRequest{

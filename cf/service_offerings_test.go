@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("Service Offerings", func() {
 	var (
-		generatedCFBrokers          []*cf.CCServiceBroker
+		generatedCFBrokers          []*cf.ServiceBrokerResource
 		generatedCFServiceOfferings map[string][]*cf.CCServiceOffering
 		client                      *cf.PlatformClient
 	)
@@ -23,7 +23,7 @@ var _ = Describe("Service Offerings", func() {
 	}
 
 	createCCServer := func(
-		brokers []*cf.CCServiceBroker,
+		brokers []*cf.ServiceBrokerResource,
 		cfServiceOfferings map[string][]*cf.CCServiceOffering,
 	) *ghttp.Server {
 		server := testhelper.FakeCCServer(false)

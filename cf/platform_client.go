@@ -60,7 +60,7 @@ type CCPagination struct {
 	First        CCLinkObject `json:"first"`
 	Last         CCLinkObject `json:"last"`
 	Next         CCLinkObject `json:"next"`
-	Previous     string       `json:"previous"`
+	Previous     CCLinkObject `json:"previous"`
 }
 
 // CCError is the error object of CF CC V3

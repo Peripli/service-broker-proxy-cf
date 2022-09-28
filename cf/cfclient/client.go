@@ -169,9 +169,14 @@ func DefaultConfig() *Config {
 
 // NewRequest is used to create a new Request
 func (c *Client) NewRequest(method, path string) *Request {
+	requestUrl := path
+	if !strings.HasPrefix(path, "http") {
+		requestUrl = c.Config.ApiAddress + path
+	}
+
 	r := &Request{
 		method: method,
-		url:    c.Config.ApiAddress + path,
+		url:    requestUrl,
 		params: make(map[string][]string),
 	}
 	return r

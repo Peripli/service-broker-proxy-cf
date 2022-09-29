@@ -44,15 +44,16 @@ type CCListServicePlansResponse struct {
 
 func (pc *PlatformClient) ListServicePlansByQuery(ctx context.Context, query url.Values) ([]ServicePlan, error) {
 	var servicePlans []ServicePlan
-	var servicePlansResponse CCListServicePlansResponse
-	request := PlatformClientRequest{
-		CTX:          ctx,
-		URL:          "/v3/service_plans?" + query.Encode(),
-		Method:       http.MethodGet,
-		ResponseBody: &servicePlansResponse,
-	}
 
+	requestUrl := "/v3/service_plans?" + query.Encode()
 	for {
+		var servicePlansResponse CCListServicePlansResponse
+		request := PlatformClientRequest{
+			CTX:          ctx,
+			URL:          requestUrl,
+			Method:       http.MethodGet,
+			ResponseBody: &servicePlansResponse,
+		}
 		_, err := pc.MakeRequest(request)
 		if err != nil {
 			return []ServicePlan{}, errors.Wrap(err, "Error requesting service plans")
@@ -68,8 +69,8 @@ func (pc *PlatformClient) ListServicePlansByQuery(ctx context.Context, query url
 			})
 		}
 
-		request.URL = servicePlansResponse.Pagination.Next.Href
-		if request.URL == "" {
+		requestUrl = servicePlansResponse.Pagination.Next.Href
+		if requestUrl == "" {
 			break
 		}
 	}

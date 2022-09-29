@@ -280,23 +280,24 @@ func (pc *PlatformClient) UpdateBroker(ctx context.Context, r *platform.UpdateSe
 
 func (pc *PlatformClient) ListServiceBrokersByQuery(ctx context.Context, query url.Values) ([]CCServiceBroker, error) {
 	var serviceBrokers []CCServiceBroker
-	var serviceBrokersResponse CCListServiceBrokersResponse
-	request := PlatformClientRequest{
-		CTX:          ctx,
-		URL:          "/v3/service_brokers?" + query.Encode(),
-		Method:       http.MethodGet,
-		ResponseBody: &serviceBrokersResponse,
-	}
 
+	requestUrl := "/v3/service_brokers?" + query.Encode()
 	for {
+		var serviceBrokersResponse CCListServiceBrokersResponse
+		request := PlatformClientRequest{
+			CTX:          ctx,
+			URL:          requestUrl,
+			Method:       http.MethodGet,
+			ResponseBody: &serviceBrokersResponse,
+		}
 		_, err := pc.MakeRequest(request)
 		if err != nil {
 			return []CCServiceBroker{}, err
 		}
 
 		serviceBrokers = append(serviceBrokers, serviceBrokersResponse.Resources...)
-		request.URL = serviceBrokersResponse.Pagination.Next.Href
-		if request.URL == "" {
+		requestUrl = serviceBrokersResponse.Pagination.Next.Href
+		if requestUrl == "" {
 			break
 		}
 	}

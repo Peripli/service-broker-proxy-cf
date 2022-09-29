@@ -35,15 +35,15 @@ type CCListServiceOfferingsResponse struct {
 
 func (pc *PlatformClient) ListServiceOfferingsByQuery(ctx context.Context, query url.Values) ([]ServiceOffering, error) {
 	var serviceOfferings []ServiceOffering
-	var serviceOfferingsResponse CCListServiceOfferingsResponse
-	request := PlatformClientRequest{
-		CTX:          ctx,
-		URL:          "/v3/service_offerings?" + query.Encode(),
-		Method:       http.MethodGet,
-		ResponseBody: &serviceOfferingsResponse,
-	}
 
 	for {
+		var serviceOfferingsResponse CCListServiceOfferingsResponse
+		request := PlatformClientRequest{
+			CTX:          ctx,
+			URL:          "/v3/service_offerings?" + query.Encode(),
+			Method:       http.MethodGet,
+			ResponseBody: &serviceOfferingsResponse,
+		}
 		_, err := pc.MakeRequest(request)
 		if err != nil {
 			return []ServiceOffering{}, errors.Wrap(err, "Error requesting service offerings")

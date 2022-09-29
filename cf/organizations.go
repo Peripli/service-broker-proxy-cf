@@ -22,15 +22,15 @@ type CCListOrganizationsResponse struct {
 
 func (pc *PlatformClient) ListOrganizationsByQuery(ctx context.Context, query url.Values) ([]CCOrganization, error) {
 	var organizations []CCOrganization
-	var organizationsResponse CCListOrganizationsResponse
-	request := PlatformClientRequest{
-		CTX:          ctx,
-		URL:          "/v3/organizations?" + query.Encode(),
-		Method:       http.MethodGet,
-		ResponseBody: &organizationsResponse,
-	}
 
 	for {
+		var organizationsResponse CCListOrganizationsResponse
+		request := PlatformClientRequest{
+			CTX:          ctx,
+			URL:          "/v3/organizations?" + query.Encode(),
+			Method:       http.MethodGet,
+			ResponseBody: &organizationsResponse,
+		}
 		_, err := pc.MakeRequest(request)
 		if err != nil {
 			return []CCOrganization{}, errors.Wrap(err, "Error requesting organizations")

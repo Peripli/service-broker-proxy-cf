@@ -2,11 +2,9 @@ package cf
 
 import (
 	"context"
-	"github.com/Peripli/service-manager/pkg/log"
+	"github.com/pkg/errors"
 	"net/http"
 	"net/url"
-
-	"github.com/pkg/errors"
 )
 
 // ServicePlan object
@@ -44,17 +42,17 @@ type CCListServicePlansResponse struct {
 }
 
 func (pc *PlatformClient) ListServicePlansByQuery(ctx context.Context, query url.Values) ([]ServicePlan, error) {
-	logger := log.C(ctx)
 	var servicePlans []ServicePlan
-	var servicePlansResponse CCListServicePlansResponse
-	request := PlatformClientRequest{
-		CTX:          ctx,
-		URL:          "/v3/service_plans?" + query.Encode(),
-		Method:       http.MethodGet,
-		ResponseBody: &servicePlansResponse,
-	}
 
 	for {
+		var servicePlansResponse CCListServicePlansResponse
+		request := PlatformClientRequest{
+			CTX:          ctx,
+			URL:          "/v3/service_plans?" + query.Encode(),
+			Method:       http.MethodGet,
+			ResponseBody: &servicePlansResponse,
+		}
+
 		_, err := pc.MakeRequest(request)
 		if err != nil {
 			return []ServicePlan{}, errors.Wrap(err, "Error requesting service plans")
@@ -70,18 +68,10 @@ func (pc *PlatformClient) ListServicePlansByQuery(ctx context.Context, query url
 			})
 		}
 
-		prev := request.URL
 		request.URL = servicePlansResponse.Pagination.Next.Href
 		if request.URL == "" {
-			logger.Infof("finish pagination. Last request: %s", prev)
 			break
 		}
-
-		pagination := servicePlansResponse.Pagination
-		logger.Infof("requesting next page for service plans. Next: %s, Prev: %s, Total pages: %d",
-			pagination.Next.Href,
-			pagination.Previous.Href,
-			pagination.TotalPages)
 	}
 
 	return servicePlans, nil

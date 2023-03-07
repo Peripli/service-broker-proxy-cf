@@ -16,6 +16,6 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/yudai/gojsondiff v1.0.0 // indirect
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c
 )
